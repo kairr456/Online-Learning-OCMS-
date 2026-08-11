@@ -16,6 +16,18 @@ public class Cart {
     private Date createdDate;
     private Date modifiedDate;
 
+    public Cart(Integer id, Integer accountId, Date createdDate, Date modifiedDate) {
+        this.id = id;
+        this.accountId = accountId;
+        this.createdDate = createdDate;
+        this.modifiedDate = modifiedDate;
+    }
+
+    public Cart() {
+    }
+    
+    
+    
     public Integer getId() {
         return id;
     }
