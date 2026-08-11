@@ -1,49 +1,67 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | OCMS</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Sign in · OCMS</title>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
 </head>
 <body>
-<div class="page-shell">
-    <header class="hero">
-        <nav class="top-nav">
-            <div class="brand">OCMS</div>
-            <div class="nav-links">
-                <a href="index.html">Home</a>
-                <a href="#">Courses</a>
-            </div>
-        </nav>
-        <div class="hero-content">
-            <h1>Login to your account</h1>
-            <p>Enter your credentials to access your dashboard and course progress.</p>
+
+<div class="auth-screen">
+
+    <!-- Brand panel -->
+    <div class="auth-brand">
+        <div class="auth-brand__mark"><span class="dot"></span>OCMS</div>
+        <div class="auth-brand__body">
+            <h1>Welcome back to your control center.</h1>
+            <p>Sign in to manage accounts, review activity, and keep everything on track.</p>
         </div>
-    </header>
+        <div class="auth-brand__foot">SECURE ACCESS · SESSION-BASED AUTH</div>
+    </div>
 
-    <main class="features">
-        <section class="login-card">
-            <h2>Sign In</h2>
-            <c:if test="${not empty error}">
-                <div class="alert error">${error}</div>
-            </c:if>
-            <form action="authen?action=login" method="post" class="login-form">
-                <label for="username">Username</label>
-                <input id="username" name="username" type="text" placeholder="Username">
+    <!-- Form panel -->
+    <div class="auth-panel">
+        <div class="auth-card">
+            <p class="auth-card__eyebrow">Account</p>
+            <h2>Sign in</h2>
+            <p class="auth-card__sub">Enter your credentials to continue.</p>
 
-                <label for="password">Password</label>
-                <input id="password" name="password" type="password" placeholder="Password">
-
-                <button type="submit" class="btn primary">Sign In</button>
-            </form>
-            <div class="login-footer">
-                <p>Use <strong>admin/password123</strong> or <strong>student/student123</strong></p>
+            <% if (request.getAttribute("errorMessage") != null) { %>
+            <div class="auth-error">
+                <span>&#9888;</span>
+                <span><%= request.getAttribute("errorMessage") %></span>
             </div>
-        </section>
-    </main>
+            <% } %>
+
+            <form id="loginForm" method="post" action="login">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="e.g. jane.doe" required autofocus>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+
+                <div class="field-row">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="remember"> Remember me
+                    </label>
+                    <button type="button" data-toggle-password aria-pressed="false" style="background:none;border:none;color:var(--slate-600);cursor:pointer;font-size:13px;">Show</button>
+                </div>
+
+                <button type="submit" class="btn-primary">Sign in</button>
+            </form>
+
+            <p class="auth-footnote">Trouble signing in? Contact your administrator.</p>
+        </div>
+    </div>
+
 </div>
+
+<script src="../../assets/js/app.js"></script>
 </body>
 </html>

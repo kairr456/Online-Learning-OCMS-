@@ -18,7 +18,7 @@ public class LoginController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Forward to the login page when the user requests it via GET
-        request.getRequestDispatcher("/view/common/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/authen/login.jsp").forward(request, response);
     }
 
     @Override
@@ -37,11 +37,11 @@ public class LoginController extends HttpServlet {
             // Login successful: Create session and redirect to homepage or dashboard
             HttpSession session = request.getSession();
             session.setAttribute("currentAccount", account);
-            response.sendRedirect("view/common/dashboard.jsp"); 
+            response.sendRedirect("view/admin/dashboard.jsp"); 
         } else {
             // Login failed: Set error message and forward back to login page
             request.setAttribute("errorMessage", "Invalid username or password!");
-            request.getRequestDispatcher("/view/common/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/authen/login.jsp").forward(request, response);
         }
     }
 }
