@@ -34,10 +34,23 @@ public class LoginController extends HttpServlet {
         Account account = accountDAO.login(user, pass);
         
         if (account != null) {
-            // Login successful: Create session and redirect to homepage or dashboard
+            // Login successful: Create session
             HttpSession session = request.getSession();
             session.setAttribute("currentAccount", account);
-            response.sendRedirect("view/admin/dashboard.jsp"); 
+
+            String contextPath = request.getContextPath();
+            int roleId = account.getRoleId();
+
+            if (roleId == 1) {
+                // Admin -> dashboard
+                response.sendRedirect(contextPath + "/view/admin/dashboard.jsp");
+            } else if (roleId == 2 || roleId == 3) {
+                // Teacher or Student -> homepage
+                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+            } else {
+                // Unrecognized role: fall back to homepage rather than dead-end
+                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+            }
         } else {
             // Login failed: Set error message and forward back to login page
             request.setAttribute("errorMessage", "Invalid username or password!");
