@@ -32,8 +32,8 @@ public class CartController extends HttpServlet {
     private CourseDAO courseDAO;
     private RegistrationDAO registrationDAO;
 
-    private static final String CART_JSP = "view/homepage/cart.jsp";
-    private static final String CHECKOUT_JSP = "view/homepage/checkout.jsp";
+    private static final String CART_JSP = "view/addcart/cart.jsp";
+    private static final String CHECKOUT_JSP = "view/common/home/checkout.jsp";
 
     @Override
     public void init() throws ServletException {
