@@ -164,11 +164,13 @@
 
 .login-brand {
     display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    margin-bottom: 30px;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  flex-shrink: 0;
 }
 
 
