@@ -66,7 +66,7 @@ public class LoginController extends HttpServlet {
 
             if (roleId == 1) {
                 // Admin -> dashboard
-                response.sendRedirect(contextPath + "/view/admin/dashboard.jsp");
+                response.sendRedirect(contextPath + "/view/admin/common/admin_layout.jsp");
             } else if (roleId == 2 || roleId == 3) {
                 // Teacher or Student -> homepage
                 response.sendRedirect(contextPath + "/view/common/homepage.jsp");
