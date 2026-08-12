@@ -14,7 +14,7 @@ public class AccountDAO extends DBContext {
             statement.setString(1, username);
             statement.setString(2, password);
             resultSet = statement.executeQuery();
-            
+
             if (resultSet.next()) {
                 Account account = new Account();
                 account.setId(resultSet.getInt("id"));
@@ -27,7 +27,7 @@ public class AccountDAO extends DBContext {
                 account.setAvatar(resultSet.getString("avatar"));
                 account.setActive(resultSet.getBoolean("is_active"));
                 account.setRoleId(resultSet.getInt("role_id"));
-                
+
                 return account;
             }
         } catch (SQLException ex) {

@@ -4,6 +4,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Page</title>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css">
     </head>
     <body>
 
