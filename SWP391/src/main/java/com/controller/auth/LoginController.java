@@ -1,4 +1,4 @@
-package com.controller;
+package com.controller.auth;
 
 import com.DAO.AccountDAO;
 import com.entity.Account;
