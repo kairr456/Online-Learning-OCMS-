@@ -175,36 +175,24 @@
 
 
 .login-brand__icon {
-    width: 42px;
-    height: 42px;
-
-    display: grid;
-    place-items: center;
-
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(155deg, var(--amber) 0%, var(--amber-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-
-    border-radius: 12px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--amber, #d8a24a),
-            #b9782c
-        );
-
-    color: var(--ink-900, #10151c);
-
-    font-family:
-        var(--font-display, Georgia, serif);
-
-    font-size: 22px;
-
-    font-weight: 800;
-
-    box-shadow:
-        0 8px 20px rgba(216, 162, 74, 0.22);
 }
 
+.login-brand__icon .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--ink-900);
+    transform: rotate(45deg);
+    display: inline-block;
+}
 
 .login-brand__name {
     display: block;

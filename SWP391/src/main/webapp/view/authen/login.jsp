@@ -27,7 +27,9 @@
 
         <!-- Brand -->
         <div class="login-brand">
-            <div class="login-brand__icon" aria-hidden="true">O</div>
+            <div class="login-brand__icon" aria-hidden="true">
+                <span class="dot"></span>
+            </div>
 
             <div>
                 <span class="login-brand__name">OCMS</span>
