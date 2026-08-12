@@ -221,7 +221,7 @@
 
             <span>Don't have an account?</span>
 
-            <a href="register">
+            <a href="${pageContext.request.contextPath}/view/authen/register.jsp">
                 Create an account
             </a>
 

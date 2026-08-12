@@ -53,7 +53,7 @@ public class LoginController extends HttpServlet {
         
         // Note: Hash the 'pass' here if your database stores hashed passwords
         
-        AccountDAO accountDAO = new AccountDAO();
+        AccountDAO accountDAO = new AccountDAO(new com.DAO.DBContext().getConnection());
         Account account = accountDAO.login(user, pass);
         
         if (account != null) {
