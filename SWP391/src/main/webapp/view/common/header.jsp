@@ -21,7 +21,7 @@
             <a href="<%= ctx %>/">Home</a>
             <a href="<%= ctx %>/view/common/browse-course.jsp">Browse Course</a>
             <% if (headerAccount != null) { %>
-            <a href="<%= ctx %>/view/common/my-learning.jsp">My Learning</a>
+            <a href="<%= ctx %>/view/course_learning/course_progress.jsp">My Learning</a>
             <% } %>
         </nav>
 
