@@ -21,7 +21,7 @@
         <jsp:include page="sidebar.jsp"/>
 
         <main class="main-content">
-            <jsp:include page="../main_content/${contentPage != null ? contentPage : 'dashboard.jsp'}"/>
+            <jsp:include page="/view/admin/main_content/${contentPage}"/>
         </main>
     </div>
 
