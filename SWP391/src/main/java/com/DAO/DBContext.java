@@ -1,11 +1,10 @@
 package com.DAO;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DBContext {
 
@@ -15,17 +14,21 @@ public class DBContext {
 
     public DBContext() {
         try {
-            //Change the username password and url to connect your own database
             String username = "root";
-            String password = "1234";
-            String url = "jdbc:mysql://localhost:3306/ocms";
+            String password = "1234"; // Thay đổi mật khẩu MySQL của bạn ở đây
+            String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
+            
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, username, password);
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException e) {
+            System.err.println("LỖI: Chưa thêm Driver MySQL vào dự án!");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.err.println("LỖI: Kết nối CSDL thất bại! Kiểm tra User/Pass/Database Name hoặc dịch vụ MySQL.");
+            e.printStackTrace();
         }
     }
-    
+
     public void closeResources() {
         try {
             if (resultSet != null && !resultSet.isClosed()) {
@@ -38,15 +41,16 @@ public class DBContext {
                 connection.close();
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
     }
 
-    public Connection getConnection() {
-        return new DBContext().connection;
-    }
-    
     public static void main(String[] args) {
-        System.out.println(new DBContext().connection);
+        DBContext db = new DBContext();
+        if (db.connection != null) {
+            System.out.println("Kết nối CSDL thành công!");
+        } else {
+            System.out.println("Kết nối CSDL thất bại!");
+        }
     }
 }
