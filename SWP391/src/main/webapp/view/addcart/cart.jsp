@@ -7,11 +7,11 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>SkillGro - Shopping Cart</title>
-    <meta name="description" content="SkillGro - Shopping Cart">
+    <title>Shopping Cart</title>
+    <meta name="description" content="Shopping Cart">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.png">
+    
     <!-- Place favicon.ico in the root directory -->
 
     <!-- CSS here -->
@@ -72,12 +72,8 @@
                         <div class="breadcrumb-content">
                             <h3 class="title">Shopping Cart</h3>
                             <nav class="breadcrumb">
-                                <!-- <span property="itemListElement" typeof="ListItem">
-                                    <a href="${pageContext.request.contextPath}/">Home</a>
-                                </span>
-                                <span class="breadcrumb-separator"><i class="fas fa-angle-right"></i></span> -->
-                                <span property="itemListElement" typeof="ListItem">Shopping Cart</span>
-                            </nav>
+    
+</nav>
                         </div>
                     </div>
                 </div>
@@ -99,7 +95,7 @@
                                         <i class="fas fa-shopping-cart"></i>
                                         <h5>Your cart is empty</h5>
                                         <p>Looks like you haven't added any courses to your cart yet.</p>
-                                        <a href="${pageContext.request.contextPath}/courses" class="btn btn-primary mt-3">Browse Courses</a>
+                                        <a href="${pageContext.request.contextPath}/view/common/browse-course.jsp" class="btn btn-primary mt-3">Browse Courses</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -159,7 +155,7 @@
                                 </form>
                             </c:if>
                             
-                            <a href="${pageContext.request.contextPath}/courses" class="btn btn-outline-secondary btn-block mt-3">
+                            <a href="${pageContext.request.contextPath}/view/common/browse-course.jsp" class="btn btn-outline-secondary btn-block mt-3">
                                 Continue Shopping
                             </a>
                         </div>
