@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
     toggle.addEventListener('click', function () {
       var isHidden = passwordField.type === 'password';
       passwordField.type = isHidden ? 'text' : 'password';
-      toggle.textContent = isHidden ? 'Hide' : 'Show';
       toggle.setAttribute('aria-pressed', String(isHidden));
+      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
     });
   }
 
