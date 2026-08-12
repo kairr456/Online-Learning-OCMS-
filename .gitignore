@@ -1,4 +1,4 @@
 /SWP391/target/
 # Ignore database configuration and DBContext
-/db.properties
-/DBContext.java
+/SWP391/src/main/resources/db.properties
+/SWP391/src/main/java/com/DAO/DBContext.java
