@@ -428,18 +428,17 @@
 
     background: transparent;
 
-    color:
-        rgba(255, 255, 255, 0.42);
+    color: #000;
 
     cursor: pointer;
 }
 
 
 .login-eye:hover {
-    color: #fff;
+    color: #000;
 
     background:
-        rgba(255, 255, 255, 0.08);
+        rgba(0, 0, 0, 0.08);
 }
 
 
