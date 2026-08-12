@@ -1,0 +1,755 @@
+/* ==========================================================================
+   OCMS Login Page
+   ========================================================================== */
+
+.login-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 32px 20px;
+
+    overflow: hidden;
+    isolation: isolate;
+
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(216, 162, 74, 0.13),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(72, 98, 126, 0.18),
+            transparent 30%
+        ),
+        var(--ink-900, #10151c);
+}
+
+
+/* ==========================================================================
+   Background
+   ========================================================================== */
+
+.login-screen::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    z-index: -2;
+
+    background:
+        repeating-linear-gradient(
+            115deg,
+            rgba(216, 162, 74, 0.055) 0,
+            rgba(216, 162, 74, 0.055) 1px,
+            transparent 1px,
+            transparent 54px
+        );
+
+    pointer-events: none;
+}
+
+
+.login-screen::after {
+    content: "";
+
+    position: absolute;
+
+    width: 620px;
+    height: 620px;
+
+    border: 1px solid rgba(216, 162, 74, 0.08);
+
+    border-radius: 50%;
+
+    transform: translate(28%, 20%);
+
+    z-index: -1;
+
+    pointer-events: none;
+}
+
+
+.login-decoration {
+    position: absolute;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+
+.login-decoration--one {
+    width: 180px;
+    height: 180px;
+
+    top: -80px;
+    left: 8%;
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+
+.login-decoration--two {
+    width: 120px;
+    height: 120px;
+
+    right: 9%;
+    bottom: -55px;
+
+    border: 1px solid rgba(216, 162, 74, 0.1);
+}
+
+
+/* ==========================================================================
+   Login Card
+   ========================================================================== */
+
+.login-card {
+    width: 100%;
+    max-width: 430px;
+
+    position: relative;
+
+    padding: 34px 38px 30px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(34, 42, 52, 0.97),
+            rgba(22, 28, 36, 0.98)
+        );
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.42),
+        0 8px 24px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    animation: login-card-in 0.45s ease-out both;
+}
+
+
+@keyframes login-card-in {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+/* ==========================================================================
+   Brand
+   ========================================================================== */
+
+.login-brand {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 30px;
+}
+
+
+.login-brand__icon {
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    flex-shrink: 0;
+
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--amber, #d8a24a),
+            #b9782c
+        );
+
+    color: var(--ink-900, #10151c);
+
+    font-family:
+        var(--font-display, Georgia, serif);
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    box-shadow:
+        0 8px 20px rgba(216, 162, 74, 0.22);
+}
+
+
+.login-brand__name {
+    display: block;
+
+    color: #fff;
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+.login-brand__tagline {
+    display: block;
+
+    margin-top: 2px;
+
+    color: rgba(255, 255, 255, 0.43);
+
+    font-size: 10px;
+}
+
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.login-heading {
+    margin-bottom: 26px;
+}
+
+
+.login-heading h1 {
+    margin: 0;
+
+    color: #fff;
+
+    font-family:
+        var(--font-display, Georgia, serif);
+
+    font-size: 32px;
+
+    line-height: 1.15;
+
+    font-weight: 650;
+
+    letter-spacing: -0.02em;
+}
+
+
+.login-heading p {
+    margin: 8px 0 0;
+
+    color: rgba(255, 255, 255, 0.52);
+
+    font-size: 13.5px;
+
+    line-height: 1.55;
+}
+
+
+/* ==========================================================================
+   Error Message
+   ========================================================================== */
+
+.login-error {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+
+    padding: 11px 13px;
+
+    border:
+        1px solid rgba(214, 69, 69, 0.32);
+
+    border-radius: 10px;
+
+    background:
+        rgba(214, 69, 69, 0.11);
+
+    color: #f0a5a5;
+
+    font-size: 12.5px;
+
+    line-height: 1.5;
+}
+
+
+.login-error__icon {
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================================
+   Form Fields
+   ========================================================================== */
+
+.login-field {
+    margin-bottom: 18px;
+}
+
+
+.login-field label {
+    display: block;
+
+    margin:
+        0 0 8px 2px;
+
+    color:
+        rgba(255, 255, 255, 0.78);
+
+    font-size: 12.5px;
+
+    font-weight: 650;
+}
+
+
+.login-input-wrap,
+.login-field__wrap {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+
+.login-field input {
+    width: 100%;
+
+    min-height: 48px;
+
+    box-sizing: border-box;
+
+    padding:
+        0 14px 0 42px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.13);
+
+    border-radius: 11px;
+
+    outline: none;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    color: #fff;
+
+    font-family:
+        var(--font-body, Arial, sans-serif);
+
+    font-size: 13.5px;
+
+    transition:
+        border-color 0.18s,
+        background 0.18s,
+        box-shadow 0.18s;
+}
+
+
+.login-field input::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+}
+
+
+.login-field input:hover {
+    border-color:
+        rgba(255, 255, 255, 0.22);
+}
+
+
+.login-field input:focus {
+    border-color:
+        var(--amber, #d8a24a);
+
+    background:
+        rgba(255, 255, 255, 0.065);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(216, 162, 74, 0.12);
+}
+
+
+/* ==========================================================================
+   Input Icons
+   ========================================================================== */
+
+.login-input-icon {
+    position: absolute;
+
+    left: 15px;
+
+    z-index: 1;
+
+    color:
+        rgba(216, 162, 74, 0.72);
+
+    font-size: 15px;
+
+    pointer-events: none;
+}
+
+
+/* ==========================================================================
+   Password Toggle
+   ========================================================================== */
+
+.login-field__wrap input {
+    padding-right: 48px;
+}
+
+
+.login-eye {
+    position: absolute;
+
+    right: 7px;
+
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 0;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color:
+        rgba(255, 255, 255, 0.42);
+
+    cursor: pointer;
+}
+
+
+.login-eye:hover {
+    color: #fff;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+}
+
+
+.login-eye svg {
+    width: 18px;
+    height: 14px;
+}
+
+
+.login-eye .icon-eye-off {
+    display: none;
+}
+
+
+.login-eye[aria-pressed="true"] .icon-eye {
+    display: none;
+}
+
+
+.login-eye[aria-pressed="true"] .icon-eye-off {
+    display: block;
+}
+
+
+/* ==========================================================================
+   Remember Me / Forgot Password
+   ========================================================================== */
+
+.login-row {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin:
+        2px 0 24px;
+}
+
+
+.login-remember {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color:
+        rgba(255, 255, 255, 0.58);
+
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+
+.login-remember input[type="checkbox"] {
+    appearance: none;
+
+    width: 16px;
+    height: 16px;
+
+    margin: 0;
+
+    position: relative;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.25);
+
+    border-radius: 5px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    cursor: pointer;
+}
+
+
+.login-remember
+input[type="checkbox"]:checked {
+    border-color:
+        var(--amber, #d8a24a);
+
+    background:
+        var(--amber, #d8a24a);
+}
+
+
+.login-remember
+input[type="checkbox"]:checked::after {
+    content: "";
+
+    position: absolute;
+
+    left: 5px;
+    top: 2px;
+
+    width: 4px;
+    height: 8px;
+
+    border:
+        solid var(--ink-900, #10151c);
+
+    border-width:
+        0 2px 2px 0;
+
+    transform: rotate(45deg);
+}
+
+
+.login-forgot {
+    color:
+        var(--amber, #d8a24a);
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+
+.login-forgot:hover {
+    text-decoration: underline;
+
+    text-underline-offset: 3px;
+}
+
+
+/* ==========================================================================
+   Login Button
+   ========================================================================== */
+
+.login-submit {
+    width: 100%;
+
+    min-height: 49px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    border: 0;
+
+    border-radius: 11px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--amber, #d8a24a),
+            #c48635
+        );
+
+    color:
+        var(--ink-900, #10151c);
+
+    font-size: 14px;
+
+    font-weight: 750;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 24px
+        rgba(216, 162, 74, 0.17);
+
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s,
+        filter 0.15s;
+}
+
+
+.login-submit:hover {
+    filter: brightness(1.06);
+
+    transform:
+        translateY(-1px);
+
+    box-shadow:
+        0 13px 28px
+        rgba(216, 162, 74, 0.24);
+}
+
+
+.login-submit:active {
+    transform:
+        translateY(0);
+}
+
+
+.login-submit__arrow {
+    font-size: 18px;
+
+    transition:
+        transform 0.15s;
+}
+
+
+.login-submit:hover
+.login-submit__arrow {
+    transform:
+        translateX(3px);
+}
+
+
+/* ==========================================================================
+   Register
+   ========================================================================== */
+
+.login-register {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    flex-wrap: wrap;
+
+    margin-top: 22px;
+
+    color:
+        rgba(255, 255, 255, 0.4);
+
+    font-size: 12px;
+}
+
+
+.login-register a {
+    color:
+        rgba(255, 255, 255, 0.78);
+
+    font-weight: 650;
+
+    text-decoration: none;
+}
+
+
+.login-register a:hover {
+    color:
+        var(--amber, #d8a24a);
+}
+
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@media (max-width: 520px) {
+
+    .login-screen {
+        padding: 20px 14px;
+    }
+
+
+    .login-card {
+        max-width: 100%;
+
+        padding:
+            28px 22px 25px;
+
+        border-radius: 18px;
+    }
+
+
+    .login-heading h1 {
+        font-size: 27px;
+    }
+
+
+    .login-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        margin-bottom: 21px;
+    }
+
+
+    .login-forgot {
+        margin-left: 24px;
+    }
+
+}
+
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .login-card {
+        animation: none;
+    }
+
+}
