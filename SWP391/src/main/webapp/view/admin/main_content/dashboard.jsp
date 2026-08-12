@@ -5,21 +5,21 @@
             <div class="kpi-number">1</div>
             <div class="kpi-info">
                 <div class="kpi-title">Number of<br>User</div>
-                <div class="kpi-value">${totalUsers != null ? totalUsers : 1520}</div>
+                <div class="kpi-value">${totalUsers}</div>
             </div>
         </div>
         <div class="kpi-card">
             <div class="kpi-number">2</div>
             <div class="kpi-info">
                 <div class="kpi-title">Number of<br>Course</div>
-                <div class="kpi-value">${totalCourses != null ? totalCourses : 80}</div>
+                <div class="kpi-value">${totalCourses}</div>
             </div>
         </div>
         <div class="kpi-card">
             <div class="kpi-number">3</div>
             <div class="kpi-info">
                 <div class="kpi-title">Registrations</div>
-                <div class="kpi-value">${totalRegistrations != null ? totalRegistrations : 1248}</div>
+                <div class="kpi-value">${totalRegistrations}</div>
             </div>
         </div>
         <div class="kpi-card">
