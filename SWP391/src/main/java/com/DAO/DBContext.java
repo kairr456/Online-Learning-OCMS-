@@ -17,7 +17,7 @@ public class DBContext {
         try {
             //Change the username password and url to connect your own database
             String username = "root";
-            String password = "123";
+            String password = "1234";
             String url = "jdbc:mysql://localhost:3306/ocms";
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, username, password);
