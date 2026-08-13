@@ -1,40 +1,35 @@
 package com.DAO;
 
 import com.entity.Account;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// Extends DBContext -- inherits the protected `connection`, `statement`, and
+// `resultSet` fields, and opens a fresh MySQL connection every time this class
+// is instantiated (see DBContext's no-arg constructor). closeResources() then
+// closes that connection at the end of each call, so callers should create a
+// new AccountDAO() per operation rather than reusing one instance for several
+// calls in a row (see the "each call gets its own instance" note in
+// RegisterController).
 public class AccountDAO extends DBContext {
- private Connection connection;
-
-    public AccountDAO(Connection connection) {
-        this.connection = connection;
-    }
 
     // =========================================================
     // Check whether username already exists
     // =========================================================
     public boolean isUsernameExists(String username) {
-
-        String sql = "SELECT id FROM Account WHERE username = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, username);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        String sql = "SELECT id FROM account WHERE username = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, username);
+            resultSet = statement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
         }
-
         return false;
     }
 
@@ -42,67 +37,64 @@ public class AccountDAO extends DBContext {
     // Check whether email already exists
     // =========================================================
     public boolean isEmailExists(String email) {
-
-        String sql = "SELECT id FROM Account WHERE email = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, email);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        String sql = "SELECT id FROM account WHERE email = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            resultSet = statement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
         }
-
         return false;
     }
 
     // =========================================================
     // Register new account
+    // Column names here (full_name, is_active, role_id) match the ones
+    // login() already reads -- the earlier version used fullName/isActive/
+    // roleId, which don't exist in this schema and would have failed on
+    // insert even once the connection itself worked.
     // =========================================================
     public boolean register(Account account) {
+        String sql = "INSERT INTO account "
+                + "(username, password, email, phone, full_name, gender, avatar, is_active, role_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            // RETURN_GENERATED_KEYS lets us read back the auto-increment id
+            // MySQL assigned, so the controller doesn't need a second query.
+            statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, account.getUsername());
+            statement.setString(2, account.getPassword());
+            statement.setString(3, account.getEmail());
+            statement.setString(4, account.getPhone());
+            statement.setString(5, account.getFullName());
+            statement.setBoolean(6, account.isGender());
+            statement.setString(7, account.getAvatar());
+            statement.setBoolean(8, account.isActive());
+            statement.setInt(9, account.getRoleId());
 
-        String sql = """
-                INSERT INTO Account
-                (
-                    username,
-                    password,
-                    email,
-                    phone,
-                    fullName,
-                    gender,
-                    avatar,
-                    isActive,
-                    roleId
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setString(1, account.getUsername());
-            ps.setString(2, account.getPassword());
-            ps.setString(3, account.getEmail());
-            ps.setString(4, account.getPhone());
-            ps.setString(5, account.getFullName());
-            ps.setBoolean(6, account.isGender());
-            ps.setString(7, account.getAvatar());
-            ps.setBoolean(8, account.isActive());
-            ps.setInt(9, account.getRoleId());
-
-            int rowsInserted = ps.executeUpdate();
-
-            return rowsInserted > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                resultSet = statement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the caller
+                }
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
         }
-
         return false;
     }
+
+    // =========================================================
+    // Login
+    // =========================================================
     public Account login(String username, String password) {
         String sql = "SELECT * FROM account WHERE username = ? AND password = ?";
         try {
@@ -133,5 +125,5 @@ public class AccountDAO extends DBContext {
         }
         return null; // Return null if login fails
     }
-    
+
 }

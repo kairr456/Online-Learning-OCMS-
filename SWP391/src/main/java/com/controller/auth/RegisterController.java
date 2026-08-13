@@ -1,12 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.controller.auth;
-
 
 import com.DAO.AccountDAO;
 import com.entity.Account;
+import com.utils.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,29 +10,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 
 @WebServlet("/register")
 public class RegisterController extends HttpServlet {
 
-    // =========================================================
-    // DATABASE CONFIGURATION
-    // Change these to your database details
-    // =========================================================
+    // Connection details were removed from here on purpose -- AccountDAO
+    // extends DBContext, which already knows how to open a MySQL connection
+    // (the same one login() uses). Duplicating separate SQL Server config
+    // here was the root cause of the connection error that led to the 404.
 
-    private static final String DB_URL =
-            "jdbc:sqlserver://localhost:1433;databaseName=SWP391;encrypt=false";
-
-    private static final String DB_USER =
-            "sa";
-
-    private static final String DB_PASSWORD =
-            "123456";
 
     // =========================================================
     // GET
-    // Show registration page
     // =========================================================
 
     @Override
@@ -45,13 +30,13 @@ public class RegisterController extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.getRequestDispatcher("/register.jsp")
+        request.getRequestDispatcher("/view/authen/register.jsp")
                 .forward(request, response);
     }
 
+
     // =========================================================
     // POST
-    // Process registration
     // =========================================================
 
     @Override
@@ -62,9 +47,10 @@ public class RegisterController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // -----------------------------------------------------
-        // Get form values
-        // -----------------------------------------------------
+
+        // =====================================================
+        // Get form data
+        // =====================================================
 
         String username =
                 request.getParameter("username");
@@ -91,13 +77,13 @@ public class RegisterController extends HttpServlet {
                 request.getParameter("gender");
 
 
-        // -----------------------------------------------------
-        // Basic validation
-        // -----------------------------------------------------
+        // =====================================================
+        // Validate empty fields
+        // =====================================================
 
         if (username == null || username.trim().isEmpty()
-                || password == null || password.trim().isEmpty()
-                || confirmPassword == null || confirmPassword.trim().isEmpty()
+                || password == null || password.isEmpty()
+                || confirmPassword == null || confirmPassword.isEmpty()
                 || email == null || email.trim().isEmpty()
                 || phone == null || phone.trim().isEmpty()
                 || fullName == null || fullName.trim().isEmpty()
@@ -109,16 +95,16 @@ public class RegisterController extends HttpServlet {
                     "Please fill in all required fields."
             );
 
-            request.getRequestDispatcher("/register.jsp")
+            request.getRequestDispatcher("/view/authen/register.jsp")
                     .forward(request, response);
 
             return;
         }
 
 
-        // -----------------------------------------------------
-        // Check password confirmation
-        // -----------------------------------------------------
+        // =====================================================
+        // Confirm password
+        // =====================================================
 
         if (!password.equals(confirmPassword)) {
 
@@ -127,189 +113,163 @@ public class RegisterController extends HttpServlet {
                     "Passwords do not match."
             );
 
-            request.getRequestDispatcher("/register.jsp")
+            request.getRequestDispatcher("/view/authen/register.jsp")
                     .forward(request, response);
 
             return;
         }
 
 
-        // -----------------------------------------------------
+        // =====================================================
         // Convert role
-        //
-        // Change these IDs to match your Role table.
-        // -----------------------------------------------------
+        // =====================================================
 
         int roleId;
 
-        try {
+        if ("teacher".equalsIgnoreCase(role)) {
 
-            if ("teacher".equalsIgnoreCase(role)) {
+            roleId = 2;
 
-                roleId = 2;
+        } else if ("student".equalsIgnoreCase(role)) {
 
-            } else if ("student".equalsIgnoreCase(role)) {
+            roleId = 3;
 
-                roleId = 3;
-
-            } else {
-
-                request.setAttribute(
-                        "errorMessage",
-                        "Invalid role."
-                );
-
-                request.getRequestDispatcher("/register.jsp")
-                        .forward(request, response);
-
-                return;
-            }
-
-        } catch (Exception e) {
+        } else {
 
             request.setAttribute(
                     "errorMessage",
                     "Invalid role."
             );
 
-            request.getRequestDispatcher("/register.jsp")
+            request.getRequestDispatcher("/view/authen/register.jsp")
                     .forward(request, response);
 
             return;
         }
 
 
-        // -----------------------------------------------------
+        // =====================================================
         // Convert gender
         //
         // true  = male
         // false = female
-        //
-        // Change this if your database uses another convention.
-        // -----------------------------------------------------
+        // =====================================================
 
         boolean genderValue =
                 "male".equalsIgnoreCase(gender);
 
 
-        // -----------------------------------------------------
+        // =====================================================
+        // HASH PASSWORD (MD5)
+        // =====================================================
+
+        String hashedPassword = PasswordUtil.md5(password);
+
+
+        // =====================================================
         // Create Account object
-        // -----------------------------------------------------
+        // =====================================================
 
         Account account = new Account();
 
         account.setUsername(username.trim());
-        account.setPassword(password);
+
+        // Store HASH instead of original password
+        account.setPassword(hashedPassword);
+
         account.setEmail(email.trim());
         account.setPhone(phone.trim());
         account.setFullName(fullName.trim());
+
         account.setGender(genderValue);
 
-        // No avatar during initial registration
         account.setAvatar(null);
 
-        // New account is active
+        // No OTP/activation step for now -- account is active as soon as it's created.
+        // (If you bring back email verification later, set this to false again
+        // and gate login on isActive.)
         account.setActive(true);
 
         account.setRoleId(roleId);
 
 
-        // -----------------------------------------------------
-        // Database operation
-        // -----------------------------------------------------
+        // =====================================================
+        // Database
+        // =====================================================
+        // Each check below uses its own `new AccountDAO()`. DBContext closes
+        // its connection at the end of every DAO call (see closeResources()),
+        // so reusing a single AccountDAO instance across isUsernameExists,
+        // isEmailExists, and register would fail on the second call -- the
+        // connection would already be closed.
 
         try {
 
-            Class.forName(
-                    "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-            );
+            // =================================================
+            // Check username
+            // =================================================
 
-            try (Connection connection =
-                         DriverManager.getConnection(
-                                 DB_URL,
-                                 DB_USER,
-                                 DB_PASSWORD
-                         )) {
+            if (new AccountDAO().isUsernameExists(username)) {
 
-                AccountDAO accountDAO =
-                        new AccountDAO(connection);
+                request.setAttribute(
+                        "errorMessage",
+                        "Username already exists."
+                );
 
+                request.getRequestDispatcher(
+                        "/view/authen/register.jsp"
+                ).forward(request, response);
 
-                // -------------------------------------------------
-                // Check username
-                // -------------------------------------------------
-
-                if (accountDAO.isUsernameExists(username)) {
-
-                    request.setAttribute(
-                            "errorMessage",
-                            "Username already exists."
-                    );
-
-                    request.getRequestDispatcher("/register.jsp")
-                            .forward(request, response);
-
-                    return;
-                }
-
-
-                // -------------------------------------------------
-                // Check email
-                // -------------------------------------------------
-
-                if (accountDAO.isEmailExists(email)) {
-
-                    request.setAttribute(
-                            "errorMessage",
-                            "Email already exists."
-                    );
-
-                    request.getRequestDispatcher("/register.jsp")
-                            .forward(request, response);
-
-                    return;
-                }
-
-
-                // -------------------------------------------------
-                // Insert account
-                // -------------------------------------------------
-
-                boolean success =
-                        accountDAO.register(account);
-
-
-                if (success) {
-
-                    // Registration successful
-                    response.sendRedirect(
-                            request.getContextPath()
-                            + "/login"
-                    );
-
-                } else {
-
-                    request.setAttribute(
-                            "errorMessage",
-                            "Registration failed."
-                    );
-
-                    request.getRequestDispatcher("/register.jsp")
-                            .forward(request, response);
-                }
+                return;
             }
 
-        } catch (ClassNotFoundException e) {
 
-            e.printStackTrace();
+            // =================================================
+            // Check email
+            // =================================================
 
-            request.setAttribute(
-                    "errorMessage",
-                    "Database driver not found."
-            );
+            if (new AccountDAO().isEmailExists(email)) {
 
-            request.getRequestDispatcher("/register.jsp")
-                    .forward(request, response);
+                request.setAttribute(
+                        "errorMessage",
+                        "Email already exists."
+                );
+
+                request.getRequestDispatcher(
+                        "/view/authen/register.jsp"
+                ).forward(request, response);
+
+                return;
+            }
+
+
+            // =================================================
+            // Insert account
+            // =================================================
+
+            boolean success = new AccountDAO().register(account);
+            // register() sets account.setId(...) internally via getGeneratedKeys(),
+            // so there's no need for the extra lookup query that used to be here.
+
+            if (success) {
+
+                // Registration is complete and the account is active -- send
+                // them to log in with their new credentials. Using
+                // sendRedirect (not forward) so this is a fresh request/new
+                // page load rather than reusing the POST's request object.
+                response.sendRedirect(
+                        request.getContextPath() + "/login?registered=true"
+                );
+
+            } else {
+                request.setAttribute(
+                        "errorMessage",
+                        "Registration failed."
+                );
+
+                request.getRequestDispatcher(
+                        "/view/authen/register.jsp"
+                ).forward(request, response);
+            }
 
         } catch (Exception e) {
 
@@ -320,8 +280,9 @@ public class RegisterController extends HttpServlet {
                     "Database error: " + e.getMessage()
             );
 
-            request.getRequestDispatcher("/register.jsp")
-                    .forward(request, response);
+            request.getRequestDispatcher(
+                    "/view/authen/register.jsp"
+            ).forward(request, response);
         }
     }
 }
