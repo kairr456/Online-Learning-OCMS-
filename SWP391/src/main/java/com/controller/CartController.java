@@ -48,7 +48,7 @@ public class CartController extends HttpServlet {
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/authen?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -113,7 +113,7 @@ public class CartController extends HttpServlet {
 
         if (account == null) {
             // Redirect to login if not logged in
-            response.sendRedirect(request.getContextPath() + "/authen?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -179,7 +179,7 @@ public class CartController extends HttpServlet {
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
 
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/authen?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -235,7 +235,7 @@ public class CartController extends HttpServlet {
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/authen?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         
@@ -302,7 +302,7 @@ public class CartController extends HttpServlet {
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/authen?action=login");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         
