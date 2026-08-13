@@ -2,6 +2,7 @@ package com.controller.auth;
 
 import com.DAO.AccountDAO;
 import com.entity.Account;
+import com.utils.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -49,12 +50,24 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
         // Retrieve form data
         String user = request.getParameter("username");
-        String pass = request.getParameter("password"); 
-        
-        // Note: Hash the 'pass' here if your database stores hashed passwords
-        
-        AccountDAO accountDAO = new AccountDAO();
-        Account account = accountDAO.login(user, pass);
+        String pass = request.getParameter("password");
+
+        // Accounts created through RegisterController store an MD5 hash
+        // (see PasswordUtil.md5), so we hash what was typed and compare
+        // against that first.
+        String hashedPass = PasswordUtil.md5(pass);
+        Account account = new AccountDAO().login(user, hashedPass);
+
+        if (account == null) {
+            // Fallback: some accounts (e.g. seeded/legacy test data) may
+            // still have a plain-text password column instead of a hash.
+            // Rather than break login for those, we also try the raw
+            // password the user typed before giving up. This intentionally
+            // keeps the old unhashed check working alongside the new
+            // hashed one -- remove this fallback once all accounts in the
+            // database are confirmed to be hashed.
+            account = new AccountDAO().login(user, pass);
+        }
         
         if (account != null) {
             // Login successful: Create session
@@ -66,13 +79,13 @@ public class LoginController extends HttpServlet {
 
             if (roleId == 1) {
                 // Admin -> dashboard
-                response.sendRedirect(contextPath + "/view/admin/dashboard.jsp");
+                response.sendRedirect(contextPath + "/admin/dashboard");
             } else if (roleId == 2 || roleId == 3) {
                 // Teacher or Student -> homepage
-                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+                response.sendRedirect(contextPath + "/view/common/home/homepage.jsp");
             } else {
                 // Unrecognized role: fall back to homepage rather than dead-end
-                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+                response.sendRedirect(contextPath + "/view/common/home/homepage.jsp");
             }
         } else {
             // Login failed: Set error message and forward back to login page

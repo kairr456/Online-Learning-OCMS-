@@ -5,9 +5,11 @@
         <title>Homepage</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
     </head>
     <body>
         <jsp:include page="/view/common/header.jsp" />
         <h1>Homepage here</h1>
+        <jsp:include page="/view/common/footer.jsp" />
     </body>
 </html>
