@@ -1,8 +1,11 @@
 package com.DAO;
 
 import com.entity.Account;
+import jakarta.resource.cci.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -125,5 +128,184 @@ public class AccountDAO extends DBContext {
         }
         return null; // Return null if login fails
     }
+    
+    /**
+ * Lấy danh sách tài khoản theo điều kiện:
+ * - Tìm kiếm username, email, full_name
+ * - Lọc Role
+ * - Lọc Status
+ */
+public List<Account> searchAccounts(String keyword, String roleId, String status) {
 
+    List<Account> list = new ArrayList<>();
+
+    StringBuilder sql = new StringBuilder(
+        "SELECT id, username, email, phone, full_name, " +
+        "gender, avatar, is_active, role_id " +
+        "FROM user WHERE 1=1 "
+    );
+
+    // Tìm kiếm theo username, email hoặc full_name
+    if (keyword != null && !keyword.trim().isEmpty()) {
+        sql.append(
+            " AND (username LIKE ? " +
+            "OR email LIKE ? " +
+            "OR full_name LIKE ?)"
+        );
+    }
+
+    // Lọc theo Role
+    if (roleId != null && !roleId.trim().isEmpty()) {
+        sql.append(" AND role_id = ?");
+    }
+
+    // Lọc theo Status
+    if (status != null && !status.trim().isEmpty()) {
+        sql.append(" AND is_active = ?");
+    }
+
+    sql.append(" ORDER BY id DESC");
+
+    try {
+
+        if (connection == null || connection.isClosed()) {
+            connection = getConnection();
+        }
+
+        statement = connection.prepareStatement(sql.toString());
+
+        int paramIndex = 1;
+
+        // Keyword
+        if (keyword != null && !keyword.trim().isEmpty()) {
+
+            String searchPattern =
+                    "%" + keyword.trim() + "%";
+
+            statement.setString(
+                    paramIndex++,
+                    searchPattern
+            );
+
+            statement.setString(
+                    paramIndex++,
+                    searchPattern
+            );
+
+            statement.setString(
+                    paramIndex++,
+                    searchPattern
+            );
+        }
+
+        // Role
+        if (roleId != null && !roleId.trim().isEmpty()) {
+
+            statement.setInt(
+                    paramIndex++,
+                    Integer.parseInt(roleId)
+            );
+        }
+
+        // Status
+        if (status != null && !status.trim().isEmpty()) {
+
+            statement.setInt(
+                    paramIndex++,
+                    Integer.parseInt(status)
+            );
+        }
+
+        resultSet = statement.executeQuery();
+
+        while (resultSet.next()) {
+
+            Account u = new Account();
+
+            u.setId(
+                    resultSet.getInt("id")
+            );
+
+            u.setUsername(
+                    resultSet.getString("username")
+            );
+
+            u.setEmail(
+                    resultSet.getString("email")
+            );
+
+            u.setPhone(
+                    resultSet.getString("phone")
+            );
+
+            u.setFullName(
+                    resultSet.getString("full_name")
+            );
+
+            u.setGender(
+                    resultSet.getBoolean("gender")
+            );
+
+            u.setAvatar(
+                    resultSet.getString("avatar")
+            );
+
+            u.setActive(
+                    resultSet.getBoolean("is_active")
+            );
+
+            u.setRoleId(
+                    resultSet.getInt("role_id")
+            );
+
+            list.add(u);
+        }
+
+    } catch (Exception e) {
+
+        e.printStackTrace();
+
+    } finally {
+
+        closeResources();
+    }
+
+    return list;
+}
+
+
+/**
+ * Vô hiệu hóa tài khoản theo ID.
+ *
+ * Không xóa vật lý khỏi database để tránh
+ * lỗi Foreign Key với các bảng liên quan.
+ */
+public boolean deactivateAccount(int userId) {
+
+    String sql =
+            "UPDATE user SET is_active = 0 WHERE id = ?";
+
+    try {
+
+        if (connection == null || connection.isClosed()) {
+            connection = getConnection();
+        }
+
+        statement = connection.prepareStatement(sql);
+
+        statement.setInt(1, userId);
+
+        return statement.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+
+        e.printStackTrace();
+
+    } finally {
+
+        closeResources();
+    }
+
+    return false;
+}
 }
