@@ -126,4 +126,26 @@ public class AccountDAO extends DBContext {
         return null; // Return null if login fails
     }
 
+    // =========================================================
+    // Get all author names
+    // =========================================================
+    public java.util.Map<Integer, String> getAuthorNames() {
+        java.util.Map<Integer, String> authors = new java.util.HashMap<>();
+        String sql = "SELECT id, username, full_name FROM account";
+        try {
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String fullName = resultSet.getString("full_name");
+                String username = resultSet.getString("username");
+                authors.put(id, (fullName != null && !fullName.trim().isEmpty()) ? fullName : username);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return authors;
+    }
 }

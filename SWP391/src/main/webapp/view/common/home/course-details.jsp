@@ -365,7 +365,7 @@
 <body>
 
     <!-- header-area -->
-    <jsp:include page="/view/common/home/header.jsp" />
+    <jsp:include page="/view/common/header.jsp" />
     <!-- header-area-end -->
 
     <!-- main-area -->
