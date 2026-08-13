@@ -463,52 +463,6 @@
     <main>
         
         <!-- ==================== TAB 1: ALL COURSES ==================== -->
-<<<<<<< Updated upstream
-        <div id="tab-all-courses" class="tab-content-item">
-            <div class="learning-controls">
-                <div class="learning-filters">
-                    <select class="filter-select" id="sortBy" onchange="filterCourses()">
-                        <option value="recent">Sort by: Recently Accessed</option>
-                        <option value="title-asc">Title: A to Z</option>
-                        <option value="title-desc">Title: Z to A</option>
-                    </select>
-
-                    <select class="filter-select" id="filterCategory" onchange="filterCourses()">
-                        <option value="all">Categories: All</option>
-                        <option value="1">Software Engineering</option>
-                        <option value="2">Business & Management</option>
-                    </select>
-                </div>
-
-                <div class="learning-search">
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="searchCourses()">
-                    <button type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-                </div>
-            </div>
-
-            <c:choose>
-                <c:when test="${not empty myCourses}">
-                    <div class="course-grid" id="courseGrid">
-                        <c:forEach var="item" items="${myCourses}">
-                            <div class="course-card" data-title="${item.name}">
-                                <div class="course-thumbnail">
-                                    <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
-                                    <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="play-overlay" title="Start / Continue">
-                                        <div class="play-icon"><i class="fas fa-play"></i></div>
-                                    </a>
-                                </div>
-                                <div class="course-body">
-                                    <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="text-decoration-none">
-                                        <h2 class="course-title">${item.name}</h2>
-                                    </a>
-                                    <div class="course-instructor">${item.description}</div>
-                                    <div class="course-action">
-                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple btn-sm w-100 text-center">
-                                            Start Course
-                                        </a>
-                                    </div>
-                                </div>
-=======
         <div id="tab-all-courses" class="tab-content-item active">
             <div class="container content-container">
                 <div class="learning-controls">
@@ -570,7 +524,7 @@
                             <i class="fas fa-book-open"></i>
                             <h3>You haven't enrolled in any courses yet</h3>
                             <p>Explore our extensive course library and start your learning journey today!</p>
-                            <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Explore Courses</a>
+                            <a href="${pageContext.request.contextPath}/courses" class="btn-purple">Explore Courses</a>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -609,7 +563,7 @@
                             <i class="fas fa-list-ul"></i>
                             <h3>Your list is empty</h3>
                             <p>Create a list to organize your learning path more effectively.</p>
-                            <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Go to All Course tab</a>
+                            <button type="button" onclick="switchTab('all-courses')" class="btn-purple">Go to All Course tab</button>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -649,7 +603,7 @@
                             <i class="far fa-heart"></i>
                             <h3>Your wishlist is empty</h3>
                             <p>Explore the course catalog and click the heart icon to save the courses that interest you.</p>
-                            <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Go to All Course tab</a>
+                            <button type="button" onclick="switchTab('all-courses')" class="btn-purple">Go to All Course tab</button>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -687,7 +641,7 @@
                             <i class="fas fa-archive"></i>
                             <h3>No archived courses yet</h3>
                             <p>You can move completed or on-hold courses to the Archived section.</p>
-                            <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Go to All Course tab</a>
+                            <button type="button" onclick="switchTab('all-courses')" class="btn-purple">Go to All Course tab</button>
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -707,7 +661,6 @@
                                     <h4>Mục tiêu học tập hàng tuần</h4>
                                     <p>Thiết lập thói quen học tập đều đặn để đạt tiến độ mong muốn.</p>
                                 </div>
->>>>>>> Stashed changes
                             </div>
                             <div class="p-3 bg-light rounded">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -777,261 +730,12 @@
                             </div>
                         </div>
                     </div>
-<<<<<<< Updated upstream
-                </c:when>
-                <c:otherwise>
-                    <div class="empty-state">
-                        <i class="fas fa-book-open"></i>
-                        <h3>Bạn chưa đăng ký khóa học nào</h3>
-                        <p>Khám phá kho khóa học phong phú và bắt đầu hành trình nâng cao kỹ năng ngay hôm nay!</p>
-                        <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Khám phá khóa học ngay</a>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
-        <!-- ==================== TAB 2: MY LISTS ==================== -->
-        <div id="tab-my-lists" class="tab-content-item d-none">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Danh sách tùy chỉnh</h3>
-                    <p class="text-muted mb-0">Nhóm các khóa học theo mục tiêu cá nhân hoặc lộ trình dự án của bạn.</p>
-                </div>
-                <button class="btn-purple" data-bs-toggle="modal" data-bs-target="#createListModal">
-                    <i class="fas fa-plus me-2"></i> Tạo danh sách mới
-                </button>
-            </div>
-
-            <c:choose>
-                <c:when test="${not empty userLists}">
-                    <div class="row g-4">
-                        <c:forEach var="list" items="${userLists}">
-                            <div class="col-md-4 col-sm-6">
-                                <div class="list-card">
-                                    <div>
-                                        <div class="list-card-title">${list.title}</div>
-                                        <div class="list-card-count">${list.courseCount} khóa học</div>
-                                        <div class="list-thumbnails-preview">
-                                            <c:forEach var="thumb" items="${list.thumbnails}">
-                                                <img src="${thumb}" alt="Course thumbnail preview">
-                                            </c:forEach>
-                                        </div>
-                                    </div>
-                                    <a href="${pageContext.request.contextPath}/my-lists/detail?id=${list.id}" class="btn-outline-custom text-center w-100">Xem danh sách</a>
-                                </div>
-                            </div>
-                        </c:forEach>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="empty-state">
-                        <i class="fas fa-folder-plus"></i>
-                        <h3>Tổ chức việc học hiệu quả với Danh Sách (Lists)</h3>
-                        <p>Tạo các bộ sưu tập khóa học riêng theo kỹ năng (ví dụ: "Lập trình Java", "Thiết kế Web").</p>
-                        <button class="btn-purple" data-bs-toggle="modal" data-bs-target="#createListModal">+ Tạo danh sách mới</button>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
-        <!-- ==================== TAB 3: WISHLIST ==================== -->
-        <div id="tab-wishlist" class="tab-content-item d-none">
-            <div class="mb-4">
-                <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Danh sách yêu thích</h3>
-                <p class="text-muted mb-0">Các khóa học bạn đang quan tâm hoặc muốn lưu lại để học sau.</p>
-            </div>
-
-            <c:choose>
-                <c:when test="${not empty wishlistCourses}">
-                    <div class="course-grid">
-                        <c:forEach var="item" items="${wishlistCourses}">
-                            <div class="course-card">
-                                <div class="course-thumbnail">
-                                    <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
-                                </div>
-                                <div class="course-body">
-                                    <h2 class="course-title">${item.name}</h2>
-                                    <div class="course-instructor">${item.description}</div>
-                                    <div class="course-action gap-2">
-                                        <a href="${pageContext.request.contextPath}/course-detail?id=${item.id}" class="btn-purple btn-sm flex-grow-1 text-center">Xem khóa học</a>
-                                        <button class="btn btn-outline-danger btn-sm" title="Xóa khỏi Wishlist" onclick="removeFromWishlist('${item.id}')">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </c:forEach>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="empty-state">
-                        <i class="far fa-heart"></i>
-                        <h3>Danh sách yêu thích của bạn đang trống</h3>
-                        <p>Hãy khám phá danh mục khóa học và nhấn biểu tượng trái tim để lưu lại khóa học bạn quan tâm.</p>
-                        <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Khám phá khóa học ngay</a>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
-        <!-- ==================== TAB 4: ARCHIVED ==================== -->
-        <div id="tab-archived" class="tab-content-item d-none">
-            <div class="mb-4">
-                <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Khóa học đã lưu trữ</h3>
-                <p class="text-muted mb-0">Các khóa học bạn đã ẩn bớt khỏi trang chính hoặc đã học xong.</p>
-            </div>
-
-            <c:choose>
-                <c:when test="${not empty archivedCourses}">
-                    <div class="course-grid">
-                        <c:forEach var="item" items="${archivedCourses}">
-                            <div class="course-card">
-                                <div class="course-thumbnail">
-                                    <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
-                                </div>
-                                <div class="course-body">
-                                    <h2 class="course-title">${item.name}</h2>
-                                    <div class="course-instructor">${item.description}</div>
-                                    <div class="course-action gap-2">
-                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple btn-sm flex-grow-1 text-center">Học lại</a>
-                                        <button class="btn-outline-custom btn-sm" onclick="unarchiveCourse('${item.id}')">Bỏ lưu trữ</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </c:forEach>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="empty-state">
-                        <i class="fas fa-archive"></i>
-                        <h3>Chưa có khóa học nào được lưu trữ</h3>
-                        <p>Bạn có thể chủ động ẩn các khóa học cũ/đã hoàn thành để màn hình chính gọn gàng hơn.</p>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
-        <!-- ==================== TAB 5: LEARNING TOOLS ==================== -->
-        <div id="tab-learning-tools" class="tab-content-item d-none">
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    
-                    <!-- Feature 1: Goal Setting -->
-                    <div class="tool-box">
-                        <div class="tool-box-header">
-                            <div class="tool-icon"><i class="fas fa-bullseye"></i></div>
-                            <div class="tool-title-text">
-                                <h4>Mục tiêu học tập hàng tuần</h4>
-                                <p>Thiết lập thói quen học tập đều đặn để đạt tiến độ mong muốn.</p>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-light rounded">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="fw-bold text-dark">Mục tiêu hiện tại: </span>
-                                    <span class="text-success fw-bold">3 ngày / tuần (30 phút/ngày)</span>
-                                </div>
-                                <button class="btn-outline-custom btn-sm" onclick="editGoal()">Thay đổi</button>
-                            </div>
-                            <div class="goal-bar-bg">
-                                <div class="goal-bar-fill"></div>
-                            </div>
-                            <small class="text-muted">Đã hoàn thành 1/3 ngày trong tuần này.</small>
-                        </div>
-                    </div>
-
-                    <!-- Feature 2: Reminders -->
-                    <div class="tool-box">
-                        <div class="tool-box-header">
-                            <div class="tool-icon"><i class="far fa-bell"></i></div>
-                            <div class="tool-title-text">
-                                <h4>Nhắc nhở học tập (Learning Reminders)</h4>
-                                <p>Cài đặt thông báo tự động gửi về Email hoặc hệ thống để không bỏ lỡ buổi học nào.</p>
-                            </div>
-                        </div>
-                        <form id="reminderForm" onsubmit="saveReminder(event)">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Chọn ngày nhắc nhở trong tuần:</label>
-                                <div class="day-selector d-flex gap-2">
-                                    <button type="button" onclick="toggleDay(this)">T2</button>
-                                    <button type="button" class="active" onclick="toggleDay(this)">T3</button>
-                                    <button type="button" onclick="toggleDay(this)">T4</button>
-                                    <button type="button" class="active" onclick="toggleDay(this)">T5</button>
-                                    <button type="button" onclick="toggleDay(this)">T6</button>
-                                    <button type="button" class="active" onclick="toggleDay(this)">T7</button>
-                                    <button type="button" onclick="toggleDay(this)">CN</button>
-                                </div>
-                            </div>
-                            <div class="row g-3 align-items-center mb-3">
-                                <div class="col-auto">
-                                    <label for="reminderTime" class="form-label fw-bold mb-0">Khung giờ nhắc:</label>
-                                </div>
-                                <div class="col-auto">
-                                    <input type="time" id="reminderTime" class="form-control" value="20:00">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-purple btn-sm">Lưu cài đặt nhắc nhở</button>
-                        </form>
-                    </div>
-
-                    <!-- Feature 3: Calendar Sync -->
-                    <div class="tool-box">
-                        <div class="tool-box-header">
-                            <div class="tool-icon"><i class="far fa-calendar-alt"></i></div>
-                            <div class="tool-title-text">
-                                <h4>Đồng bộ Lịch học</h4>
-                                <p>Thêm thời gian biểu học tập trực tiếp vào ứng dụng lịch cá nhân của bạn.</p>
-                            </div>
-                        </div>
-                        <div class="d-flex flex-wrap gap-3">
-                            <button class="btn-outline-custom" onclick="syncCalendar('google')">
-                                <i class="fab fa-google me-2"></i> Đồng bộ Google Calendar
-                            </button>
-                            <button class="btn-outline-custom" onclick="syncCalendar('outlook')">
-                                <i class="fab fa-windows me-2"></i> Đồng bộ Outlook Calendar
-                            </button>
-                        </div>
-                    </div>
-
-=======
->>>>>>> Stashed changes
                 </div>
             </div>
         </div>
 
     </main>
 
-<<<<<<< Updated upstream
-    <!-- Modal Tạo Danh Sách Mới (dùng cho Tab My Lists) -->
-    <div class="modal fade" id="createListModal" tabindex="-1" aria-labelledby="createListModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="createListModalLabel">Tạo danh sách mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="${pageContext.request.contextPath}/my-lists/create" method="POST">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="listTitle" class="form-label fw-semibold">Tên danh sách</label>
-                            <input type="text" class="form-control" id="listTitle" name="title" placeholder="VD: Lập trình Java Spring Boot" required maxlength="60">
-                        </div>
-                        <div class="mb-3">
-                            <label for="listDesc" class="form-label fw-semibold">Mô tả ngắn (không bắt buộc)</label>
-                            <textarea class="form-control" id="listDesc" name="description" rows="3" placeholder="Ghi chú mục tiêu hoặc nội dung của danh sách này..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn-purple">Tạo danh sách</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-=======
->>>>>>> Stashed changes
     <!-- Scripts -->
     <script src="${pageContext.request.contextPath}/assets/js/vendor/jquery-3.6.0.min.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
