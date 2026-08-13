@@ -9,7 +9,7 @@
     // All links below are context-path-relative, so it renders correctly
     // no matter how deep the including page lives (view/admin/, view/common/, etc.)
     // Pages that include this fragment must also link assets/css/common/header.css.
-    Account headerAccount = (Account) session.getAttribute("currentAccount");
+    Account headerAccount = (Account) session.getAttribute("account");
     String ctx = request.getContextPath();
 
     // Category dropdown options come straight from the database now instead
@@ -78,7 +78,7 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <a href="<%= ctx %>/view/common/profile.jsp">Change profile</a>
+                        <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
                 </div>

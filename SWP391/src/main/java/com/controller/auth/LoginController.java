@@ -8,8 +8,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import com.ocms.config.GlobalConfig;
 
 
 // This single servlet now answers two routes: "/login" (show the form / handle
@@ -35,7 +37,7 @@ public class LoginController extends HttpServlet {
             // throwaway session just to immediately kill it.
             HttpSession session = request.getSession(false);
             if (session != null) {
-                session.invalidate(); // clears currentAccount and everything else tied to this session
+                session.invalidate(); // clears account and everything else tied to this session
             }
             response.sendRedirect(request.getContextPath() + "/login");
             return; // stop here -- don't fall through to the login-page forward below
@@ -72,7 +74,7 @@ public class LoginController extends HttpServlet {
         if (account != null) {
             // Login successful: Create session
             HttpSession session = request.getSession();
-            session.setAttribute("currentAccount", account);
+            session.setAttribute(GlobalConfig.SESSION_ACCOUNT, account);
 
             String contextPath = request.getContextPath();
             int roleId = account.getRoleId();
