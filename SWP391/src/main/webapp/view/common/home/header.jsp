@@ -19,7 +19,7 @@
 
         <nav class="site-header__nav">
             <a href="<%= ctx %>/">Home</a>
-            <a href="<%= ctx %>/view/common/browse-course.jsp">Browse Course</a>
+            <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
             <a href="<%= ctx %>/view/course_learning/course_learning.jsp">My Learning</a>
             <% } %>

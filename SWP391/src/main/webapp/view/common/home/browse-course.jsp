@@ -7,6 +7,7 @@
     <title>Browse Courses</title>
     <!-- css -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <!-- FontAwesome cho các icon ngôi sao, mũi tên -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -323,7 +324,7 @@
     </style>
 </head>
 <body>
-    <jsp:include page="/view/common/header.jsp" />
+    <jsp:include page="/view/common/home/header.jsp" />
     
     <div class="browse-container">
         
@@ -407,7 +408,7 @@
             <div class="course-grid">
                 <c:forEach var="course" items="${courses}">
                     <div class="course-card">
-                        <a href="course-details?id=${course.id}">
+                        <a href="${pageContext.request.contextPath}/course?id=${course.id}">
                             <img src="${course.thumbnail != null ? course.thumbnail : 'https://via.placeholder.com/300x150.png?text=img'}" alt="Course Image" class="course-image">
                         </a>
                         <div class="course-body">
@@ -420,12 +421,12 @@
                                 </span>
                             </div>
                             
-                            <a href="course-details?id=${course.id}" class="course-title">
+                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="course-title">
                                 ${course.name}
                             </a>
                             
                             <div class="course-footer">
-                                <a href="checkout?courseId=${course.id}" class="enroll-btn">enroll now</a>
+                                <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn">enroll now</a>
                                 <span class="course-price">${course.price}$</span>
                             </div>
                         </div>
