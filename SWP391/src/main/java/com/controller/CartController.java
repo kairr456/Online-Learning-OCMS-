@@ -80,31 +80,51 @@ public class CartController extends HttpServlet {
         request.getRequestDispatcher(CART_JSP).forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action != null) {
-            switch (action) {
-                case "add":
-                    addToCart(request, response);
-                    break;
-                case "remove":
-                    removeFromCart(request, response);
-                    break;
-                case "checkout":
-                    processCheckout(request, response);
-                    break;
-                case "complete-checkout":
-                    completeCheckout(request, response);
-                    break;
-                default:
-                    response.sendRedirect(request.getContextPath() + "/cart");
-                    break;
-            }
-        } else {
-            response.sendRedirect(request.getContextPath() + "/cart");
+    @Override
+protected void doPost(HttpServletRequest request,
+                      HttpServletResponse response)
+        throws ServletException, IOException {
+
+    String action = request.getParameter("action");
+
+    if (action != null) {
+
+        switch (action) {
+
+            case "add":
+                addToCart(request, response);
+                break;
+
+            case "remove":
+                removeFromCart(request, response);
+                break;
+
+            case "checkout":
+    response.sendRedirect(
+        request.getContextPath() + "/checkout"
+    );
+    
+
+                break;
+
+            default:
+
+                response.sendRedirect(
+                    request.getContextPath()
+                            + "/cart"
+                );
+
+                break;
         }
+
+    } else {
+
+        response.sendRedirect(
+            request.getContextPath()
+                    + "/cart"
+        );
     }
+}
 
     private void addToCart(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

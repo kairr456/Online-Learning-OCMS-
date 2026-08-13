@@ -48,6 +48,20 @@
             color: #ddd;
             margin-bottom: 20px;
         }
+.cart-summary .cart-actions {
+    display: flex !important;
+    gap: 10px;
+}
+
+.cart-summary .cart-actions a,
+.cart-summary .cart-actions form {
+    width: 50%;
+}
+
+.cart-summary .cart-actions button,
+.cart-summary .cart-actions a {
+    width: 100%;
+}
     </style>
 </head>
 
@@ -145,19 +159,36 @@
                                 <strong>Total:</strong>
                                 <strong>$<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></strong>
                             </div>
-                            
-                            <c:if test="${not empty cartItems}">
-                                <form action="${pageContext.request.contextPath}/cart" method="post" id="checkoutForm">
-                                    <input type="hidden" name="action" value="checkout">
-                                    <button type="submit" class="btn btn-primary btn-block" id="checkoutBtn">
-                                        Proceed to Checkout
-                                    </button>
-                                </form>
-                            </c:if>
-                            
-                            <a href="${pageContext.request.contextPath}/view/common/browse-course.jsp" class="btn btn-outline-secondary btn-block mt-3">
-                                Continue Shopping
-                            </a>
+<div class="cart-actions mt-4">
+
+    <!-- Continue Shopping -->
+    <a href="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+       class="btn btn-outline-secondary"
+       style="display: inline-block; margin-right: 10px;">
+        Continue Shopping
+    </a>
+
+    <!-- Proceed to Checkout -->
+   <form action="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+      method="post"
+      style="width: 50%;">
+
+    <input type="hidden"
+           name="action"
+           value="checkout">
+
+    <button type="submit"
+            class="btn btn-primary"
+            style="width: 100%;">
+
+        Checkout
+
+    </button>
+
+</form>
+
+</div>                     
+
                         </div>
                     </div>
                 </div>

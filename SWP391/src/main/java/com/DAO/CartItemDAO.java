@@ -240,6 +240,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
      * @param cartId The cart ID
      * @return List of cart items with course details
      */
+    
     public List<CartItem> getCartItemsWithCourseDetails(Integer cartId) {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT ci.*, c.name as course_name, c.thumbnail as course_thumbnail " +
