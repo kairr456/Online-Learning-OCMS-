@@ -20,44 +20,52 @@ public class AccountManagerController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
-        // 1. Kiểm tra xem có yêu cầu action gì không (vd: action=delete)
+        // Kiểm tra action
         String action = request.getParameter("action");
-        if (action != null && action.equals("delete")) {
+
+        if ("delete".equals(action)) {
             handleDelete(request, response);
-            return; // Dừng lại sau khi xóa để thực hiện redirect
+            return;
         }
 
-        // 2. Nếu không phải action xóa, xử lý hiển thị danh sách (Search/Filter)
+        // Lấy thông tin filter & search
         String keyword = request.getParameter("keyword");
         String roleId = request.getParameter("roleId");
         String status = request.getParameter("status");
 
+        // Lấy danh sách account
         List<Account> userList = accountDAO.searchAccounts(keyword, roleId, status);
 
+        // Đưa danh sách account và thông tin filter sang JSP
         request.setAttribute("userList", userList);
+
+        // Main content cần render
         request.setAttribute("contentPage", "accounts.jsp");
-        request.getRequestDispatcher("/view/admin/common/admin_layout.jsp").forward(request, response);
+
+        // Render Admin Layout
+        request.getRequestDispatcher("/view/admin/common/admin_layout.jsp")
+                .forward(request, response);
     }
 
-    // Hàm phụ trách xử lý xóa
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response) 
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+
         String idRaw = request.getParameter("id");
-        if (idRaw != null && !idRaw.isEmpty()) {
+
+        if (idRaw != null && !idRaw.trim().isEmpty()) {
             try {
                 int id = Integer.parseInt(idRaw);
-                accountDAO.deleteAccount(id);
+                accountDAO.deactivateAccount(id);
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
         }
-        // Xóa xong chuyển hướng lại về trang danh sách account
+
+        // Quay lại danh sách
         response.sendRedirect(request.getContextPath() + "/admin/accounts");
     }
 }
-
-

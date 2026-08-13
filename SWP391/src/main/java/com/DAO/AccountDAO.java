@@ -128,184 +128,136 @@ public class AccountDAO extends DBContext {
         }
         return null; // Return null if login fails
     }
-    
+
     /**
- * Lấy danh sách tài khoản theo điều kiện:
- * - Tìm kiếm username, email, full_name
- * - Lọc Role
- * - Lọc Status
- */
-public List<Account> searchAccounts(String keyword, String roleId, String status) {
+     * Lấy danh sách tài khoản theo điều kiện: - Tìm kiếm username, email,
+     * full_name - Lọc Role - Lọc Status
+     */
+    public List<Account> searchAccounts(String keyword, String roleId, String status) {
+        List<Account> list = new ArrayList<>();
 
-    List<Account> list = new ArrayList<>();
-
-    StringBuilder sql = new StringBuilder(
-        "SELECT id, username, email, phone, full_name, " +
-        "gender, avatar, is_active, role_id " +
-        "FROM user WHERE 1=1 "
-    );
-
-    // Tìm kiếm theo username, email hoặc full_name
-    if (keyword != null && !keyword.trim().isEmpty()) {
-        sql.append(
-            " AND (username LIKE ? " +
-            "OR email LIKE ? " +
-            "OR full_name LIKE ?)"
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, username, email, phone, full_name, "
+                + "gender, is_active, role_id "
+                + "FROM Account WHERE 1=1 "
         );
-    }
 
-    // Lọc theo Role
-    if (roleId != null && !roleId.trim().isEmpty()) {
-        sql.append(" AND role_id = ?");
-    }
-
-    // Lọc theo Status
-    if (status != null && !status.trim().isEmpty()) {
-        sql.append(" AND is_active = ?");
-    }
-
-    sql.append(" ORDER BY id DESC");
-
-    try {
-
-        if (connection == null || connection.isClosed()) {
-            connection = getConnection();
-        }
-
-        statement = connection.prepareStatement(sql.toString());
-
-        int paramIndex = 1;
-
-        // Keyword
+        // Tìm kiếm theo username, email hoặc full_name
         if (keyword != null && !keyword.trim().isEmpty()) {
-
-            String searchPattern =
-                    "%" + keyword.trim() + "%";
-
-            statement.setString(
-                    paramIndex++,
-                    searchPattern
-            );
-
-            statement.setString(
-                    paramIndex++,
-                    searchPattern
-            );
-
-            statement.setString(
-                    paramIndex++,
-                    searchPattern
+            sql.append(
+                    " AND (username LIKE ? "
+                    + "OR email LIKE ? "
+                    + "OR full_name LIKE ?)"
             );
         }
 
-        // Role
+        // Lọc theo Role
         if (roleId != null && !roleId.trim().isEmpty()) {
-
-            statement.setInt(
-                    paramIndex++,
-                    Integer.parseInt(roleId)
-            );
+            sql.append(" AND role_id = ?");
         }
 
-        // Status
+        // Lọc theo Status
         if (status != null && !status.trim().isEmpty()) {
-
-            statement.setInt(
-                    paramIndex++,
-                    Integer.parseInt(status)
-            );
+            sql.append(" AND is_active = ?");
         }
 
-        resultSet = statement.executeQuery();
+        sql.append(" ORDER BY id DESC");
 
-        while (resultSet.next()) {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = getConnection();
+            }
 
-            Account u = new Account();
+            statement = connection.prepareStatement(sql.toString());
+            int paramIndex = 1;
 
-            u.setId(
-                    resultSet.getInt("id")
-            );
+            // Keyword
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchPattern = "%" + keyword.trim() + "%";
+                statement.setString(paramIndex++, searchPattern);
+                statement.setString(paramIndex++, searchPattern);
+                statement.setString(paramIndex++, searchPattern);
+            }
 
-            u.setUsername(
-                    resultSet.getString("username")
-            );
+            // Role
+            if (roleId != null && !roleId.trim().isEmpty()) {
+                statement.setInt(paramIndex++, Integer.parseInt(roleId));
+            }
 
-            u.setEmail(
-                    resultSet.getString("email")
-            );
+            // Status
+            if (status != null && !status.trim().isEmpty()) {
+                statement.setInt(paramIndex++, Integer.parseInt(status));
+            }
 
-            u.setPhone(
-                    resultSet.getString("phone")
-            );
+            resultSet = statement.executeQuery();
 
-            u.setFullName(
-                    resultSet.getString("full_name")
-            );
+            while (resultSet.next()) {
+                Account u = new Account();
+                u.setId(resultSet.getInt("id"));
+                u.setUsername(resultSet.getString("username"));
+                u.setEmail(resultSet.getString("email"));
+                u.setPhone(resultSet.getString("phone"));
+                u.setFullName(resultSet.getString("full_name"));
+                u.setGender(resultSet.getBoolean("gender"));
 
-            u.setGender(
-                    resultSet.getBoolean("gender")
-            );
+                // Đã BỎ dòng u.setAvatar(...) để tránh lỗi Column not found!
+                u.setActive(resultSet.getBoolean("is_active"));
+                u.setRoleId(resultSet.getInt("role_id"));
 
-            u.setAvatar(
-                    resultSet.getString("avatar")
-            );
+                list.add(u);
+            }
 
-            u.setActive(
-                    resultSet.getBoolean("is_active")
-            );
-
-            u.setRoleId(
-                    resultSet.getInt("role_id")
-            );
-
-            list.add(u);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
         }
 
-    } catch (Exception e) {
-
-        e.printStackTrace();
-
-    } finally {
-
-        closeResources();
+        return list;
     }
 
-    return list;
-}
+    /**
+     * Vô hiệu hóa tài khoản theo ID trong bảng Account.
+     */
+    public boolean deactivateAccount(int userId) {
 
+        String sql
+                = "UPDATE Account "
+                + "SET is_active = 0 "
+                + "WHERE id = ?";
 
-/**
- * Vô hiệu hóa tài khoản theo ID.
- *
- * Không xóa vật lý khỏi database để tránh
- * lỗi Foreign Key với các bảng liên quan.
- */
-public boolean deactivateAccount(int userId) {
+        try {
 
-    String sql =
-            "UPDATE user SET is_active = 0 WHERE id = ?";
+            if (connection == null || connection.isClosed()) {
+                connection = getConnection();
+            }
 
-    try {
+            statement
+                    = connection.prepareStatement(sql);
 
-        if (connection == null || connection.isClosed()) {
-            connection = getConnection();
+            statement.setInt(1, userId);
+
+            int rows
+                    = statement.executeUpdate();
+
+            System.out.println(
+                    "Deactivate Account ID = "
+                    + userId
+                    + ", affected rows = "
+                    + rows
+            );
+
+            return rows > 0;
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        } finally {
+
+            closeResources();
         }
 
-        statement = connection.prepareStatement(sql);
-
-        statement.setInt(1, userId);
-
-        return statement.executeUpdate() > 0;
-
-    } catch (SQLException e) {
-
-        e.printStackTrace();
-
-    } finally {
-
-        closeResources();
+        return false;
     }
-
-    return false;
-}
 }
