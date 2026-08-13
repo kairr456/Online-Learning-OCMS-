@@ -450,28 +450,38 @@
                     </c:if>
                     
                     <!-- Previous Page -->
-                    <c:if test="${currentPage > 1}">
-                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${currentPage - 1}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angle-left"></i></a>
-                    </c:if>
-                    
-                    <!-- Page Numbers -->
-                    <c:forEach var="i" begin="1" end="${totalPages}">
-                        <a href="#" class="page-link ${currentPage == i ? 'active' : ''}" onclick="document.getElementById('pageInput').value=${i}; document.getElementById('filterForm').submit(); return false;">${i}</a>
-                    </c:forEach>
-                    
-                    <!-- Next Page -->
-                    <c:if test="${currentPage < totalPages}">
-                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${currentPage + 1}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angle-right"></i></a>
-                    </c:if>
-                    
-                    <!-- Last Page -->
-                    <c:if test="${totalPages > 2 && currentPage < totalPages}">
-                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${totalPages}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angles-right"></i></a>
-                    </c:if>
+<c:if test="${currentPage > 1}">
+    <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage - 1}')"><i class="fa-solid fa-angle-left"></i></a>
+</c:if>
+
+<!-- Page Numbers -->
+<c:forEach var="i" begin="1" end="${totalPages}">
+    <a href="javascript:void(0)" class="page-link ${currentPage == i ? 'active' : ''}" onclick="goToPage('${i}')">${i}</a>
+</c:forEach>
+
+<!-- Next Page -->
+<c:if test="${currentPage < totalPages}">
+    <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage + 1}')"><i class="fa-solid fa-angle-right"></i></a>
+</c:if>
+
+<!-- Last Page -->
+<c:if test="${totalPages > 2 && currentPage < totalPages}">
+    <a href="javascript:void(0)" class="page-link" onclick="goToPage('${totalPages}')"><i class="fa-solid fa-angles-right"></i></a>
+</c:if>
                 </div>
             </c:if>
             
         </main>
     </form>
+    <script>
+        function goToPage(page) {
+            var pageInput = document.getElementById('pageInput');
+            var filterForm = document.getElementById('filterForm');
+            if (pageInput && filterForm) {
+                pageInput.value = page;
+                filterForm.submit();
+            }
+        }
+    </script>
 </body>
 </html>

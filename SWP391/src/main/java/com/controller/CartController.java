@@ -13,7 +13,7 @@ import com.ocms.config.GlobalConfig;
 import com.DAO.CartDAO;
 import com.DAO.CartItemDAO;
 import com.DAO.CourseDAO;
-import com.DAO.RegistrationDAO;
+import com.DAO.CourseRegistrationDAO;
 import com.entity.Cart;
 import com.entity.CartItem;
 import com.entity.Account;
@@ -30,7 +30,7 @@ public class CartController extends HttpServlet {
     private CartDAO cartDAO;
     private CartItemDAO cartItemDAO;
     private CourseDAO courseDAO;
-    private RegistrationDAO registrationDAO;
+    private CourseRegistrationDAO registrationDAO;
 
     private static final String CART_JSP = "view/addcart/cart.jsp";
     private static final String CHECKOUT_JSP = "view/common/home/checkout.jsp";
@@ -40,7 +40,7 @@ public class CartController extends HttpServlet {
         cartDAO = new CartDAO();    
         cartItemDAO = new CartItemDAO();
         courseDAO = new CourseDAO();
-        registrationDAO = new RegistrationDAO();
+        registrationDAO = new CourseRegistrationDAO();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

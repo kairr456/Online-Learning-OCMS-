@@ -1,6 +1,6 @@
 package com.controller.home;
 
-import com.DAO.RegistrationDAO;
+import com.DAO.CourseRegistrationDAO;
 import com.entity.Account;
 import com.entity.Course;
 
@@ -30,7 +30,7 @@ public class MyLearningController extends HttpServlet {
         }
 
         // Lấy danh sách khóa học của người dùng
-        RegistrationDAO registrationDAO = new RegistrationDAO();
+        CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
         List<Course> myCourses = registrationDAO.getCoursesByAccountId(account.getId());
 
         // Đẩy danh sách sang JSP
