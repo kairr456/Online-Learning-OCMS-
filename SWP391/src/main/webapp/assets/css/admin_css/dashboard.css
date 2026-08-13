@@ -1,0 +1,125 @@
+/* KPI Row */
+.kpi-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 2px solid #000;
+    padding-bottom: 25px;
+    margin-bottom: 30px;
+}
+
+.kpi-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    border-right: 1px solid #000;
+}
+
+.kpi-card:last-child {
+    border-right: none;
+}
+
+.kpi-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #334155;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.kpi-title {
+    font-size: 14px;
+    line-height: 1.2;
+    color: #000;
+}
+
+.kpi-value {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+/* Grid 3 cột cho phần thống kê */
+.statistics-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    gap: 25px 30px;
+}
+
+.stat-box {
+    background: #f1f3f5;
+    padding: 20px 25px;
+    border-radius: 12px;
+}
+
+.stat-title {
+    font-family: monospace;
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #222;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: 15px;
+}
+
+/* Biểu đồ hình tròn */
+.circle-stat {
+    background: #f1f3f5;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-title {
+    font-family: monospace;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+/* Progress bar */
+.chart-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    font-family: monospace;
+}
+
+.bar-container {
+    flex: 1;
+    background: #e2e8f0;
+    height: 14px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar {
+    background: #000;
+    height: 100%;
+}
