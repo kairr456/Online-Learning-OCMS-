@@ -276,35 +276,36 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
     public List<Course> findWithFilters(List<Integer> categoryIds, List<Integer> ratings,
-            String keyword, String sort, int pageNumber, int pageSize) {
+            String teacherName, String sort, int pageNumber, int pageSize) {
         List<Course> courses = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM course WHERE 1=1");
+        // Join with account table to search by teacher name
+        StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        String orderBy = "id";
+        String orderBy = "c.id"; // default
 
         if (sort != null) {
             switch (sort) {
-                // case "popularity":
-                //     orderBy = "enroll_count DESC";
-                //     break;
-                case "average rating desc":
-                    orderBy = "rating DESC";
+                case "Average Rating (High To Low)":
+                    orderBy = "c.rating DESC";
                     break;
-                case "average rating asc":
-                    orderBy = "rating ASC";
+                case "Average Rating (Low To High)":
+                    orderBy = "c.rating ASC";
                     break;
-                case "latest":
-                    orderBy = "created_date DESC";
+                case "Latest":
+                    orderBy = "c.created_date DESC";
                     break;
-                case "earliest":
-                    orderBy = "created_date ASC";
+                case "Earliest":
+                    orderBy = "c.created_date ASC";
+                    break;
+                default:
+                    orderBy = "c.id";
                     break;
             }
         }
 
         // Add category filter
         if (categoryIds != null && !categoryIds.isEmpty()) {
-            sql.append(" AND category_id IN (")
+            sql.append(" AND c.category_id IN (")
                     .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
                     .append(")");
             params.addAll(categoryIds);
@@ -312,17 +313,17 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
         // Add rating filter
         if (ratings != null && !ratings.isEmpty()) {
-            sql.append(" AND rating IN (")
+            sql.append(" AND c.rating IN (")
                     .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
                     .append(")");
             params.addAll(ratings);
         }
 
-        // Add keyword search
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append(" AND (name LIKE ? OR description LIKE ?)");
-            params.add("%" + keyword + "%");
-            params.add("%" + keyword + "%");
+        // Add teacher name search
+        if (teacherName != null && !teacherName.trim().isEmpty()) {
+            sql.append(" AND (a.full_name LIKE ? OR a.username LIKE ?)");
+            params.add("%" + teacherName + "%");
+            params.add("%" + teacherName + "%");
         }
 
         // Add pagination
@@ -355,29 +356,29 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
         return courses;
     }
 
-    public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String keyword) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course WHERE 1=1");
+    public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         // Add filters similar to findWithFilters method
         if (categoryIds != null && !categoryIds.isEmpty()) {
-            sql.append(" AND category_id IN (")
+            sql.append(" AND c.category_id IN (")
                     .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
                     .append(")");
             params.addAll(categoryIds);
         }
 
         if (ratings != null && !ratings.isEmpty()) {
-            sql.append(" AND rating IN (")
+            sql.append(" AND c.rating IN (")
                     .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
                     .append(")");
             params.addAll(ratings);
         }
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append(" AND (name LIKE ? OR description LIKE ?)");
-            params.add("%" + keyword + "%");
-            params.add("%" + keyword + "%");
+        if (teacherName != null && !teacherName.trim().isEmpty()) {
+            sql.append(" AND (a.full_name LIKE ? OR a.username LIKE ?)");
+            params.add("%" + teacherName + "%");
+            params.add("%" + teacherName + "%");
         }
 
         try {

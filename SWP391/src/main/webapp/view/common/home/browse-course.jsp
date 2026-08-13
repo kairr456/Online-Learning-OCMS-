@@ -7,6 +7,7 @@
     <title>Browse Courses</title>
     <!-- css -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <!-- FontAwesome cho các icon ngôi sao, mũi tên -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -325,7 +326,8 @@
 <body>
     <jsp:include page="/view/common/header.jsp" />
     
-    <div class="browse-container">
+    <form id="filterForm" action="${pageContext.request.contextPath}/courses" method="get" class="browse-container">
+        <input type="hidden" name="page" id="pageInput" value="${currentPage != null ? currentPage : 1}">
         
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -333,7 +335,8 @@
                 <h3>Categories</h3>
                 <c:forEach var="cat" items="${allCategories}">
                     <label class="filter-item">
-                        <input type="checkbox" name="category" value="${cat.id}"> ${cat.name}
+                        <input type="checkbox" name="category" value="${cat.id}" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                               ${selectedCategories != null && selectedCategories.contains(cat.id) ? 'checked' : ''}> ${cat.name}
                     </label>
                 </c:forEach>
             </div>
@@ -341,31 +344,36 @@
             <div class="filter-group">
                 <h3>Ratings</h3>
                 <label class="filter-item">
-                    <input type="checkbox" name="rating" value="5"> 
+                    <input type="checkbox" name="rating" value="5" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                           ${selectedRatings != null && selectedRatings.contains(5) ? 'checked' : ''}> 
                     <span class="star-rating">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                     </span>
                 </label>
                 <label class="filter-item">
-                    <input type="checkbox" name="rating" value="4"> 
+                    <input type="checkbox" name="rating" value="4" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                           ${selectedRatings != null && selectedRatings.contains(4) ? 'checked' : ''}> 
                     <span class="star-rating">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star empty"></i>
                     </span>
                 </label>
                 <label class="filter-item">
-                    <input type="checkbox" name="rating" value="3"> 
+                    <input type="checkbox" name="rating" value="3" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                           ${selectedRatings != null && selectedRatings.contains(3) ? 'checked' : ''}> 
                     <span class="star-rating">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i>
                     </span>
                 </label>
                 <label class="filter-item">
-                    <input type="checkbox" name="rating" value="2"> 
+                    <input type="checkbox" name="rating" value="2" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                           ${selectedRatings != null && selectedRatings.contains(2) ? 'checked' : ''}> 
                     <span class="star-rating">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i>
                     </span>
                 </label>
                 <label class="filter-item">
-                    <input type="checkbox" name="rating" value="1"> 
+                    <input type="checkbox" name="rating" value="1" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"
+                           ${selectedRatings != null && selectedRatings.contains(1) ? 'checked' : ''}> 
                     <span class="star-rating">
                         <i class="fa-solid fa-star"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i><i class="fa-regular fa-star empty"></i>
                     </span>
@@ -375,8 +383,8 @@
             <div class="search-teacher-box">
                 <label>search teacher by name</label>
                 <div class="search-input-wrapper">
-                    <input type="text" name="teacherName">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="teacherName" value="${teacherName != null ? teacherName : ''}" onkeydown="if(event.key === 'Enter'){ document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit(); }">
+                    <i class="fa-solid fa-magnifying-glass" style="cursor: pointer;" onclick="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"></i>
                 </div>
             </div>
         </aside>
@@ -390,12 +398,12 @@
                 </div>
                 <div class="sort-by">
                     Sort By:
-                    <select>
-                        <option value=""></option>
-                        <option>Average Rating (High To Low)</option>
-                        <option>Average Rating (Low To High)</option>
-                        <option>Latest</option>
-                        <option>Earliest</option>
+                    <select name="sort" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();">
+                        <option value="">Default</option>
+                        <option value="Average Rating (High To Low)" ${sort == 'Average Rating (High To Low)' ? 'selected' : ''}>Average Rating (High To Low)</option>
+                        <option value="Average Rating (Low To High)" ${sort == 'Average Rating (Low To High)' ? 'selected' : ''}>Average Rating (Low To High)</option>
+                        <option value="Latest" ${sort == 'Latest' ? 'selected' : ''}>Latest</option>
+                        <option value="Earliest" ${sort == 'Earliest' ? 'selected' : ''}>Earliest</option>
                     </select>
                 </div>
             </div>
@@ -407,7 +415,7 @@
             <div class="course-grid">
                 <c:forEach var="course" items="${courses}">
                     <div class="course-card">
-                        <a href="course-details?id=${course.id}">
+                        <a href="${pageContext.request.contextPath}/course?id=${course.id}">
                             <img src="${course.thumbnail != null ? course.thumbnail : 'https://via.placeholder.com/300x150.png?text=img'}" alt="Course Image" class="course-image">
                         </a>
                         <div class="course-body">
@@ -420,12 +428,12 @@
                                 </span>
                             </div>
                             
-                            <a href="course-details?id=${course.id}" class="course-title">
+                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="course-title">
                                 ${course.name}
                             </a>
                             
                             <div class="course-footer">
-                                <a href="checkout?courseId=${course.id}" class="enroll-btn">enroll now</a>
+                                <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn">enroll now</a>
                                 <span class="course-price">${course.price}$</span>
                             </div>
                         </div>
@@ -436,17 +444,34 @@
             <!-- Pagination -->
             <c:if test="${totalPages > 1}">
                 <div class="pagination">
-                    <a href="#" class="page-link"><i class="fa-solid fa-angles-left"></i></a>
-                    <a href="#" class="page-link"><i class="fa-solid fa-angle-left"></i></a>
-                    <a href="#" class="page-link active">1</a>
-                    <a href="#" class="page-link">2</a>
-                    <a href="#" class="page-link">3</a>
-                    <a href="#" class="page-link"><i class="fa-solid fa-angle-right"></i></a>
-                    <a href="#" class="page-link"><i class="fa-solid fa-angles-right"></i></a>
+                    <!-- First Page -->
+                    <c:if test="${totalPages > 2 && currentPage > 1}">
+                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angles-left"></i></a>
+                    </c:if>
+                    
+                    <!-- Previous Page -->
+                    <c:if test="${currentPage > 1}">
+                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${currentPage - 1}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angle-left"></i></a>
+                    </c:if>
+                    
+                    <!-- Page Numbers -->
+                    <c:forEach var="i" begin="1" end="${totalPages}">
+                        <a href="#" class="page-link ${currentPage == i ? 'active' : ''}" onclick="document.getElementById('pageInput').value=${i}; document.getElementById('filterForm').submit(); return false;">${i}</a>
+                    </c:forEach>
+                    
+                    <!-- Next Page -->
+                    <c:if test="${currentPage < totalPages}">
+                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${currentPage + 1}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angle-right"></i></a>
+                    </c:if>
+                    
+                    <!-- Last Page -->
+                    <c:if test="${totalPages > 2 && currentPage < totalPages}">
+                        <a href="#" class="page-link" onclick="document.getElementById('pageInput').value=${totalPages}; document.getElementById('filterForm').submit(); return false;"><i class="fa-solid fa-angles-right"></i></a>
+                    </c:if>
                 </div>
             </c:if>
             
         </main>
-    </div>
+    </form>
 </body>
 </html>

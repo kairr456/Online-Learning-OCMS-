@@ -158,6 +158,12 @@ public class RegisterController extends HttpServlet {
         boolean genderValue =
                 "male".equalsIgnoreCase(gender);
 
+        // Normalize inputs for consistent checks
+        username = username == null ? null : username.trim();
+        email = email == null ? null : email.trim().toLowerCase();
+        phone = phone == null ? null : phone.trim();
+        fullName = fullName == null ? null : fullName.trim();
+
 
         // =====================================================
         // HASH PASSWORD (MD5)

@@ -79,13 +79,13 @@ public class LoginController extends HttpServlet {
 
             if (roleId == 1) {
                 // Admin -> dashboard
-                response.sendRedirect(contextPath + "/view/admin/dashboard.jsp");
+                response.sendRedirect(contextPath + "/admin/dashboard");
             } else if (roleId == 2 || roleId == 3) {
                 // Teacher or Student -> homepage
-                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+                response.sendRedirect(contextPath + "/view/common/home/homepage.jsp");
             } else {
                 // Unrecognized role: fall back to homepage rather than dead-end
-                response.sendRedirect(contextPath + "/view/common/homepage.jsp");
+                response.sendRedirect(contextPath + "/view/common/home/homepage.jsp");
             }
         } else {
             // Login failed: Set error message and forward back to login page

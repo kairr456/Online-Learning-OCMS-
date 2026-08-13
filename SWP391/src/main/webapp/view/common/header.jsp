@@ -1,5 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.entity.Account" %>
+<%@ page import="com.entity.Category" %>
+<%@ page import="com.DAO.CategoryDAO" %>
+<%@ page import="java.util.List" %>
 <%
     // This fragment is meant to be pulled into other pages with:
     //   <jsp:include page="${pageContext.request.contextPath}/view/common/header.jsp" />
@@ -8,6 +11,10 @@
     // Pages that include this fragment must also link assets/css/common/header.css.
     Account headerAccount = (Account) session.getAttribute("currentAccount");
     String ctx = request.getContextPath();
+
+    // Category dropdown options come straight from the database now instead
+    // of being hardcoded -- new categories show up here automatically.
+    List<Category> headerCategories = new CategoryDAO().findAll();
 %>
 <header class="site-header">
     <div class="site-header__inner">
@@ -19,7 +26,7 @@
 
         <nav class="site-header__nav">
             <a href="<%= ctx %>/">Home</a>
-            <a href="<%= ctx %>/view/common/browse-course.jsp">Browse Course</a>
+            <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
             <a href="<%= ctx %>/view/course_learning/course_learning.jsp">My Learning</a>
             <% } %>
@@ -28,9 +35,9 @@
         <form class="site-header__search" action="<%= ctx %>/search" method="get">
             <select name="category" class="site-header__select" aria-label="Category">
                 <option value="">Category</option>
-                <option value="programming">Programming</option>
-                <option value="design">Design</option>
-                <option value="business">Business</option>
+                <% for (Category cat : headerCategories) { %>
+                <option value="<%= cat.getId() %>"><%= cat.getName() %></option>
+                <% } %>
             </select>
             <input type="search" name="q" class="site-header__input" placeholder="Search">
             <button type="submit" class="site-header__search-btn" aria-label="Search">

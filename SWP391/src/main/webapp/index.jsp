@@ -4,5 +4,5 @@
     // lands here (Tomcat's default welcome-file order tries index.html,
     // then index.htm, then index.jsp) and forwards straight into homepage.jsp.
     // A server-side forward keeps the URL as "/" while rendering homepage.jsp.
-    request.getRequestDispatcher("/view/common/homepage.jsp").forward(request, response);
+    request.getRequestDispatcher("/view/common/home/homepage.jsp").forward(request, response);
 %>
