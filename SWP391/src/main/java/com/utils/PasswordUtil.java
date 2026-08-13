@@ -6,9 +6,7 @@ import java.security.NoSuchAlgorithmException;
 
 // Shared by RegisterController (hashing on sign-up) and LoginController
 // (hashing on sign-in), so both sides always produce byte-for-byte the same
-// hash for the same input. This is the exact algorithm RegisterController
-// used to have inline as encodeMD5() -- pulled out here so it can't drift
-// between the two controllers.
+// hash for the same input. The algorithm used is encodeMD5()
 public class PasswordUtil {
 
     private PasswordUtil() {
