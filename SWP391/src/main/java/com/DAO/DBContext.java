@@ -15,12 +15,13 @@ public class DBContext {
     public DBContext() {
         try {
             String username = "root";
-            String password = "1234";//Mk Default
-            //String password = "1234"; //Mk Duy
-            //String password = ""; //Mk Luong
-            //String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
+            String password = "1234";// Mk Default
+            // String password = "1234"; //Mk Duy
+            // String password = ""; //Mk Luong
+            // String url =
+            // "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
             String url = "jdbc:mysql://localhost:3306/ocms";
-            
+
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException e) {
