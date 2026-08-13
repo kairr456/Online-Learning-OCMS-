@@ -391,7 +391,7 @@
                                 <ul class="list-wrap">
                                     <li class="author-two">
                                         By
-                                        <a href="#">${course.createdBy}</a>
+                                        <a href="teacher-detail.jsp?id=${course.createdBy}">${authorName}</a>
                                     </li>
                                     <li class="date"><i class="fas fa-calendar"></i> ${course.createdDate}</li>
                                 </ul>
@@ -434,7 +434,34 @@
                                 <div class="tab-pane fade" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
                                     <div class="courses__rating-wrap">
                                         <h2 class="title">Reviews</h2>
-                                        <!-- Reviews will be loaded dynamically -->
+                                        
+                                        <!-- Reviews List -->
+                                        <div class="course-reviews-list" style="margin-bottom: 30px;">
+                                            <c:if test="${empty reviews}">
+                                                <p style="color: #666; font-style: italic;">No reviews yet. Be the first to review this course!</p>
+                                            </c:if>
+                                            <c:forEach var="review" items="${reviews}">
+                                                <div class="review-item" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                                                    <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                                        <strong style="font-size: 16px;">${accountNames[review.accountId]}</strong>
+                                                        <span style="color: #888; font-size: 14px;">${review.createdDate}</span>
+                                                    </div>
+                                                    <div class="review-rating" style="color: #ffc107; margin-bottom: 10px; font-size: 14px;">
+                                                        <c:forEach begin="1" end="5" var="i">
+                                                            <c:choose>
+                                                                <c:when test="${i <= review.rating}">
+                                                                    <i class="fas fa-star"></i>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <i class="far fa-star"></i>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </c:forEach>
+                                                    </div>
+                                                    <p class="review-comment" style="color: #444; line-height: 1.5; margin: 0;">${review.comment}</p>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
                                         
                                         <!-- Review Form -->
                                         <div class="course-review-form" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
@@ -455,7 +482,14 @@
                                                     <label for="reviewComment" style="display: block; font-weight: 600; margin-bottom: 8px;">Your Comment:</label>
                                                     <textarea name="comment" id="reviewComment" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none;" placeholder="What do you think about this course?" required></textarea>
                                                 </div>
-                                                <button type="submit" class="btn" style="background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Submit Review</button>
+                                                <c:choose>
+                                                    <c:when test="${not empty sessionScope.account}">
+                                                        <button type="submit" class="btn" style="background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Submit Review</button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <a href="${pageContext.request.contextPath}/login" class="btn" style="display: inline-block; background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; text-decoration: none;">Login to Submit Review</a>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </form>
                                             <script>
                                                 document.addEventListener("DOMContentLoaded", function() {

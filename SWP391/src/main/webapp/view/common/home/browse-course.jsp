@@ -433,7 +433,7 @@
                             </a>
                             
                             <div class="course-footer">
-                                <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn">enroll now</a>
+                                <button type="button" class="enroll-btn" style="border: none; cursor: pointer;" onclick="submitAddToCart(${course.id}, ${course.price});">enroll now</button>
                                 <span class="course-price">${course.price}$</span>
                             </div>
                         </div>
@@ -482,6 +482,18 @@
                 filterForm.submit();
             }
         }
+        
+        function submitAddToCart(courseId, price) {
+            document.getElementById('cartCourseId').value = courseId;
+            document.getElementById('cartPrice').value = price;
+            document.getElementById('addToCartForm').submit();
+        }
     </script>
+    
+    <form id="addToCartForm" action="${pageContext.request.contextPath}/cart" method="post" style="display:none;">
+        <input type="hidden" name="action" value="add">
+        <input type="hidden" name="courseId" id="cartCourseId">
+        <input type="hidden" name="price" id="cartPrice">
+    </form>
 </body>
 </html>
