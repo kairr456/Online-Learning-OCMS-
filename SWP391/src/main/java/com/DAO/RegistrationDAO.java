@@ -1,14 +1,43 @@
 package com.DAO;
 
 import com.entity.Registration;
-
+import com.entity.Course;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RegistrationDAO extends DBContext implements I_DAO<Registration> {
+    // Chèn hàm này vào bên trong class RegistrationDAO
+    public List<Course> getCoursesByAccountId(int accountId) {
+        List<Course> courses = new ArrayList<>();
+        // Truy vấn lấy thông tin khóa học mà tài khoản đã đăng ký (trạng thái Active/Approved)
+        String sql = "SELECT c.* FROM course c " +
+                    "JOIN registration r ON c.id = r.course_id " +
+                    "WHERE r.account_id = ? AND r.status IN ('Active', 'Approved', 'Success')";
 
+        try (Connection connection = getConnection();
+            PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Course course = new Course();
+                    course.setId(rs.getInt("id"));
+                    course.setName(rs.getString("name"));
+                    course.setDescription(rs.getString("description"));
+                    course.setPrice(rs.getFloat("price"));
+                    course.setThumbnail(rs.getString("thumbnail"));
+                    courses.add(course);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching courses by account ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return courses;
+    }
     @Override
     public List<Registration> findAll() {
         List<Registration> registrations = new ArrayList<>();
