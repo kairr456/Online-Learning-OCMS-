@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
 
-    <!-- CSS Tùy chỉnh dành riêng cho trang My Learning (Giao diện Udemy Style) -->
+    <!-- CSS Tùy chỉnh dành riêng cho trang My Learning -->
     <style>
         :root {
             --mylearning-primary: #5624d0;
@@ -107,10 +107,6 @@
             outline: none;
         }
 
-        .filter-select:focus {
-            border-color: var(--mylearning-text-dark);
-        }
-
         .learning-search {
             position: relative;
             min-width: 260px;
@@ -153,7 +149,6 @@
             display: flex;
             flex-direction: column;
             transition: box-shadow 0.2s ease, transform 0.2s ease;
-            position: relative;
         }
 
         .course-card:hover {
@@ -164,7 +159,7 @@
         .course-thumbnail {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* Aspect Ratio 16:9 */
+            padding-top: 56.25%;
             background-color: #e8e9eb;
             overflow: hidden;
         }
@@ -206,7 +201,6 @@
             justify-content: center;
             color: var(--mylearning-text-dark);
             font-size: 1.2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .course-body {
@@ -234,87 +228,57 @@
             font-size: 0.825rem;
             color: var(--mylearning-text-muted);
             margin-bottom: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        /* Progress Bar */
-        .progress-container {
-            margin-top: auto;
-            padding-top: 10px;
-        }
-
-        .progress-bar-bg {
-            height: 4px;
-            background-color: #d1d7dc;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: var(--mylearning-primary);
-            transition: width 0.3s ease;
-        }
-
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--mylearning-text-muted);
-            font-weight: 500;
-        }
-
-        /* Action Footer */
         .course-action {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 12px;
+            margin-top: auto;
             padding-top: 10px;
             border-top: 1px solid #f0f0f0;
         }
 
-        .btn-continue {
-            color: var(--mylearning-primary);
+        .btn-purple {
+            background-color: var(--mylearning-primary);
+            color: #fff !important;
             font-weight: 700;
-            font-size: 0.875rem;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            border: none;
+            display: inline-block;
+        }
+
+        .btn-purple:hover {
+            background-color: var(--mylearning-primary-hover);
+        }
+
+        .btn-outline-custom {
+            border: 1px solid var(--mylearning-text-dark);
+            color: var(--mylearning-text-dark);
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: transparent;
             text-decoration: none;
         }
 
-        .btn-continue:hover {
-            color: var(--mylearning-primary-hover);
-            text-decoration: underline;
-        }
-
-        .course-options-btn {
-            background: none;
-            border: none;
-            color: var(--mylearning-text-muted);
-            font-size: 1.1rem;
-            padding: 4px 8px;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        .course-options-btn:hover {
-            background-color: #f0f0f0;
-            color: var(--mylearning-text-dark);
+        .btn-outline-custom:hover {
+            background-color: #f7f9fa;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             background: var(--mylearning-bg);
             border-radius: 8px;
-            margin: 40px 0;
+            margin: 20px 0;
         }
 
         .empty-state i {
-            font-size: 3.5rem;
+            font-size: 3rem;
             color: var(--mylearning-text-muted);
             margin-bottom: 16px;
         }
@@ -322,6 +286,7 @@
         .empty-state h3 {
             font-weight: 700;
             margin-bottom: 8px;
+            font-size: 1.25rem;
         }
 
         .empty-state p {
@@ -329,28 +294,134 @@
             margin-bottom: 20px;
         }
 
-        .btn-browse {
-            background-color: var(--mylearning-primary);
-            color: #fff;
-            font-weight: 700;
-            padding: 12px 24px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
+        /* --- STYLES BỔ SUNG CHO CÁC TÍNH NĂNG MỚI --- */
+
+        /* 1. My Lists Cards */
+        .list-card {
+            border: 1px solid var(--mylearning-border);
+            border-radius: 6px;
+            padding: 20px;
+            background: #fff;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
 
-        .btn-browse:hover {
-            background-color: var(--mylearning-primary-hover);
+        .list-card:hover {
+            border-color: var(--mylearning-text-dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .list-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--mylearning-text-dark);
+            margin-bottom: 6px;
+        }
+
+        .list-card-count {
+            font-size: 0.85rem;
+            color: var(--mylearning-text-muted);
+            margin-bottom: 16px;
+        }
+
+        .list-thumbnails-preview {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .list-thumbnails-preview img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 4px;
+            background-color: #eee;
+        }
+
+        /* 2. Learning Tools Section */
+        .tool-box {
+            border: 1px solid var(--mylearning-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            background: #fff;
+        }
+
+        .tool-box-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: #f0ebff;
+            color: var(--mylearning-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .tool-title-text h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
+
+        .tool-title-text p {
+            margin: 0;
+            color: var(--mylearning-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .day-selector button {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--mylearning-border);
+            background: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--mylearning-text-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-selector button.active {
+            background: var(--mylearning-primary);
             color: #fff;
+            border-color: var(--mylearning-primary);
+        }
+
+        .goal-bar-bg {
+            height: 10px;
+            background-color: #e8e9eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 12px 0 8px 0;
+        }
+
+        .goal-bar-fill {
+            height: 100%;
+            background-color: #2e7d32;
+            width: 40%;
         }
     </style>
 </head>
 <body>
 
-    <!-- Nhúng Header dùng chung của dự án -->
+    <!-- Nhúng Header dùng chung -->
     <jsp:include page="/view/common/header.jsp" />
 
-    <!-- Section Header Trang My Learning -->
+    <!-- Header Trang My Learning -->
     <div class="my-learning-header">
         <div class="container">
             <h1>My Learning</h1>
@@ -368,150 +439,314 @@
     <!-- Nội dung chính -->
     <main class="container my-4">
         
-        <!-- Tab Content: All Courses -->
+        <!-- ==================== TAB 1: ALL COURSES ==================== -->
         <div id="tab-all-courses" class="tab-content-item">
-            
-            <!-- Controls Bar (Lọc & Tìm kiếm) -->
             <div class="learning-controls">
                 <div class="learning-filters">
-                    <!-- Sắp xếp -->
                     <select class="filter-select" id="sortBy" onchange="filterCourses()">
                         <option value="recent">Sort by: Recently Accessed</option>
                         <option value="title-asc">Title: A to Z</option>
                         <option value="title-desc">Title: Z to A</option>
-                        <option value="progress">Completion Progress</option>
                     </select>
 
-                    <!-- Lọc theo danh mục -->
                     <select class="filter-select" id="filterCategory" onchange="filterCourses()">
                         <option value="all">Categories: All</option>
-                        <option value="1">Business</option>
-                        <option value="2">Technology</option>
-                    </select>
-
-                    <!-- Lọc theo tiến độ -->
-                    <select class="filter-select" id="filterProgress" onchange="filterCourses()">
-                        <option value="all">Progress: All</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="not-started">Not Started</option>
+                        <option value="1">Software Engineering</option>
+                        <option value="2">Business & Management</option>
                     </select>
                 </div>
 
-                <!-- Tìm kiếm khóa học trong danh sách cá nhân -->
                 <div class="learning-search">
                     <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="searchCourses()">
                     <button type="button" aria-label="Search"><i class="fas fa-search"></i></button>
                 </div>
             </div>
 
-            <!-- Danh sách các khóa học đã đăng ký -->
             <c:choose>
                 <c:when test="${not empty myCourses}">
                     <div class="course-grid" id="courseGrid">
                         <c:forEach var="item" items="${myCourses}">
-                            <div class="course-card" 
-                                 data-title="${item.name}" 
-                                 data-category="${item.categoryId}">
-                                
-                                <!-- Ảnh thumbnail khóa học -->
+                            <div class="course-card" data-title="${item.name}">
                                 <div class="course-thumbnail">
                                     <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
                                     <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="play-overlay" title="Start / Continue">
                                         <div class="play-icon"><i class="fas fa-play"></i></div>
                                     </a>
                                 </div>
-
-                                <!-- Thông tin chi tiết khóa học -->
                                 <div class="course-body">
                                     <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="text-decoration-none">
                                         <h2 class="course-title">${item.name}</h2>
                                     </a>
                                     <div class="course-instructor">${item.description}</div>
-
-                                    <!-- Nút hành động -->
                                     <div class="course-action">
-                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-continue">
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple btn-sm w-100 text-center">
                                             Start Course
                                         </a>
-                                        <button class="course-options-btn" title="Options" onclick="openCourseMenu('${item.id}')">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
                                     </div>
                                 </div>
-
                             </div>
                         </c:forEach>
                     </div>
                 </c:when>
-                
                 <c:otherwise>
-                    <!-- Màn hình rỗng hiển thị khi user chưa đăng ký khóa học nào -->
                     <div class="empty-state">
                         <i class="fas fa-book-open"></i>
                         <h3>Bạn chưa đăng ký khóa học nào</h3>
-                        <p>Hãy khám phá các khóa học hấp dẫn và bắt đầu hành trình học tập của bạn ngay hôm nay!</p>
-                        <a href="${pageContext.request.contextPath}/browse-course" class="btn-browse">Khám phá khóa học ngay</a>
+                        <p>Khám phá kho khóa học phong phú và bắt đầu hành trình nâng cao kỹ năng ngay hôm nay!</p>
+                        <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Khám phá khóa học ngay</a>
                     </div>
                 </c:otherwise>
             </c:choose>
-
         </div>
 
-        <!-- Tab Content: My Lists -->
+        <!-- ==================== TAB 2: MY LISTS ==================== -->
         <div id="tab-my-lists" class="tab-content-item d-none">
-            <div class="empty-state">
-                <i class="fas fa-folder-plus"></i>
-                <h3>Organize your learning with lists</h3>
-                <p>Create custom lists of your courses to organize your learning paths.</p>
-                <a href="#" class="btn-browse">+ Create New List</a>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Danh sách tùy chỉnh</h3>
+                    <p class="text-muted mb-0">Nhóm các khóa học theo mục tiêu cá nhân hoặc lộ trình dự án của bạn.</p>
+                </div>
+                <button class="btn-purple" data-bs-toggle="modal" data-bs-target="#createListModal">
+                    <i class="fas fa-plus me-2"></i> Tạo danh sách mới
+                </button>
             </div>
+
+            <c:choose>
+                <c:when test="${not empty userLists}">
+                    <div class="row g-4">
+                        <c:forEach var="list" items="${userLists}">
+                            <div class="col-md-4 col-sm-6">
+                                <div class="list-card">
+                                    <div>
+                                        <div class="list-card-title">${list.title}</div>
+                                        <div class="list-card-count">${list.courseCount} khóa học</div>
+                                        <div class="list-thumbnails-preview">
+                                            <c:forEach var="thumb" items="${list.thumbnails}">
+                                                <img src="${thumb}" alt="Course thumbnail preview">
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                    <a href="${pageContext.request.contextPath}/my-lists/detail?id=${list.id}" class="btn-outline-custom text-center w-100">Xem danh sách</a>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="empty-state">
+                        <i class="fas fa-folder-plus"></i>
+                        <h3>Tổ chức việc học hiệu quả với Danh Sách (Lists)</h3>
+                        <p>Tạo các bộ sưu tập khóa học riêng theo kỹ năng (ví dụ: "Lập trình Java", "Thiết kế Web").</p>
+                        <button class="btn-purple" data-bs-toggle="modal" data-bs-target="#createListModal">+ Tạo danh sách mới</button>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
 
-        <!-- Tab Content: Wishlist -->
+        <!-- ==================== TAB 3: WISHLIST ==================== -->
         <div id="tab-wishlist" class="tab-content-item d-none">
-            <div class="empty-state">
-                <i class="far fa-heart"></i>
-                <h3>Your wishlist is empty</h3>
-                <p>Explore our courses and add your favorite ones to your wishlist.</p>
-                <a href="${pageContext.request.contextPath}/browse-course" class="btn-browse">Browse Courses Now</a>
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Danh sách yêu thích</h3>
+                <p class="text-muted mb-0">Các khóa học bạn đang quan tâm hoặc muốn lưu lại để học sau.</p>
             </div>
+
+            <c:choose>
+                <c:when test="${not empty wishlistCourses}">
+                    <div class="course-grid">
+                        <c:forEach var="item" items="${wishlistCourses}">
+                            <div class="course-card">
+                                <div class="course-thumbnail">
+                                    <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
+                                </div>
+                                <div class="course-body">
+                                    <h2 class="course-title">${item.name}</h2>
+                                    <div class="course-instructor">${item.description}</div>
+                                    <div class="course-action gap-2">
+                                        <a href="${pageContext.request.contextPath}/course-detail?id=${item.id}" class="btn-purple btn-sm flex-grow-1 text-center">Xem khóa học</a>
+                                        <button class="btn btn-outline-danger btn-sm" title="Xóa khỏi Wishlist" onclick="removeFromWishlist('${item.id}')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="empty-state">
+                        <i class="far fa-heart"></i>
+                        <h3>Danh sách yêu thích của bạn đang trống</h3>
+                        <p>Hãy khám phá danh mục khóa học và nhấn biểu tượng trái tim để lưu lại khóa học bạn quan tâm.</p>
+                        <a href="${pageContext.request.contextPath}/browse-course" class="btn-purple">Khám phá khóa học ngay</a>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
 
-        <!-- Tab Content: Archived -->
+        <!-- ==================== TAB 4: ARCHIVED ==================== -->
         <div id="tab-archived" class="tab-content-item d-none">
-            <div class="empty-state">
-                <i class="fas fa-archive"></i>
-                <h3>No archived courses</h3>
-                <p>Courses you archive will appear here.</p>
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1" style="font-size: 1.3rem;">Khóa học đã lưu trữ</h3>
+                <p class="text-muted mb-0">Các khóa học bạn đã ẩn bớt khỏi trang chính hoặc đã học xong.</p>
             </div>
+
+            <c:choose>
+                <c:when test="${not empty archivedCourses}">
+                    <div class="course-grid">
+                        <c:forEach var="item" items="${archivedCourses}">
+                            <div class="course-card">
+                                <div class="course-thumbnail">
+                                    <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
+                                </div>
+                                <div class="course-body">
+                                    <h2 class="course-title">${item.name}</h2>
+                                    <div class="course-instructor">${item.description}</div>
+                                    <div class="course-action gap-2">
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple btn-sm flex-grow-1 text-center">Học lại</a>
+                                        <button class="btn-outline-custom btn-sm" onclick="unarchiveCourse('${item.id}')">Bỏ lưu trữ</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="empty-state">
+                        <i class="fas fa-archive"></i>
+                        <h3>Chưa có khóa học nào được lưu trữ</h3>
+                        <p>Bạn có thể chủ động ẩn các khóa học cũ/đã hoàn thành để màn hình chính gọn gàng hơn.</p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
 
-        <!-- Tab Content: Learning Tools -->
+        <!-- ==================== TAB 5: LEARNING TOOLS ==================== -->
         <div id="tab-learning-tools" class="tab-content-item d-none">
-            <div class="empty-state">
-                <i class="fas fa-tools"></i>
-                <h3>Learning Reminders & Schedules</h3>
-                <p>Set learning reminders or sync your learning schedule with your calendar.</p>
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    
+                    <!-- Feature 1: Goal Setting -->
+                    <div class="tool-box">
+                        <div class="tool-box-header">
+                            <div class="tool-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="tool-title-text">
+                                <h4>Mục tiêu học tập hàng tuần</h4>
+                                <p>Thiết lập thói quen học tập đều đặn để đạt tiến độ mong muốn.</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold text-dark">Mục tiêu hiện tại: </span>
+                                    <span class="text-success fw-bold">3 ngày / tuần (30 phút/ngày)</span>
+                                </div>
+                                <button class="btn-outline-custom btn-sm" onclick="editGoal()">Thay đổi</button>
+                            </div>
+                            <div class="goal-bar-bg">
+                                <div class="goal-bar-fill"></div>
+                            </div>
+                            <small class="text-muted">Đã hoàn thành 1/3 ngày trong tuần này.</small>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2: Reminders -->
+                    <div class="tool-box">
+                        <div class="tool-box-header">
+                            <div class="tool-icon"><i class="far fa-bell"></i></div>
+                            <div class="tool-title-text">
+                                <h4>Nhắc nhở học tập (Learning Reminders)</h4>
+                                <p>Cài đặt thông báo tự động gửi về Email hoặc hệ thống để không bỏ lỡ buổi học nào.</p>
+                            </div>
+                        </div>
+                        <form id="reminderForm" onsubmit="saveReminder(event)">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Chọn ngày nhắc nhở trong tuần:</label>
+                                <div class="day-selector d-flex gap-2">
+                                    <button type="button" onclick="toggleDay(this)">T2</button>
+                                    <button type="button" class="active" onclick="toggleDay(this)">T3</button>
+                                    <button type="button" onclick="toggleDay(this)">T4</button>
+                                    <button type="button" class="active" onclick="toggleDay(this)">T5</button>
+                                    <button type="button" onclick="toggleDay(this)">T6</button>
+                                    <button type="button" class="active" onclick="toggleDay(this)">T7</button>
+                                    <button type="button" onclick="toggleDay(this)">CN</button>
+                                </div>
+                            </div>
+                            <div class="row g-3 align-items-center mb-3">
+                                <div class="col-auto">
+                                    <label for="reminderTime" class="form-label fw-bold mb-0">Khung giờ nhắc:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="time" id="reminderTime" class="form-control" value="20:00">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-purple btn-sm">Lưu cài đặt nhắc nhở</button>
+                        </form>
+                    </div>
+
+                    <!-- Feature 3: Calendar Sync -->
+                    <div class="tool-box">
+                        <div class="tool-box-header">
+                            <div class="tool-icon"><i class="far fa-calendar-alt"></i></div>
+                            <div class="tool-title-text">
+                                <h4>Đồng bộ Lịch học</h4>
+                                <p>Thêm thời gian biểu học tập trực tiếp vào ứng dụng lịch cá nhân của bạn.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3">
+                            <button class="btn-outline-custom" onclick="syncCalendar('google')">
+                                <i class="fab fa-google me-2"></i> Đồng bộ Google Calendar
+                            </button>
+                            <button class="btn-outline-custom" onclick="syncCalendar('outlook')">
+                                <i class="fab fa-windows me-2"></i> Đồng bộ Outlook Calendar
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Scripts bổ trợ -->
+    <!-- Modal Tạo Danh Sách Mới (dùng cho Tab My Lists) -->
+    <div class="modal fade" id="createListModal" tabindex="-1" aria-labelledby="createListModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="createListModalLabel">Tạo danh sách mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="${pageContext.request.contextPath}/my-lists/create" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="listTitle" class="form-label fw-semibold">Tên danh sách</label>
+                            <input type="text" class="form-control" id="listTitle" name="title" placeholder="VD: Lập trình Java Spring Boot" required maxlength="60">
+                        </div>
+                        <div class="mb-3">
+                            <label for="listDesc" class="form-label fw-semibold">Mô tả ngắn (không bắt buộc)</label>
+                            <textarea class="form-control" id="listDesc" name="description" rows="3" placeholder="Ghi chú mục tiêu hoặc nội dung của danh sách này..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn-purple">Tạo danh sách</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="${pageContext.request.contextPath}/assets/js/vendor/jquery-3.6.0.min.js"></script>
-    <script src="${pageContext.request.contextPath}/assets/js/bootstrap.min.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Chuyển Tab
         function switchTab(tabName, element) {
-            document.querySelectorAll('#myLearningTabs .nav-link').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            document.querySelectorAll('#myLearningTabs .nav-link').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
 
-            document.querySelectorAll('.tab-content-item').forEach(content => {
-                content.classList.add('d-none');
-            });
+            document.querySelectorAll('.tab-content-item').forEach(content => content.classList.add('d-none'));
 
             const targetTab = document.getElementById('tab-' + tabName);
             if (targetTab) {
@@ -519,55 +754,50 @@
             }
         }
 
+        // Lọc và Tìm kiếm
         function searchCourses() {
             let input = document.getElementById('courseSearchInput').value.toLowerCase();
             filterCourses(input);
         }
 
         function filterCourses(searchKeyword = null) {
-            if (searchKeyword === null) {
-                searchKeyword = document.getElementById('courseSearchInput').value.toLowerCase();
-            }
-
-            let category = document.getElementById('filterCategory').value;
-            let sortBy = document.getElementById('sortBy').value;
-
+            if (searchKeyword === null) searchKeyword = document.getElementById('courseSearchInput').value.toLowerCase();
             let grid = document.getElementById('courseGrid');
             if (!grid) return;
 
             let cards = Array.from(grid.querySelectorAll('.course-card'));
-
             cards.forEach(card => {
-                let title = (card.getAttribute('data-title') || card.querySelector('.course-title').innerText).toLowerCase();
-                let cardCategory = (card.getAttribute('data-category') || 'all').toLowerCase();
-
-                let matchSearch = title.includes(searchKeyword);
-                let matchCategory = (category === 'all') || (cardCategory === category.toLowerCase());
-
-                if (matchSearch && matchCategory) {
-                    card.style.display = "flex";
-                } else {
-                    card.style.display = "none";
-                }
+                let title = (card.getAttribute('data-title') || '').toLowerCase();
+                card.style.display = title.includes(searchKeyword) ? "flex" : "none";
             });
-
-            cards.sort((a, b) => {
-                let titleA = (a.getAttribute('data-title') || a.querySelector('.course-title').innerText).toLowerCase();
-                let titleB = (b.getAttribute('data-title') || b.querySelector('.course-title').innerText).toLowerCase();
-
-                if (sortBy === 'title-asc') {
-                    return titleA.localeCompare(titleB);
-                } else if (sortBy === 'title-desc') {
-                    return titleB.localeCompare(titleA);
-                }
-                return 0;
-            });
-
-            cards.forEach(card => grid.appendChild(card));
         }
 
-        function openCourseMenu(courseId) {
-            alert("Menu tùy chọn cho khóa học ID: " + courseId);
+        // JS Bổ trợ cho Learning Tools & Wishlist
+        function toggleDay(btn) {
+            btn.classList.toggle('active');
+        }
+
+        function saveReminder(e) {
+            e.preventDefault();
+            alert('Đã lưu lịch nhắc nhở học tập thành công!');
+        }
+
+        function syncCalendar(provider) {
+            alert('Đang kết nối và đồng bộ lịch học với ' + (provider === 'google' ? 'Google Calendar' : 'Outlook Calendar') + '...');
+        }
+
+        function removeFromWishlist(courseId) {
+            if(confirm('Bạn có chắc chắn muốn xóa khóa học này khỏi danh sách yêu thích?')) {
+                window.location.href = '${pageContext.request.contextPath}/wishlist/remove?id=' + courseId;
+            }
+        }
+
+        function unarchiveCourse(courseId) {
+            window.location.href = '${pageContext.request.contextPath}/archived/unarchive?id=' + courseId;
+        }
+
+        function editGoal() {
+            alert('Chức năng điều chỉnh mục tiêu tuần sẽ sớm cập nhật!');
         }
     </script>
 

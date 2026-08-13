@@ -15,7 +15,7 @@ public class DBContext {
     public DBContext() {
         try {
             String username = "root";
-            String password = "123";//Mk Default
+            String password = "1234";//Mk Default
             //String password = "1234"; //Mk Duy
             //String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
             String url = "jdbc:mysql://localhost:3306/ocms";
