@@ -31,10 +31,10 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession(false);
             boolean hasRememberMeCookie = hasRememberMeCookie(request);
 
-            // If the user checked Remember Me, keep the login cookie but clear the
-            // active account from the current HTTP session instead of invalidating it.
+            // Keep the session consistent with the rest of the app: it stores the
+            // logged-in user under the "account" key.
             if (session != null) {
-                session.removeAttribute("currentAccount");
+                session.removeAttribute("account");
                 if (!hasRememberMeCookie) {
                     session.invalidate();
                 }
@@ -95,20 +95,12 @@ public class LoginController extends HttpServlet {
         return false;
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Retrieve form data
-        String user = request.getParameter("username");
-        String pass = request.getParameter("password");
-
-        boolean rememberMe =
-        request.getParameter("remember") != null;
+    protected Account authenticate(String username, String password) {
         // Accounts created through RegisterController store an MD5 hash
         // (see PasswordUtil.md5), so we hash what was typed and compare
         // against that first.
-        String hashedPass = PasswordUtil.md5(pass);
-        Account account = new AccountDAO().login(user, hashedPass);
+        String hashedPass = PasswordUtil.md5(password);
+        Account account = new AccountDAO().login(username, hashedPass);
 
         if (account == null) {
             // Fallback: some accounts (e.g. seeded/legacy test data) may
@@ -118,13 +110,32 @@ public class LoginController extends HttpServlet {
             // keeps the old unhashed check working alongside the new
             // hashed one -- remove this fallback once all accounts in the
             // database are confirmed to be hashed.
-            account = new AccountDAO().login(user, pass);
+            account = new AccountDAO().login(username, password);
         }
-        
+
+        return account;
+    }
+
+    protected void storeAuthenticatedAccount(HttpSession session, Account account) {
+        session.setAttribute("account", account);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Retrieve form data
+        String user = request.getParameter("username");
+        String pass = request.getParameter("password");
+
+        boolean rememberMe =
+        request.getParameter("remember") != null;
+
+        Account account = authenticate(user, pass);
+
         if (account != null) {
             // Login successful: Create session
             HttpSession session = request.getSession();
-            session.setAttribute("currentAccount", account);
+            storeAuthenticatedAccount(session, account);
             // =========================================================
             // Remember Me
             // =========================================================
