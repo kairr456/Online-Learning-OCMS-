@@ -3,6 +3,7 @@ package com.controller.auth;
 import com.DAO.AccountDAO;
 import com.entity.Account;
 import com.utils.PasswordUtil;
+import com.validator.registerValidator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -78,22 +79,19 @@ public class RegisterController extends HttpServlet {
 
 
         // =====================================================
-        // Validate empty fields
+        // Validate form fields
         // =====================================================
+        // All the field-level rules (required, length limits, email/phone
+        // format, role validity, etc.) now live in RegisterValidator --
+        // edit the constants/regex there rather than here.
 
-        if (username == null || username.trim().isEmpty()
-                || password == null || password.isEmpty()
-                || confirmPassword == null || confirmPassword.isEmpty()
-                || email == null || email.trim().isEmpty()
-                || phone == null || phone.trim().isEmpty()
-                || fullName == null || fullName.trim().isEmpty()
-                || role == null || role.trim().isEmpty()
-                || gender == null || gender.trim().isEmpty()) {
+        String validationError = registerValidator.validate(
+                username, password, confirmPassword, email, phone, fullName, role, gender
+        );
 
-            request.setAttribute(
-                    "errorMessage",
-                    "Please fill in all required fields."
-            );
+        if (validationError != null) {
+
+            request.setAttribute("errorMessage", validationError);
 
             request.getRequestDispatcher("/view/authen/register.jsp")
                     .forward(request, response);
@@ -101,68 +99,14 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-
-        // =====================================================
-        // Confirm password
-        // =====================================================
-
-        if (!password.equals(confirmPassword)) {
-
-            request.setAttribute(
-                    "errorMessage",
-                    "Passwords do not match."
-            );
-
-            request.getRequestDispatcher("/view/authen/register.jsp")
-                    .forward(request, response);
-
-            return;
-        }
-
-
-        // =====================================================
-        // Convert role
-        // =====================================================
-
-        int roleId;
-
-        if ("teacher".equalsIgnoreCase(role)) {
-
-            roleId = 2;
-
-        } else if ("student".equalsIgnoreCase(role)) {
-
-            roleId = 3;
-
-        } else {
-
-            request.setAttribute(
-                    "errorMessage",
-                    "Invalid role."
-            );
-
-            request.getRequestDispatcher("/view/authen/register.jsp")
-                    .forward(request, response);
-
-            return;
-        }
-
-
-        // =====================================================
-        // Convert gender
-        //
-        // true  = male
-        // false = female
-        // =====================================================
-
-        boolean genderValue =
-                "male".equalsIgnoreCase(gender);
+        int roleId = registerValidator.roleIdFor(role);
+        boolean genderValue = registerValidator.genderValueFor(gender);
 
         // Normalize inputs for consistent checks
-        username = username == null ? null : username.trim();
-        email = email == null ? null : email.trim().toLowerCase();
-        phone = phone == null ? null : phone.trim();
-        fullName = fullName == null ? null : fullName.trim();
+        username = username.trim();
+        email = email.trim().toLowerCase();
+        phone = phone.trim();
+        fullName = fullName.trim();
 
 
         // =====================================================
