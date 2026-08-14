@@ -39,6 +39,7 @@ public class CourseHomeController extends HttpServlet {
             String[] categoryParams = request.getParameterValues("category");
             String[] ratingParams = request.getParameterValues("rating");
             String teacherName = request.getParameter("teacherName");
+            String courseName = request.getParameter("courseName");
             String sort = request.getParameter("sort");
             String pageParam = request.getParameter("page");
 
@@ -67,8 +68,8 @@ public class CourseHomeController extends HttpServlet {
 
             // 3. Query Database
             CourseDAO courseDAO = new CourseDAO();
-            List<Course> courses = courseDAO.findWithFilters(categoryIds, ratings, teacherName, sort, currentPage, pageSize);
-            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName);
+            List<Course> courses = courseDAO.findWithFilters(categoryIds, ratings, teacherName, courseName, sort, currentPage, pageSize);
+            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName, courseName);
             int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
             // 4. Load Author Names
@@ -86,6 +87,7 @@ public class CourseHomeController extends HttpServlet {
             request.setAttribute("selectedCategories", categoryIds);
             request.setAttribute("selectedRatings", ratings);
             request.setAttribute("teacherName", teacherName);
+            request.setAttribute("courseName", courseName);
             request.setAttribute("sort", sort);
 
             // Forward to browse-course.jsp
