@@ -1,7 +1,7 @@
 package com.DAO;
 
 import com.entity.Account;
-import jakarta.resource.cci.ResultSet;
+import com.utils.AccountFilterBuilder;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public class AccountDAO extends DBContext {
                 resultSet = statement.getGeneratedKeys();
                 if (resultSet.next()) {
                     account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the
-                                                        // caller
+                    // caller
                 }
                 return true;
             }
@@ -157,60 +157,25 @@ public class AccountDAO extends DBContext {
      * Lấy danh sách tài khoản theo điều kiện: - Tìm kiếm username, email,
      * full_name - Lọc Role - Lọc Status
      */
-    public List<Account> searchAccounts(String keyword, String roleId, String status) {
+    public List<Account> searchAccounts(String keyword, String roleId, String status, int page, int pageSize) {
         List<Account> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder(
                 "SELECT id, username, email, phone, full_name, "
-                        + "gender, is_active, role_id "
-                        + "FROM Account WHERE 1=1 ");
-
+                + "gender, is_active, role_id "
+                + "FROM Account WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
         // Tìm kiếm theo username, email hoặc full_name
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append(
-                    " AND (username LIKE ? "
-                            + "OR email LIKE ? "
-                            + "OR full_name LIKE ?)");
-        }
+        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);
 
-        // Lọc theo Role
-        if (roleId != null && !roleId.trim().isEmpty()) {
-            sql.append(" AND role_id = ?");
-        }
-
-        // Lọc theo Status
-        if (status != null && !status.trim().isEmpty()) {
-            sql.append(" AND is_active = ?");
-        }
-
-        sql.append(" ORDER BY id DESC");
-
+        sql.append(" ORDER BY id ASC LIMIT ? OFFSET ?");
+        params.add(pageSize);               // LIMIT
+        params.add((page - 1) * pageSize);  // OFFSET
         try {
-            if (connection == null || connection.isClosed()) {
-                connection = getConnection();
-            }
-
             statement = connection.prepareStatement(sql.toString());
-            int paramIndex = 1;
-
-            // Keyword
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                String searchPattern = "%" + keyword.trim() + "%";
-                statement.setString(paramIndex++, searchPattern);
-                statement.setString(paramIndex++, searchPattern);
-                statement.setString(paramIndex++, searchPattern);
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));   // setObject xử lý cả String lẫn Integer
             }
-
-            // Role
-            if (roleId != null && !roleId.trim().isEmpty()) {
-                statement.setInt(paramIndex++, Integer.parseInt(roleId));
-            }
-
-            // Status
-            if (status != null && !status.trim().isEmpty()) {
-                statement.setInt(paramIndex++, Integer.parseInt(status));
-            }
-
             resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
@@ -249,10 +214,7 @@ public class AccountDAO extends DBContext {
 
         try {
 
-            if (connection == null || connection.isClosed()) {
-                connection = getConnection();
-            }
-
+            // Mỗi lần gọi dùng instance AccountDAO mới nên connection luôn mới
             statement = connection.prepareStatement(sql);
 
             statement.setInt(1, userId);
@@ -261,9 +223,9 @@ public class AccountDAO extends DBContext {
 
             System.out.println(
                     "Deactivate Account ID = "
-                            + userId
-                            + ", affected rows = "
-                            + rows);
+                    + userId
+                    + ", affected rows = "
+                    + rows);
 
             return rows > 0;
 
@@ -276,6 +238,79 @@ public class AccountDAO extends DBContext {
             closeResources();
         }
 
+        return false;
+    }
+
+    // Đếm tổng số record theo bộ lọc — cùng filter với searchAccounts, chỉ khác câu SELECT
+    public int countAccounts(String keyword, String roleId, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Account WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);  // không có LIMIT
+
+        try {
+            statement = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+// Lấy 1 account theo id (đổ vào modal khi Edit)
+    public Account getAccountById(int id) {
+        String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "
+                + "FROM Account WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Account u = new Account();
+                u.setId(resultSet.getInt("id"));
+                u.setUsername(resultSet.getString("username"));
+                u.setEmail(resultSet.getString("email"));
+                u.setPhone(resultSet.getString("phone"));
+                u.setFullName(resultSet.getString("full_name"));
+                u.setGender(resultSet.getBoolean("gender"));
+                u.setActive(resultSet.getBoolean("is_active"));
+                u.setRoleId(resultSet.getInt("role_id"));
+                return u;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
+// Cập nhật account (không đụng username/password)
+    public boolean updateAccount(Account a) {
+        String sql = "UPDATE Account SET email=?, phone=?, full_name=?, gender=?, is_active=?, role_id=? WHERE id=?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, a.getEmail());
+            statement.setString(2, a.getPhone());
+            statement.setString(3, a.getFullName());
+            statement.setBoolean(4, a.isGender());
+            statement.setBoolean(5, a.isActive());
+            statement.setInt(6, a.getRoleId());
+            statement.setInt(7, a.getId());
+            return statement.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
         return false;
     }
 }
