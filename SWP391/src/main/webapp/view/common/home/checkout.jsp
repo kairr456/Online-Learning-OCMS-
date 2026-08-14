@@ -9,17 +9,18 @@
 
     <meta charset="UTF-8">
 
-    <title>Checkout</title>
+    <title>Checkout - OCMS</title>
+    <meta name="description" content="Complete your course purchase securely">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
-    <jsp:include page="css-home.jsp" />
+    <jsp:include page="/view/common/home/css-home.jsp" />
 
     <style>
 
         .checkout-wrapper {
-            padding: 80px 0;
+            padding: 0;
             background: #fff;
         }
 
@@ -79,11 +80,20 @@
         .country-select {
             width: 100%;
             height: 50px;
-            border: 1px solid #ddd;
+            border: 1px solid #ced4da;
             border-radius: 5px;
             padding: 0 15px;
             font-size: 15px;
-            background: white;
+            background-color: #fff;
+            color: #212529;
+            appearance: auto;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .country-select:focus {
+            border-color: #6f2bd9;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(111,43,217,.15);
         }
 
         .gender-group {
@@ -196,25 +206,32 @@
 
     </style>
 
+
+    <!-- Toast CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+
 </head>
 
 
 <body>
 
     <!-- HEADER -->
+    <jsp:include page="/view/common/header.jsp"></jsp:include>
 
-    <jsp:include page="header-home.jsp" />
 
-
-    <main class="main-area">
+    <main style="min-height:70vh; padding: 48px 0;">
 
         <section class="checkout-wrapper">
 
             <div class="container">
 
-                <h1 class="checkout-title">
-                    Checkout
-                </h1>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+                    <h1 class="checkout-title" style="margin-bottom:0;">Checkout</h1>
+                    <a href="${pageContext.request.contextPath}/cart"
+                       style="font-size:14px; color:#6f2bd9; text-decoration:none;">
+                        &larr; Back to Cart
+                    </a>
+                </div>
 
 
                 <!-- SERVER ERROR -->
@@ -274,124 +291,38 @@
                                         class="country-select"
                                         required>
 
-                                        <option value="">
-                                            Select your country
-                                        </option>
-
-                                        <option value="Vietnam"
-                                            ${param.country == 'Vietnam' ? 'selected' : ''}>
-                                            🇻🇳 Vietnam
-                                        </option>
-
-                                        <option value="Japan"
-                                            ${param.country == 'Japan' ? 'selected' : ''}>
-                                            🇯🇵 Japan
-                                        </option>
-
-                                        <option value="South Korea"
-                                            ${param.country == 'South Korea' ? 'selected' : ''}>
-                                            🇰🇷 South Korea
-                                        </option>
-
-                                        <option value="China"
-                                            ${param.country == 'China' ? 'selected' : ''}>
-                                            🇨🇳 China
-                                        </option>
-
-                                        <option value="Thailand"
-                                            ${param.country == 'Thailand' ? 'selected' : ''}>
-                                            🇹🇭 Thailand
-                                        </option>
-
-                                        <option value="Singapore"
-                                            ${param.country == 'Singapore' ? 'selected' : ''}>
-                                            🇸🇬 Singapore
-                                        </option>
-
-                                        <option value="Malaysia"
-                                            ${param.country == 'Malaysia' ? 'selected' : ''}>
-                                            🇲🇾 Malaysia
-                                        </option>
-
-                                        <option value="Indonesia"
-                                            ${param.country == 'Indonesia' ? 'selected' : ''}>
-                                            🇮🇩 Indonesia
-                                        </option>
-
-                                        <option value="Philippines"
-                                            ${param.country == 'Philippines' ? 'selected' : ''}>
-                                            🇵🇭 Philippines
-                                        </option>
-
-                                        <option value="India"
-                                            ${param.country == 'India' ? 'selected' : ''}>
-                                            🇮🇳 India
-                                        </option>
-
-                                        <option value="United States"
-                                            ${param.country == 'United States' ? 'selected' : ''}>
-                                            🇺🇸 United States
-                                        </option>
-
-                                        <option value="Canada"
-                                            ${param.country == 'Canada' ? 'selected' : ''}>
-                                            🇨🇦 Canada
-                                        </option>
-
-                                        <option value="United Kingdom"
-                                            ${param.country == 'United Kingdom' ? 'selected' : ''}>
-                                            🇬🇧 United Kingdom
-                                        </option>
-
-                                        <option value="France"
-                                            ${param.country == 'France' ? 'selected' : ''}>
-                                            🇫🇷 France
-                                        </option>
-
-                                        <option value="Germany"
-                                            ${param.country == 'Germany' ? 'selected' : ''}>
-                                            🇩🇪 Germany
-                                        </option>
-
-                                        <option value="Italy"
-                                            ${param.country == 'Italy' ? 'selected' : ''}>
-                                            🇮🇹 Italy
-                                        </option>
-
-                                        <option value="Spain"
-                                            ${param.country == 'Spain' ? 'selected' : ''}>
-                                            🇪🇸 Spain
-                                        </option>
-
-                                        <option value="Netherlands"
-                                            ${param.country == 'Netherlands' ? 'selected' : ''}>
-                                            🇳🇱 Netherlands
-                                        </option>
-
-                                        <option value="Switzerland"
-                                            ${param.country == 'Switzerland' ? 'selected' : ''}>
-                                            🇨🇭 Switzerland
-                                        </option>
-
-                                        <option value="Australia"
-                                            ${param.country == 'Australia' ? 'selected' : ''}>
-                                            🇦🇺 Australia
-                                        </option>
-
-                                        <option value="New Zealand"
-                                            ${param.country == 'New Zealand' ? 'selected' : ''}>
-                                            🇳🇿 New Zealand
-                                        </option>
-
-                                        <option value="Brazil"
-                                            ${param.country == 'Brazil' ? 'selected' : ''}>
-                                            🇧🇷 Brazil
-                                        </option>
-
-                                        <option value="Mexico"
-                                            ${param.country == 'Mexico' ? 'selected' : ''}>
-                                            🇲🇽 Mexico
-                                        </option>
+                                        <option value="">-- Select your country --</option>
+                                        <optgroup label="Asia">
+                                            <option value="Vietnam" ${param.country == 'Vietnam' ? 'selected' : ''}>Vietnam</option>
+                                            <option value="Japan" ${param.country == 'Japan' ? 'selected' : ''}>Japan</option>
+                                            <option value="South Korea" ${param.country == 'South Korea' ? 'selected' : ''}>South Korea</option>
+                                            <option value="China" ${param.country == 'China' ? 'selected' : ''}>China</option>
+                                            <option value="Thailand" ${param.country == 'Thailand' ? 'selected' : ''}>Thailand</option>
+                                            <option value="Singapore" ${param.country == 'Singapore' ? 'selected' : ''}>Singapore</option>
+                                            <option value="Malaysia" ${param.country == 'Malaysia' ? 'selected' : ''}>Malaysia</option>
+                                            <option value="Indonesia" ${param.country == 'Indonesia' ? 'selected' : ''}>Indonesia</option>
+                                            <option value="Philippines" ${param.country == 'Philippines' ? 'selected' : ''}>Philippines</option>
+                                            <option value="India" ${param.country == 'India' ? 'selected' : ''}>India</option>
+                                        </optgroup>
+                                        <optgroup label="Oceania">
+                                            <option value="Australia" ${param.country == 'Australia' ? 'selected' : ''}>Australia</option>
+                                            <option value="New Zealand" ${param.country == 'New Zealand' ? 'selected' : ''}>New Zealand</option>
+                                        </optgroup>
+                                        <optgroup label="Europe">
+                                            <option value="United Kingdom" ${param.country == 'United Kingdom' ? 'selected' : ''}>United Kingdom</option>
+                                            <option value="France" ${param.country == 'France' ? 'selected' : ''}>France</option>
+                                            <option value="Germany" ${param.country == 'Germany' ? 'selected' : ''}>Germany</option>
+                                            <option value="Italy" ${param.country == 'Italy' ? 'selected' : ''}>Italy</option>
+                                            <option value="Spain" ${param.country == 'Spain' ? 'selected' : ''}>Spain</option>
+                                            <option value="Netherlands" ${param.country == 'Netherlands' ? 'selected' : ''}>Netherlands</option>
+                                            <option value="Switzerland" ${param.country == 'Switzerland' ? 'selected' : ''}>Switzerland</option>
+                                        </optgroup>
+                                        <optgroup label="Americas">
+                                            <option value="United States" ${param.country == 'United States' ? 'selected' : ''}>United States</option>
+                                            <option value="Canada" ${param.country == 'Canada' ? 'selected' : ''}>Canada</option>
+                                            <option value="Brazil" ${param.country == 'Brazil' ? 'selected' : ''}>Brazil</option>
+                                            <option value="Mexico" ${param.country == 'Mexico' ? 'selected' : ''}>Mexico</option>
+                                        </optgroup>
 
                                     </select>
 
@@ -405,12 +336,7 @@
 
 
                                 <p style="color:#777; font-size:14px;">
-
-                                    Udemy is required by law to collect
-                                    applicable transaction taxes for
-                                    purchases made in certain tax
-                                    jurisdictions.
-
+                                    Transaction taxes may apply depending on your country.
                                 </p>
 
 
@@ -508,10 +434,7 @@
                                             <div
                                                 id="phoneError"
                                                 class="field-error">
-
-                                                Please enter a valid phone
-                                                number.
-
+                                                Enter a valid phone number (9–15 digits, e.g. 0912345678 or +84912345678).
                                             </div>
 
                                         </div>
@@ -632,12 +555,8 @@
                                                 placeholder="Enter your city"
                                                 required>
 
-                                            <div
-                                                id="cityError"
-                                                class="field-error">
-
-                                                 City must contain only letters and spaces.
-
+                                            <div id="cityError" class="field-error">
+                                                City must be at least 2 characters.
                                             </div>
 
                                         </div>
@@ -659,7 +578,12 @@
                                                 name="postalCode"
                                                 class="form-control"
                                                 value="${param.postalCode}"
-                                                placeholder="100000">
+                                                placeholder="e.g. 700000"
+                                                maxlength="6"
+                                                inputmode="numeric">
+                                            <div id="postalCodeError" class="field-error">
+                                                Postal code must be 4–6 digits.
+                                            </div>
 
                                         </div>
 
@@ -1024,10 +948,11 @@
 
 
     <!-- FOOTER -->
+    <jsp:include page="/view/common/footer.jsp"></jsp:include>
 
-    <jsp:include page="footer-home.jsp" />
-
-    <jsp:include page="js-home.jsp" />
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 
     <!-- ========================= -->
@@ -1109,14 +1034,20 @@
             // PHONE
             // =========================
 
+            // =========================
+            // PHONE
+            // =========================
+
             const phone =
                 document.getElementById("phone")
                 .value.trim();
 
-            const phoneRegex =
-                /^\+?[0-9\s-]{9,15}$/;
+            // Accept: +84xxxxxxxxx, 0xxxxxxxxx, +1-xxx-xxx-xxxx, etc.
+            // At least 9 digits after removing spaces/dashes
+            const phoneDigits = phone.replace(/[\s\-()]/g, "");
+            const phoneRegex = /^\+?[0-9]{9,15}$/;
 
-            if (!phoneRegex.test(phone)) {
+            if (!phoneRegex.test(phoneDigits)) {
 
                 showError(
                     "phone",
@@ -1166,26 +1097,42 @@
 
 
             // =========================
-// CITY
-// =========================
+            // CITY
+            // =========================
 
-const city = document
-    .getElementById("city")
-    .value
-    .trim();
+            const city = document
+                .getElementById("city")
+                .value
+                .trim();
 
-// Chỉ cho phép chữ cái và khoảng trắng
-const cityRegex = /^[A-Za-zÀ-ỹ\s]+$/;
+            if (city.length < 2) {
 
-if (city.length < 2 || !cityRegex.test(city)) {
+                showError(
+                    "city",
+                    "cityError"
+                );
 
-    showError(
-        "city",
-        "cityError"
-    );
+                valid = false;
+            }
 
-    valid = false;
-}
+
+            // =========================
+            // POSTAL CODE (optional - validate only if filled)
+            // =========================
+
+            const postalCode = document
+                .getElementById("postalCode")
+                .value.trim();
+
+            if (postalCode !== "" && !/^\d{4,6}$/.test(postalCode)) {
+
+                showError(
+                    "postalCode",
+                    "postalCodeError"
+                );
+
+                valid = false;
+            }
 
 
             // =========================
@@ -1566,20 +1513,15 @@ if (city.length < 2 || !cityRegex.test(city)) {
 
                 }
             );
-    // =========================
-// CITY ONLY LETTERS
-// =========================
+        // =========================
+        // POSTAL CODE - digits only
+        // =========================
 
-document
-    .getElementById("city")
-    .addEventListener("input", function () {
-
-        this.value = this.value.replace(
-            /[^A-Za-zÀ-ỹ\s]/g,
-            ""
-        );
-
-    });
+        document
+            .getElementById("postalCode")
+            .addEventListener("input", function () {
+                this.value = this.value.replace(/\D/g, "").substring(0, 6);
+            });
 
     </script>
 

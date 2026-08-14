@@ -18,7 +18,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT * FROM cart_item";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -36,7 +36,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public boolean update(CartItem cartItem) {
         String sql = "UPDATE cart_item SET cart_id = ?, course_id = ?, price = ? WHERE id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartItem.getCartId());
             statement.setInt(2, cartItem.getCourseId());
@@ -57,7 +57,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public boolean delete(CartItem cartItem) {
         String sql = "DELETE FROM cart_item WHERE id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartItem.getId());
             
@@ -75,7 +75,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public int insert(CartItem cartItem) {
         String sql = "INSERT INTO cart_item (cart_id, course_id, price, added_date) VALUES (?, ?, ?, NOW())";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, cartItem.getCartId());
             statement.setInt(2, cartItem.getCourseId());
@@ -120,7 +120,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT * FROM cart_item WHERE cart_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             resultSet = statement.executeQuery();
@@ -145,7 +145,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public boolean isInCart(Integer cartId, Integer courseId) {
         String sql = "SELECT COUNT(*) FROM cart_item WHERE cart_id = ? AND course_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             statement.setInt(2, courseId);
@@ -171,7 +171,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public boolean removeFromCart(Integer cartId, Integer courseId) {
         String sql = "DELETE FROM cart_item WHERE cart_id = ? AND course_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             statement.setInt(2, courseId);
@@ -194,7 +194,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public BigDecimal getCartTotal(Integer cartId) {
         String sql = "SELECT SUM(price) FROM cart_item WHERE cart_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             resultSet = statement.executeQuery();
@@ -219,7 +219,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public int countCartItems(Integer cartId) {
         String sql = "SELECT COUNT(*) FROM cart_item WHERE cart_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             resultSet = statement.executeQuery();
@@ -248,7 +248,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
                      "JOIN course c ON ci.course_id = c.id " +
                      "WHERE ci.cart_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             resultSet = statement.executeQuery();
@@ -274,7 +274,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public CartItem getById(Integer id) {
         String sql = "SELECT * FROM cart_item WHERE id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
             resultSet = statement.executeQuery();
@@ -298,7 +298,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     public boolean clearCart(Integer cartId) {
         String sql = "DELETE FROM cart_item WHERE cart_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cartId);
             

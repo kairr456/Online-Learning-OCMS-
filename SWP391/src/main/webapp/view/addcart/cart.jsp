@@ -15,7 +15,10 @@
     <!-- Place favicon.ico in the root directory -->
 
     <!-- CSS here -->
-    <jsp:include page="../common/home/css-home.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Toast CSS -->
     <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
@@ -67,36 +70,16 @@
 
 <body>
 
-    <!-- Scroll-top -->
-    <button class="scroll__top scroll-to-target" data-target="html">
-        <i class="tg-flaticon-arrowhead-up"></i>
-    </button>
-    <!-- Scroll-top-end-->
-
     <!-- header-area -->
-    <jsp:include page="../common/home/header-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/header.jsp"></jsp:include>
     <!-- header-area-end -->
 
     <!-- main-area -->
-    <main class="main-area fix">
-        <section class="breadcrumb-area breadcrumb-bg" data-background="${pageContext.request.contextPath}/assets/img/bg/breadcrumb_bg.jpg">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="breadcrumb-content">
-                            <h3 class="title">Shopping Cart</h3>
-                            <nav class="breadcrumb">
-    
-</nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <main style="min-height:70vh; padding: 48px 0;">
+        <div class="container">
+            <h1 style="font-size:28px; font-weight:700; margin-bottom:32px;">Shopping Cart</h1>
 
-        <section class="cart-area section-py-120">
-            <div class="container">
-                <!-- Toast messages will be shown via JavaScript -->
+            <!-- Toast messages will be shown via JavaScript -->
                 
                 <div class="row">
                     <div class="col-lg-8">
@@ -109,7 +92,7 @@
                                         <i class="fas fa-shopping-cart"></i>
                                         <h5>Your cart is empty</h5>
                                         <p>Looks like you haven't added any courses to your cart yet.</p>
-                                        <a href="${pageContext.request.contextPath}/view/common/browse-course.jsp" class="btn btn-primary mt-3">Browse Courses</a>
+                                        <a href="${pageContext.request.contextPath}/courses" class="btn btn-primary mt-3">Browse Courses</a>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -162,7 +145,7 @@
 <div class="cart-actions mt-4">
 
     <!-- Continue Shopping -->
-    <a href="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+    <a href="${pageContext.request.contextPath}/courses"
        class="btn btn-outline-secondary"
        style="display: inline-block; margin-right: 10px;">
         Continue Shopping
@@ -193,16 +176,16 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
     <!-- main-area-end -->
 
     <!-- footer-area -->
-    <jsp:include page="../common/home/footer-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/footer.jsp"></jsp:include>
     <!-- footer-area-end -->
 
     <!-- JS here -->
-    <jsp:include page="../common/home/js-home.jsp" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Toast JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
