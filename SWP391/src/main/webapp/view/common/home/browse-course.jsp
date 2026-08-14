@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -432,10 +433,13 @@
                                 ${course.name}
                             </a>
                             
-                            <div class="course-footer">
-                                <button type="button" class="enroll-btn" style="border: none; cursor: pointer;" onclick="submitAddToCart(${course.id}, ${course.price});">enroll now</button>
-                                <span class="course-price">${course.price}$</span>
-                            </div>
+                                <div class="course-footer">
+                                    <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
+                                            data-course-id="${course.id}"
+                                            data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                            onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                    <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>$</span>
+                                </div>
                         </div>
                     </div>
                 </c:forEach>
@@ -483,9 +487,11 @@
             }
         }
         
-        function submitAddToCart(courseId, price) {
+        function submitAddToCart(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var price    = btn.getAttribute('data-price');
             document.getElementById('cartCourseId').value = courseId;
-            document.getElementById('cartPrice').value = price;
+            document.getElementById('cartPrice').value    = price;
             document.getElementById('addToCartForm').submit();
         }
     </script>

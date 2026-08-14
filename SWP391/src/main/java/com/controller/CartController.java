@@ -16,6 +16,7 @@ import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
 import com.entity.Cart;
 import com.entity.CartItem;
+import com.entity.Course;
 import com.entity.Account;
 import com.entity.Registration;
 import jakarta.servlet.http.HttpSession;
@@ -80,31 +81,51 @@ public class CartController extends HttpServlet {
         request.getRequestDispatcher(CART_JSP).forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action != null) {
-            switch (action) {
-                case "add":
-                    addToCart(request, response);
-                    break;
-                case "remove":
-                    removeFromCart(request, response);
-                    break;
-                case "checkout":
-                    processCheckout(request, response);
-                    break;
-                case "complete-checkout":
-                    completeCheckout(request, response);
-                    break;
-                default:
-                    response.sendRedirect(request.getContextPath() + "/cart");
-                    break;
-            }
-        } else {
-            response.sendRedirect(request.getContextPath() + "/cart");
+    @Override
+protected void doPost(HttpServletRequest request,
+                      HttpServletResponse response)
+        throws ServletException, IOException {
+
+    String action = request.getParameter("action");
+
+    if (action != null) {
+
+        switch (action) {
+
+            case "add":
+                addToCart(request, response);
+                break;
+
+            case "remove":
+                removeFromCart(request, response);
+                break;
+
+            case "checkout":
+    response.sendRedirect(
+        request.getContextPath() + "/checkout"
+    );
+    
+
+                break;
+
+            default:
+
+                response.sendRedirect(
+                    request.getContextPath()
+                            + "/cart"
+                );
+
+                break;
         }
+
+    } else {
+
+        response.sendRedirect(
+            request.getContextPath()
+                    + "/cart"
+        );
     }
+}
 
     private void addToCart(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -118,12 +139,22 @@ public class CartController extends HttpServlet {
         }
 
         String courseId = request.getParameter("courseId");
-        String priceStr = request.getParameter("price");
 
-        if (courseId != null && priceStr != null) {
+        if (courseId != null && !courseId.trim().isEmpty()) {
             try {
-                int courseIdInt = Integer.parseInt(courseId);
-                BigDecimal price = new BigDecimal(priceStr);
+                int courseIdInt = Integer.parseInt(courseId.trim());
+
+                // Lấy thông tin Course trực tiếp từ DB (SELECT * FROM course WHERE id = ?)
+                Course course = courseDAO.findById(courseIdInt);
+                if (course == null) {
+                    session.setAttribute("message", "Course not found.");
+                    session.setAttribute("messageType", "error");
+                    response.sendRedirect(request.getContextPath() + "/cart");
+                    return;
+                }
+
+                // Lấy giá chuẩn trực tiếp từ thông tin Course trong Database
+                BigDecimal price = BigDecimal.valueOf(course.getPrice());
 
                 // Check if the user has already registered for or enrolled in this course
                 boolean alreadyRegistered = registrationDAO.isAlreadyRegistered(account.getId(), courseIdInt);
@@ -137,6 +168,12 @@ public class CartController extends HttpServlet {
 
                 // Get or create cart for the user
                 Cart cart = cartDAO.getOrCreateCart(account.getId());
+                if (cart == null || cart.getId() == null) {
+                    session.setAttribute("message", "Could not initialize cart.");
+                    session.setAttribute("messageType", "error");
+                    response.sendRedirect(request.getContextPath() + "/cart");
+                    return;
+                }
 
                 // Check if course is already in cart
                 if (!cartItemDAO.isInCart(cart.getId(), courseIdInt)) {
@@ -161,11 +198,15 @@ public class CartController extends HttpServlet {
                     session.setAttribute("messageType", "info");
                 }
             } catch (NumberFormatException e) {
-                session.setAttribute("message", "Invalid course or price information.");
+                session.setAttribute("message", "Invalid course information.");
+                session.setAttribute("messageType", "error");
+            } catch (Exception e) {
+                e.printStackTrace();
+                session.setAttribute("message", "Error adding course: " + e.getMessage());
                 session.setAttribute("messageType", "error");
             }
         } else {
-            session.setAttribute("message", "Missing required information.");
+            session.setAttribute("message", "Missing course information.");
             session.setAttribute("messageType", "error");
         }
 

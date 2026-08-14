@@ -17,7 +17,7 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
         List<Cart> carts = new ArrayList<>();
         String sql = "SELECT * FROM cart";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -33,9 +33,9 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
 
     @Override
     public boolean update(Cart cart) {
-        String sql = "UPDATE cart SET account_id = ?, modified_date = NOW(), status = ? WHERE id = ?";
+        String sql = "UPDATE cart SET account_id = ?, modified_date = NOW() WHERE id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cart.getAccountId());
             statement.setInt(2, cart.getId());
@@ -54,7 +54,7 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
     public boolean delete(Cart cart) {
         String sql = "DELETE FROM cart WHERE id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, cart.getId());
             
@@ -72,7 +72,7 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
     public int insert(Cart cart) {
         String sql = "INSERT INTO cart (account_id, created_date, modified_date) VALUES (?, NOW(), NOW())";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, cart.getAccountId());
             
@@ -88,7 +88,8 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
                 throw new SQLException("Creating cart failed, no ID obtained.");
             }
         } catch (SQLException ex) {
-            System.out.println("Error inserting cart: " + ex.getMessage());
+            System.err.println("Error inserting cart for account ID " + cart.getAccountId() + ": " + ex.getMessage());
+            ex.printStackTrace();
             return -1;
         } finally {
             closeResources();
@@ -113,7 +114,7 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
     public Cart findByAccountId(Integer accountId) {
         String sql = "SELECT * FROM cart WHERE account_id = ?";
         try {
-            connection = getConnection();
+            connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, accountId);
             resultSet = statement.executeQuery();
@@ -146,4 +147,5 @@ public class CartDAO extends DBContext implements I_DAO<Cart> {
         }
         return cart;
     }
+    
 } 

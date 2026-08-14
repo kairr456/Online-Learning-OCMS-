@@ -63,7 +63,7 @@
                     </svg>
                 </a>
 
-                <a class="site-header__icon-btn" href="<%= ctx %>/view/common/cart.jsp" title="Cart" aria-label="Cart">
+                <a class="site-header__icon-btn" href="<%= ctx %>/cart" title="Cart" aria-label="Cart">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3.5 4.5h2l2.1 11.1a1.6 1.6 0 0 0 1.6 1.3h8.1a1.6 1.6 0 0 0 1.6-1.3l1.4-7.4H6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9.5" cy="20.2" r="1.3" fill="currentColor"/>

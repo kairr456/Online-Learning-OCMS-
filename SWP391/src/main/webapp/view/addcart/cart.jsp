@@ -7,15 +7,18 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>SkillGro - Shopping Cart</title>
-    <meta name="description" content="SkillGro - Shopping Cart">
+    <title>Shopping Cart</title>
+    <meta name="description" content="Shopping Cart">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.png">
+    
     <!-- Place favicon.ico in the root directory -->
 
     <!-- CSS here -->
-    <jsp:include page="../common/home/css-home.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Toast CSS -->
     <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
@@ -48,45 +51,35 @@
             color: #ddd;
             margin-bottom: 20px;
         }
+.cart-summary .cart-actions {
+    display: flex !important;
+    gap: 10px;
+}
+
+.cart-summary .cart-actions a,
+.cart-summary .cart-actions form {
+    width: 50%;
+}
+
+.cart-summary .cart-actions button,
+.cart-summary .cart-actions a {
+    width: 100%;
+}
     </style>
 </head>
 
 <body>
 
-    <!-- Scroll-top -->
-    <button class="scroll__top scroll-to-target" data-target="html">
-        <i class="tg-flaticon-arrowhead-up"></i>
-    </button>
-    <!-- Scroll-top-end-->
-
     <!-- header-area -->
-    <jsp:include page="../common/home/header-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/header.jsp"></jsp:include>
     <!-- header-area-end -->
 
     <!-- main-area -->
-    <main class="main-area fix">
-        <section class="breadcrumb-area breadcrumb-bg" data-background="${pageContext.request.contextPath}/assets/img/bg/breadcrumb_bg.jpg">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="breadcrumb-content">
-                            <h3 class="title">Shopping Cart</h3>
-                            <nav class="breadcrumb">
-                                <!-- <span property="itemListElement" typeof="ListItem">
-                                    <a href="${pageContext.request.contextPath}/">Home</a>
-                                </span>
-                                <span class="breadcrumb-separator"><i class="fas fa-angle-right"></i></span> -->
-                                <span property="itemListElement" typeof="ListItem">Shopping Cart</span>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <main style="min-height:70vh; padding: 48px 0;">
+        <div class="container">
+            <h1 style="font-size:28px; font-weight:700; margin-bottom:32px;">Shopping Cart</h1>
 
-        <section class="cart-area section-py-120">
-            <div class="container">
-                <!-- Toast messages will be shown via JavaScript -->
+            <!-- Toast messages will be shown via JavaScript -->
                 
                 <div class="row">
                     <div class="col-lg-8">
@@ -149,33 +142,50 @@
                                 <strong>Total:</strong>
                                 <strong>$<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></strong>
                             </div>
-                            
-                            <c:if test="${not empty cartItems}">
-                                <form action="${pageContext.request.contextPath}/cart" method="post" id="checkoutForm">
-                                    <input type="hidden" name="action" value="checkout">
-                                    <button type="submit" class="btn btn-primary btn-block" id="checkoutBtn">
-                                        Proceed to Checkout
-                                    </button>
-                                </form>
-                            </c:if>
-                            
-                            <a href="${pageContext.request.contextPath}/courses" class="btn btn-outline-secondary btn-block mt-3">
-                                Continue Shopping
-                            </a>
+<div class="cart-actions mt-4">
+
+    <!-- Continue Shopping -->
+    <a href="${pageContext.request.contextPath}/courses"
+       class="btn btn-outline-secondary"
+       style="display: inline-block; margin-right: 10px;">
+        Continue Shopping
+    </a>
+
+    <!-- Proceed to Checkout -->
+   <form action="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+      method="post"
+      style="width: 50%;">
+
+    <input type="hidden"
+           name="action"
+           value="checkout">
+
+    <button type="submit"
+            class="btn btn-primary"
+            style="width: 100%;">
+
+        Checkout
+
+    </button>
+
+</form>
+
+</div>                     
+
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
     <!-- main-area-end -->
 
     <!-- footer-area -->
-    <jsp:include page="../common/home/footer-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/footer.jsp"></jsp:include>
     <!-- footer-area-end -->
 
     <!-- JS here -->
-    <jsp:include page="../common/home/js-home.jsp" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Toast JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
