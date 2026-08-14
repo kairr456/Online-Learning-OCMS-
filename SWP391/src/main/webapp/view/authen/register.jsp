@@ -4,284 +4,466 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Register</title>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>OCMS - Register</title>
+
+    <!-- Global CSS -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/styles.css">
+
+    <!-- Login theme CSS -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/authen/login.css">
+
+    <!-- Register CSS -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/authen/register.css">
+
 </head>
 
 <body>
 
-<h2>Register</h2>
+<div class="login-screen register-screen">
 
-<!--
-    Display registration error from Servlet
-    Example:
-    request.setAttribute("errorMessage", "Username already exists");
--->
-<%
-    String errorMessage = (String) request.getAttribute("errorMessage");
-
-    if (errorMessage != null) {
-%>
-
-    <p style="color:red;">
-        <%= errorMessage %>
-    </p>
-
-<%
-    }
-%>
+    <!-- Background decorations -->
+    <div class="login-decoration login-decoration--one"></div>
+    <div class="login-decoration login-decoration--two"></div>
 
 
-<!--
-    Register form
+    <main class="login-card register-card">
 
-    Change "register" if your Servlet mapping uses
-    a different URL.
--->
-<form
-    method="post"
-    action="${pageContext.request.contextPath}/register"
->
+        <!-- =====================================================
+             BRAND
+        ====================================================== -->
 
+        <div class="login-brand">
 
-    <!-- =========================
-         USERNAME
-    ========================== -->
+            <div class="login-brand__icon">
+                <span class="dot"></span>
+            </div>
 
-    <div>
-        <label for="username">
-            User Name *
-        </label>
+            <div>
 
-        <input
-            type="text"
-            id="username"
-            name="username"
-            value="<%= request.getParameter("username") != null
-                    ? request.getParameter("username")
-                    : "" %>"
-            required
-        >
-    </div>
+                <span class="login-brand__name">
+                    OCMS
+                </span>
+
+                <span class="login-brand__tagline">
+                    Online Course Management System
+                </span>
+
+            </div>
+
+        </div>
 
 
-    <br>
+        <!-- =====================================================
+             HEADING
+        ====================================================== -->
+
+        <div class="login-heading register-heading">
+
+            <h1>
+                Create an account
+            </h1>
+
+            <p>
+                Register to start learning with OCMS.
+            </p>
+
+        </div>
 
 
-    <!-- =========================
-         FULL NAME
-    ========================== -->
+        <!-- =====================================================
+             ERROR MESSAGE
+        ====================================================== -->
 
-    <div>
-        <label for="fullName">
-            Full Name *
-        </label>
+        <%
+            String errorMessage =
+                    (String) request.getAttribute("errorMessage");
 
-        <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            value="<%= request.getParameter("fullName") != null
-                    ? request.getParameter("fullName")
-                    : "" %>"
-            required
-        >
-    </div>
+            if (errorMessage != null) {
+        %>
 
+            <div class="login-error" role="alert">
 
-    <br>
+                <span class="login-error__icon">
+                    &#9888;
+                </span>
 
+                <span>
+                    <%= errorMessage %>
+                </span>
 
-    <!-- =========================
-         PASSWORD
-    ========================== -->
+            </div>
 
-    <div>
-        <label for="password">
-            Password *
-        </label>
-
-        <input
-            type="password"
-            id="password"
-            name="password"
-            required
-        >
-    </div>
+        <%
+            }
+        %>
 
 
-    <br>
+        <!-- =====================================================
+             REGISTER FORM
+        ====================================================== -->
 
-
-    <!-- =========================
-         CONFIRM PASSWORD
-    ========================== -->
-
-    <div>
-        <label for="confirmPassword">
-            Confirm Password *
-        </label>
-
-        <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            required
-        >
-    </div>
-
-
-    <br>
-
-
-    <!-- =========================
-         EMAIL
-    ========================== -->
-
-    <div>
-        <label for="email">
-            Email *
-        </label>
-
-        <input
-            type="email"
-            id="email"
-            name="email"
-            value="<%= request.getParameter("email") != null
-                    ? request.getParameter("email")
-                    : "" %>"
-            required
-        >
-    </div>
-
-
-    <br>
-
-
-    <!-- =========================
-         PHONE
-    ========================== -->
-
-    <div>
-        <label for="phone">
-            Phone *
-        </label>
-
-        <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value="<%= request.getParameter("phone") != null
-                    ? request.getParameter("phone")
-                    : "" %>"
-            required
-        >
-    </div>
-
-
-    <br>
-
-
-    <!-- =========================
-         ROLE
-    ========================== -->
-
-    <div>
-        <label for="role">
-            Please select role *
-        </label>
-
-        <select
-            id="role"
-            name="role"
-            required
+        <form
+            id="registerForm"
+            method="post"
+            action="${pageContext.request.contextPath}/register"
         >
 
-            <option value="">
-                Registered as
-            </option>
 
-            <option value="teacher">
-                Teacher
-            </option>
+            <!-- =================================================
+                 USERNAME
+            ================================================== -->
 
-            <option value="student">
-                Student/User
-            </option>
+            <div class="register-field">
 
-        </select>
-    </div>
+                <label for="username">
+                    User Name *
+                </label>
 
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    value="<%= request.getParameter("username") != null
+                        ? request.getParameter("username")
+                        : "" %>"
+                    autocomplete="username"
+                    required
+                >
 
-    <br>
-
-
-    <!-- =========================
-         GENDER
-    ========================== -->
-
-    <div>
-        <label for="gender">
-            Please select gender *
-        </label>
-
-        <select
-            id="gender"
-            name="gender"
-            required
-        >
-
-            <option value="">
-                Select Gender
-            </option>
-
-            <option value="male">
-                Male
-            </option>
-
-            <option value="female">
-                Female
-            </option>
-
-        </select>
-    </div>
+            </div>
 
 
-    <br>
-    <br>
+            <!-- =================================================
+                 FULL NAME
+            ================================================== -->
+
+            <div class="register-field">
+
+                <label for="fullName">
+                    Full Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    placeholder="Enter your full name"
+                    value="<%= request.getParameter("fullName") != null
+                        ? request.getParameter("fullName")
+                        : "" %>"
+                    required
+                >
+
+            </div>
 
 
-    <!-- =========================
-         SUBMIT
-    ========================== -->
+            <!-- =================================================
+                 EMAIL
+            ================================================== -->
 
-    <button type="submit">
-        Register
-    </button>
+            <div class="register-field">
 
-</form>
+                <label for="email">
+                    Email *
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value="<%= request.getParameter("email") != null
+                        ? request.getParameter("email")
+                        : "" %>"
+                    autocomplete="email"
+                    required
+                >
+
+            </div>
 
 
-<br>
+            <!-- =================================================
+                 PHONE
+            ================================================== -->
+
+            <div class="register-field">
+
+                <label for="phone">
+                    Phone *
+                </label>
+
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value="<%= request.getParameter("phone") != null
+                        ? request.getParameter("phone")
+                        : "" %>"
+                    autocomplete="tel"
+                    required
+                >
+
+            </div>
 
 
-<!-- =========================
-     LOGIN LINK
-========================== -->
+            <!-- =================================================
+                 PASSWORD
+            ================================================== -->
 
-<div>
-    <span>
-        Already have an account?
-    </span>
+            <div class="register-field">
 
-    <a href="${pageContext.request.contextPath}/login">
-        Login
-    </a>
+                <label for="password">
+                    Password *
+                </label>
+
+                <div class="register-password-wrap">
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="register-eye"
+                        data-password-target="password"
+                        aria-label="Show password"
+                    >
+                        &#128065;
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CONFIRM PASSWORD
+            ================================================== -->
+
+            <div class="register-field">
+
+                <label for="confirmPassword">
+                    Confirm Password *
+                </label>
+
+                <div class="register-password-wrap">
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Confirm your password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="register-eye"
+                        data-password-target="confirmPassword"
+                        aria-label="Show password"
+                    >
+                        &#128065;
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 ROLE
+            ================================================== -->
+
+            <div class="register-field">
+
+                <label for="role">
+                    Register as *
+                </label>
+
+                <select
+                    id="role"
+                    name="role"
+                    required
+                >
+
+                    <option value="">
+                        Select your role
+                    </option>
+
+                    <option
+                        value="teacher"
+                        <%= "teacher".equals(request.getParameter("role"))
+                            ? "selected"
+                            : "" %>
+                    >
+                        Teacher
+                    </option>
+
+                    <option
+                        value="student"
+                        <%= "student".equals(request.getParameter("role"))
+                            ? "selected"
+                            : "" %>
+                    >
+                        Student / User
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- =================================================
+                 GENDER
+            ================================================== -->
+
+            <div class="register-field">
+
+                <label for="gender">
+                    Gender *
+                </label>
+
+                <select
+                    id="gender"
+                    name="gender"
+                    required
+                >
+
+                    <option value="">
+                        Select your gender
+                    </option>
+
+                    <option
+                        value="male"
+                        <%= "male".equals(request.getParameter("gender"))
+                            ? "selected"
+                            : "" %>
+                    >
+                        Male
+                    </option>
+
+                    <option
+                        value="female"
+                        <%= "female".equals(request.getParameter("gender"))
+                            ? "selected"
+                            : "" %>
+                    >
+                        Female
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- =================================================
+                 REGISTER BUTTON
+            ================================================== -->
+
+            <button
+                type="submit"
+                class="login-submit register-submit"
+            >
+
+                <span>
+                    Create account
+                </span>
+
+                <span class="login-submit__arrow">
+                    &rarr;
+                </span>
+
+            </button>
+
+        </form>
+
+
+        <!-- =====================================================
+             LOGIN LINK
+        ====================================================== -->
+
+        <div class="login-register">
+
+            <span>
+                Already have an account?
+            </span>
+
+            <a
+                href="${pageContext.request.contextPath}/login"
+            >
+                Sign in
+            </a>
+
+        </div>
+
+    </main>
+
 </div>
 
 
-</body>
+<!-- =========================================================
+     PASSWORD TOGGLE
+========================================================== -->
 
+<script>
+
+    document
+        .querySelectorAll(".register-eye")
+        .forEach(function (button) {
+
+            button.addEventListener("click", function () {
+
+                const targetId =
+                    button.getAttribute(
+                        "data-password-target"
+                    );
+
+                const input =
+                    document.getElementById(targetId);
+
+                if (input.type === "password") {
+
+                    input.type = "text";
+
+                    button.innerHTML = "&#128064;";
+                    button.setAttribute(
+                        "aria-label",
+                        "Hide password"
+                    );
+
+                } else {
+
+                    input.type = "password";
+
+                    button.innerHTML = "&#128065;";
+                    button.setAttribute(
+                        "aria-label",
+                        "Show password"
+                    );
+                }
+
+            });
+
+        });
+
+</script>
+
+</body>
 </html>

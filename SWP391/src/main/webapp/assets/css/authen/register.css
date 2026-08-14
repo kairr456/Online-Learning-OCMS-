@@ -1,0 +1,362 @@
+/* ==========================================================================
+   OCMS Register Page
+   ========================================================================== */
+
+
+/* ==========================================================================
+   Register Screen
+   ========================================================================== */
+
+.register-screen {
+    align-items: flex-start;
+
+    padding-top: 45px;
+    padding-bottom: 45px;
+
+    overflow-y: auto;
+}
+
+
+/* ==========================================================================
+   Register Card
+   ========================================================================== */
+
+.register-card {
+    max-width: 650px;
+
+    padding:
+        34px 42px 30px;
+}
+
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.register-heading {
+    margin-bottom: 24px;
+}
+
+.register-heading h1 {
+    font-size: 30px;
+}
+
+
+/* ==========================================================================
+   Form Layout
+   ========================================================================== */
+
+#registerForm {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    column-gap: 18px;
+
+    row-gap: 16px;
+}
+
+
+/* Make register button full width */
+
+.register-submit {
+    grid-column: 1 / -1;
+
+    margin-top: 4px;
+}
+
+
+/* ==========================================================================
+   Register Fields
+   ========================================================================== */
+
+.register-field {
+    width: 100%;
+}
+
+
+.register-field label {
+    display: block;
+
+    margin:
+        0 0 8px 2px;
+
+    color:
+        rgba(255, 255, 255, 0.78);
+
+    font-size: 12.5px;
+
+    font-weight: 650;
+}
+
+
+/* ==========================================================================
+   Text Inputs
+   ========================================================================== */
+
+.register-field input,
+.register-field select {
+
+    width: 100%;
+
+    min-height: 48px;
+
+    box-sizing: border-box;
+
+    padding:
+        0 14px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.13);
+
+    border-radius: 11px;
+
+    outline: none;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    color: #fff;
+
+    font-family:
+        var(--font-body, Arial, sans-serif);
+
+    font-size: 13.5px;
+
+    transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+/* Placeholder */
+
+.register-field input::placeholder {
+    color:
+        rgba(255, 255, 255, 0.28);
+}
+
+
+/* Hover */
+
+.register-field input:hover,
+.register-field select:hover {
+
+    border-color:
+        rgba(255, 255, 255, 0.22);
+}
+
+
+/* Focus */
+
+.register-field input:focus,
+.register-field select:focus {
+
+    border-color:
+        var(--amber, #d8a24a);
+
+    background:
+        rgba(255, 255, 255, 0.065);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(216, 162, 74, 0.12);
+}
+
+
+/* ==========================================================================
+   Select
+   ========================================================================== */
+
+.register-field select {
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    padding-right: 40px;
+
+    cursor: pointer;
+
+    color-scheme: dark;
+
+    background-image:
+        linear-gradient(
+            45deg,
+            transparent 50%,
+            var(--amber, #d8a24a) 50%
+        ),
+        linear-gradient(
+            135deg,
+            var(--amber, #d8a24a) 50%,
+            transparent 50%
+        );
+
+    background-position:
+        calc(100% - 17px) 50%,
+        calc(100% - 12px) 50%;
+
+    background-size:
+        5px 5px,
+        5px 5px;
+
+    background-repeat: no-repeat;
+}
+
+
+.register-field select option {
+
+    background:
+        #11151b;
+
+    color:
+        #fff;
+}
+
+
+/* ==========================================================================
+   Password Fields
+   ========================================================================== */
+
+.register-password-wrap {
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+
+.register-password-wrap input {
+
+    padding-right: 48px;
+}
+
+
+.register-eye {
+
+    position: absolute;
+
+    right: 7px;
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color:
+        rgba(255, 255, 255, 0.45);
+
+    font-size: 16px;
+
+    cursor: pointer;
+
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
+}
+
+
+.register-eye:hover {
+
+    color: #fff;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+}
+
+
+.register-eye:focus {
+
+    outline:
+        2px solid
+        var(--amber, #d8a24a);
+
+    outline-offset: 1px;
+}
+
+
+/* ==========================================================================
+   Register Button
+   ========================================================================== */
+
+.register-submit {
+
+    margin-top: 8px;
+}
+
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@media (max-width: 700px) {
+
+    .register-screen {
+
+        align-items: flex-start;
+
+        padding:
+            25px 14px;
+    }
+
+
+    .register-card {
+
+        max-width: 100%;
+
+        padding:
+            28px 22px 25px;
+
+        border-radius: 18px;
+    }
+
+
+    #registerForm {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 16px;
+    }
+
+
+    .register-submit {
+
+        grid-column: auto;
+
+        margin-top: 4px;
+    }
+
+
+    .register-heading h1 {
+
+        font-size: 27px;
+    }
+
+}
+
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .register-card {
+
+        animation: none;
+    }
+
+}
