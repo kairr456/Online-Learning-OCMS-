@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RegistrationDAO extends DBContext implements I_DAO<Registration> {
+public class CourseRegistrationDAO extends DBContext implements I_DAO<Registration> {
     // Chèn hàm này vào bên trong class RegistrationDAO
     public List<Course> getCoursesByAccountId(int accountId) {
         List<Course> courses = new ArrayList<>();
@@ -150,7 +150,7 @@ public class RegistrationDAO extends DBContext implements I_DAO<Registration> {
 
      public static void main(String[] args) {
             // Tạo đối tượng RegistrationDAO để thao tác với cơ sở dữ liệu
-            RegistrationDAO registrationDAO = new RegistrationDAO();
+            CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
 
             // 1. Thêm mới một bản ghi (Insert)
             Registration newRegistration = new Registration();

@@ -1,8 +1,11 @@
 package com.DAO;
 
 import com.entity.Account;
+import jakarta.resource.cci.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,7 +83,8 @@ public class AccountDAO extends DBContext {
             if (rowsInserted > 0) {
                 resultSet = statement.getGeneratedKeys();
                 if (resultSet.next()) {
-                    account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the caller
+                    account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the
+                                                        // caller
                 }
                 return true;
             }
@@ -126,4 +130,152 @@ public class AccountDAO extends DBContext {
         return null; // Return null if login fails
     }
 
+    // =========================================================
+    // Get all author names
+    // =========================================================
+    public java.util.Map<Integer, String> getAuthorNames() {
+        java.util.Map<Integer, String> authors = new java.util.HashMap<>();
+        String sql = "SELECT id, username, full_name FROM account";
+        try {
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String fullName = resultSet.getString("full_name");
+                String username = resultSet.getString("username");
+                authors.put(id, (fullName != null && !fullName.trim().isEmpty()) ? fullName : username);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return authors;
+    }
+
+    /**
+     * Lấy danh sách tài khoản theo điều kiện: - Tìm kiếm username, email,
+     * full_name - Lọc Role - Lọc Status
+     */
+    public List<Account> searchAccounts(String keyword, String roleId, String status) {
+        List<Account> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, username, email, phone, full_name, "
+                        + "gender, is_active, role_id "
+                        + "FROM Account WHERE 1=1 ");
+
+        // Tìm kiếm theo username, email hoặc full_name
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(
+                    " AND (username LIKE ? "
+                            + "OR email LIKE ? "
+                            + "OR full_name LIKE ?)");
+        }
+
+        // Lọc theo Role
+        if (roleId != null && !roleId.trim().isEmpty()) {
+            sql.append(" AND role_id = ?");
+        }
+
+        // Lọc theo Status
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND is_active = ?");
+        }
+
+        sql.append(" ORDER BY id DESC");
+
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = getConnection();
+            }
+
+            statement = connection.prepareStatement(sql.toString());
+            int paramIndex = 1;
+
+            // Keyword
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchPattern = "%" + keyword.trim() + "%";
+                statement.setString(paramIndex++, searchPattern);
+                statement.setString(paramIndex++, searchPattern);
+                statement.setString(paramIndex++, searchPattern);
+            }
+
+            // Role
+            if (roleId != null && !roleId.trim().isEmpty()) {
+                statement.setInt(paramIndex++, Integer.parseInt(roleId));
+            }
+
+            // Status
+            if (status != null && !status.trim().isEmpty()) {
+                statement.setInt(paramIndex++, Integer.parseInt(status));
+            }
+
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Account u = new Account();
+                u.setId(resultSet.getInt("id"));
+                u.setUsername(resultSet.getString("username"));
+                u.setEmail(resultSet.getString("email"));
+                u.setPhone(resultSet.getString("phone"));
+                u.setFullName(resultSet.getString("full_name"));
+                u.setGender(resultSet.getBoolean("gender"));
+
+                // Đã BỎ dòng u.setAvatar(...) để tránh lỗi Column not found!
+                u.setActive(resultSet.getBoolean("is_active"));
+                u.setRoleId(resultSet.getInt("role_id"));
+
+                list.add(u);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+
+        return list;
+    }
+
+    /**
+     * Vô hiệu hóa tài khoản theo ID trong bảng Account.
+     */
+    public boolean deactivateAccount(int userId) {
+
+        String sql = "UPDATE Account "
+                + "SET is_active = 0 "
+                + "WHERE id = ?";
+
+        try {
+
+            if (connection == null || connection.isClosed()) {
+                connection = getConnection();
+            }
+
+            statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, userId);
+
+            int rows = statement.executeUpdate();
+
+            System.out.println(
+                    "Deactivate Account ID = "
+                            + userId
+                            + ", affected rows = "
+                            + rows);
+
+            return rows > 0;
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        } finally {
+
+            closeResources();
+        }
+
+        return false;
+    }
 }
