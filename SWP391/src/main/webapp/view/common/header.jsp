@@ -32,14 +32,20 @@
             <% } %>
         </nav>
 
-        <form class="site-header__search" action="<%= ctx %>/search" method="get">
+        <form class="site-header__search" action="<%= ctx %>/courses" method="get">
             <select name="category" class="site-header__select" aria-label="Category">
                 <option value="">Category</option>
                 <% for (Category cat : headerCategories) { %>
                 <option value="<%= cat.getId() %>"><%= cat.getName() %></option>
                 <% } %>
             </select>
-            <input type="search" name="q" class="site-header__input" placeholder="Search">
+            <input
+                type="search"
+                name="courseName"
+                class="site-header__input"
+                placeholder="Search courses"
+                value="<%= request.getParameter("courseName") != null ? request.getParameter("courseName") : "" %>"
+            >
             <button type="submit" class="site-header__search-btn" aria-label="Search">
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
