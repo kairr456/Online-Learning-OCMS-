@@ -113,6 +113,8 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
    public Course getFromResultSet(ResultSet rs) throws SQLException {
+    java.sql.Timestamp cDate = rs.getTimestamp("created_date");
+    java.sql.Timestamp mDate = rs.getTimestamp("modified_date");
     return new Course(
             rs.getInt("id"),
             rs.getString("name"),
@@ -121,8 +123,8 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             rs.getInt("rating"),
             rs.getFloat("price"),
             rs.getString("status"),
-            rs.getTimestamp("created_date").toLocalDateTime(),
-            rs.getTimestamp("modified_date").toLocalDateTime(),
+            cDate != null ? cDate.toLocalDateTime() : null,
+            mDate != null ? mDate.toLocalDateTime() : null,
             rs.getInt("created_by"),
             rs.getInt("category_id")
     );

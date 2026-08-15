@@ -71,6 +71,8 @@ public class LessonController extends HttpServlet {
             course.setThumbnail(request.getContextPath() + "/" + thumbnailRelPath);
             course.setStatus("active");
             course.setRating(0);
+            course.setCreatedDate(java.time.LocalDateTime.now());
+            course.setModifiedDate(java.time.LocalDateTime.now());
             
             com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
             int courseId = courseDAO.insert(course);
@@ -99,30 +101,70 @@ public class LessonController extends HttpServlet {
                             String lesTitle = request.getParameter("lessonTitle_" + s + "_" + l);
                             if (lesTitle == null) continue;
 
-                            String type = request.getParameter("lessonType_" + s + "_" + l);
                             com.entity.Lesson lesson = new com.entity.Lesson();
                             lesson.setSectionId(sectionId);
                             lesson.setTitle(lesTitle);
-                            lesson.setType(type);
+                            lesson.setType("text"); // Treat as a rich text document natively
                             lesson.setOrderNumber(l + 1);
                             lesson.setDurationMinutes(0);
                             lesson.setStatus("active");
                             int lessonId = lessonDAO.insertLesson(lesson);
 
                             if (lessonId > 0) {
-                                if ("video".equals(type)) {
-                                    String yt = request.getParameter("lessonYoutube_" + s + "_" + l);
-                                    lessonDAO.insertLessonVideo(lessonId, yt);
-                                } else if ("file".equals(type)) {
-                                    jakarta.servlet.http.Part lPart = request.getPart("lessonFile_" + s + "_" + l);
-                                    if (lPart != null && lPart.getSize() > 0) {
-                                        String lName = java.nio.file.Paths.get(lPart.getSubmittedFileName()).getFileName().toString();
-                                        lPart.write(uploadPath + java.io.File.separator + lName);
-                                        lessonDAO.insertLessonFile(lessonId, request.getContextPath() + "/assets/css/img/" + lName);
+                                StringBuilder htmlContent = new StringBuilder();
+                                
+                                int blockCount = 0;
+                                try {
+                                    blockCount = Integer.parseInt(request.getParameter("blockCount_" + s + "_" + l));
+                                } catch (Exception e) {}
+                                
+                                for (int b = 0; b < blockCount; b++) {
+                                    String bType = request.getParameter("blockType_" + s + "_" + l + "_" + b);
+                                    if (bType == null) continue;
+                                    
+                                    if ("text".equals(bType)) {
+                                        String text = request.getParameter("blockText_" + s + "_" + l + "_" + b);
+                                        if (text != null && !text.trim().isEmpty()) {
+                                            htmlContent.append("<div class='lesson-text-block' style='margin-bottom: 20px; font-size: 16px; line-height: 1.6;'>")
+                                                       .append(text.replace("\n", "<br>"))
+                                                       .append("</div>");
+                                        }
+                                    } else if ("file".equals(bType)) {
+                                        jakarta.servlet.http.Part fPart = request.getPart("blockFile_" + s + "_" + l + "_" + b);
+                                        if (fPart != null && fPart.getSize() > 0) {
+                                            String fName = java.nio.file.Paths.get(fPart.getSubmittedFileName()).getFileName().toString();
+                                            fPart.write(uploadPath + java.io.File.separator + fName);
+                                            String imgUrl = request.getContextPath() + "/assets/css/img/" + fName;
+                                            htmlContent.append("<div class='lesson-img-block' style='text-align: center; margin-bottom: 20px;'>")
+                                                       .append("<img src='").append(imgUrl).append("' style='max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>")
+                                                       .append("</div>");
+                                        }
+                                    } else if ("video".equals(bType)) {
+                                        String yt = request.getParameter("blockVideo_" + s + "_" + l + "_" + b);
+                                        if (yt != null && !yt.trim().isEmpty()) {
+                                            String videoId = yt;
+                                            if (yt.contains("v=")) {
+                                                videoId = yt.substring(yt.indexOf("v=") + 2);
+                                                if (videoId.contains("&")) {
+                                                    videoId = videoId.substring(0, videoId.indexOf("&"));
+                                                }
+                                            } else if (yt.contains("youtu.be/")) {
+                                                videoId = yt.substring(yt.indexOf("youtu.be/") + 9);
+                                                if (videoId.contains("?")) {
+                                                    videoId = videoId.substring(0, videoId.indexOf("?"));
+                                                }
+                                            }
+                                            htmlContent.append("<div class='lesson-video-block' style='margin-bottom: 20px; text-align: center;'>")
+                                                       .append("<iframe width='100%' height='500' style='max-width: 800px; border-radius: 8px;' src='https://www.youtube.com/embed/")
+                                                       .append(videoId)
+                                                       .append("' frameborder='0' allowfullscreen></iframe>")
+                                                       .append("</div>");
+                                        }
                                     }
-                                } else if ("text".equals(type)) {
-                                    String text = request.getParameter("lessonText_" + s + "_" + l);
-                                    lessonDAO.insertLessonText(lessonId, text);
+                                }
+                                
+                                if (htmlContent.length() > 0) {
+                                    lessonDAO.insertLessonText(lessonId, htmlContent.toString());
                                 }
                             }
                         }

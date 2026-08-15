@@ -463,6 +463,7 @@
                                                     </div>
                                                 </div>
                                             </c:forEach>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="instructors-tab-pane" role="tabpanel" aria-labelledby="instructors-tab" tabindex="0">
