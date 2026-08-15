@@ -2,7 +2,7 @@
     font-family: "flaticon_skill_grow";
     src: url("../fonts/flaticon_skill_grow533a.ttf?b804fdf7efe64078cf35502d1d7c3cc7") format("truetype"),
     url("../fonts/flaticon_skill_grow533a.woff?b804fdf7efe64078cf35502d1d7c3cc7") format("woff"),
-    url("../fonts/flaticon_skill_grow533a.woff2?b804fdf7efe64078cf35502d1d7c3cc7") format("woff2"),
+    url("../fonts/flaticon_skill_grow533a.woff2?b804fdf7efe64078cf35502d1d7c3cc7") format("woff2")
 }
 
 i[class^="flaticon-"]:before, i[class*=" flaticon-"]:before {

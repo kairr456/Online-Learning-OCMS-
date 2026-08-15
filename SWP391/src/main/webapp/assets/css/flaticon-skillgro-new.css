@@ -13,7 +13,7 @@
     font-family: "flaticon-skillgro-new";
     src: url("../fonts/skillgro-icon/flaticon_skillgro9f3c.woff2?1ef5b908031aa083bdbc72ac4c837d2e") format("woff2"),
 url("../fonts/skillgro-icon/flaticon_skillgro9f3c.woff?1ef5b908031aa083bdbc72ac4c837d2e") format("woff"),
-url("../skillgro-icon/flaticon_skillgro9f3c.html?1ef5b908031aa083bdbc72ac4c837d2e") format("truetype"),
+url("../skillgro-icon/flaticon_skillgro9f3c.html?1ef5b908031aa083bdbc72ac4c837d2e") format("truetype")
 }
 
 i[class^="skillgro-"]:before, i[class*=" skillgro-"]:before {

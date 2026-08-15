@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Common CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css?v=2">
     <!-- Layout CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=2">
     <!-- Page CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css?v=2">
 </head>
 <body>
 

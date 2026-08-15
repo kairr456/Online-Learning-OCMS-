@@ -118,11 +118,17 @@ body {
 
 .search-box input {
     width: 100%;
-    padding: 8px 40px 8px 16px;
-    border: 1.5px solid #000;
+    padding: 10px 40px 10px 16px;
+    border: 1.5px solid #E7E7E7;
     border-radius: 25px;
     outline: none;
     font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box input:focus {
+    border-color: #5751E1;
+    box-shadow: 0 0 0 3px rgba(87, 81, 225, 0.12);
 }
 
 .search-box .btn-search {
@@ -133,7 +139,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: #007bff;
+    color: #5751E1;
     font-size: 16px;
 }
 
@@ -144,31 +150,42 @@ body {
 }
 
 .filter-select {
-    padding: 8px 20px;
-    border: 1.5px solid #000;
+    padding: 10px 20px;
+    border: 1.5px solid #E7E7E7;
     border-radius: 25px;
     background-color: #fff;
     cursor: pointer;
     font-size: 14px;
     outline: none;
+    transition: border-color 0.2s;
 }
 
-/* Nút Add User màu xanh đậm góc phải */
+.filter-select:focus {
+    border-color: #5751E1;
+}
+
+/* Nút Add User màu tím góc phải */
 .btn-add-user {
-    background-color: #2c3e50;
+    background-color: #5751E1;
     color: #fff;
-    padding: 8px 20px;
-    border-radius: 20px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
-    transition: background-color 0.2s;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(87, 81, 225, 0.25);
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-add-user:hover {
-    background-color: #1a252f;
+    background-color: #463FC0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(87, 81, 225, 0.3);
 }
 
 /* ==========================================
@@ -177,6 +194,10 @@ body {
 .table-responsive {
     width: 100%;
     overflow-x: auto;
+    background: #fff;
+    border: 1px solid #E7E7E7;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .account-table {
@@ -187,99 +208,137 @@ body {
 
 .account-table th,
 .account-table td {
-    padding: 10px 12px;
-    border: 1px solid #dcdcdc;
+    padding: 12px 14px;
+    border: 1px solid #EEEDF2;
     text-align: left;
     font-size: 13.5px;
     white-space: nowrap;
 }
 
 .account-table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #333;
+    background-color: #F3F3F9;
+    font-weight: 700;
+    color: #161439;
 }
 
-.account-table tr:hover {
-    background-color: #f9f9f9;
+.account-table tbody tr:hover {
+    background-color: #F9F9FD;
 }
 
 /* Nút thao tác Edit / Delete */
 .action-cell {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
+    align-items: center;
 }
 
 .btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
     color: #555;
     text-decoration: none;
     font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .btn-action.edit:hover {
-    color: #007bff;
+    background: rgba(87, 81, 225, 0.12);
+    color: #5751E1;
 }
+
 .btn-action.delete:hover {
+    background: rgba(220, 53, 69, 0.12);
     color: #dc3545;
 }
 
 /* Badge hiển thị trạng thái Status */
 .badge {
-    padding: 3px 8px;
+    display: inline-block;
+    padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 600;
 }
 .badge.active {
-    color: #28a745;
+    background: #E7F6EC;
+    color: #1B8F4A;
 }
 .badge.inactive {
-    color: #dc3545;
+    background: #FDEBEC;
+    color: #D63646;
 }
 
 /* Modal Add/Edit */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(22, 20, 57, 0.5);
     align-items: center;
     justify-content: center;
     z-index: 1000;
 }
 .modal-content {
     background: #fff;
-    padding: 24px;
-    border-radius: 8px;
-    width: 420px;
+    padding: 26px;
+    border-radius: 12px;
+    width: 440px;
     max-width: 90%;
     box-sizing: border-box;
     max-height: 90vh;
     overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(22, 20, 57, 0.2);
 }
 .modal-content label {
     display: block;
     margin-top: 10px;
     font-weight: 600;
+    color: #161439;
 }
 .modal-content input,
 .modal-content select {
     width: 100%;
-    padding: 8px;
+    padding: 9px 10px;
     margin-top: 4px;
-    border: 1px solid #dcdcdc;
-    border-radius: 6px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
     box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #5751E1;
 }
 .modal-content button {
     margin-top: 16px;
-    padding: 8px 16px;
+    padding: 10px 18px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    background: #fff;
     cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.modal-content button[type="submit"] {
+    background: #5751E1;
+    border-color: #5751E1;
+    color: #fff;
+}
+.modal-content button[type="submit"]:hover {
+    background: #463FC0;
 }
 .modal-close {
     float: right;
     cursor: pointer;
     font-size: 22px;
+    color: #555;
 }
 
 /* Phân trang */
@@ -290,14 +349,19 @@ body {
     margin: 20px 0;
 }
 .page-link {
-    padding: 6px 12px;
-    border: 1px solid #dcdcdc;
-    border-radius: 6px;
+    padding: 7px 13px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
     text-decoration: none;
-    color: #333;
+    color: #161439;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s;
+}
+.page-link:hover {
+    background: rgba(87, 81, 225, 0.08);
 }
 .page-link.active {
-    background: #007bff;
+    background: #5751E1;
     color: #fff;
-    border-color: #007bff;
+    border-color: #5751E1;
 }

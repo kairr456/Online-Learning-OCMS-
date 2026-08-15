@@ -14,7 +14,7 @@ public class AdminDashboardController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
 
         // Lấy dữ liệu từ DAO
@@ -26,7 +26,11 @@ public class AdminDashboardController extends HttpServlet {
         request.setAttribute("totalUsers", totalUsers);
         request.setAttribute("totalCourses", totalCourses);
         request.setAttribute("totalRegistrations", totalRegistrations);
-
+        request.setAttribute("totalRevenue", dashboardDAO.getTotalRevenue());
+        request.setAttribute("userCountsByRole", dashboardDAO.getUserCountByRole());
+        request.setAttribute("courseCountsByStatus", dashboardDAO.getCourseCountByStatus());
+        request.setAttribute("registrationsByMonth", dashboardDAO.getRegistrationsByMonth());
+        request.setAttribute("quizPassRate", dashboardDAO.getQuizPassRate());
         // Trong AdminDashboardController.java
         request.setAttribute("contentPage", "dashboard.jsp");
 
