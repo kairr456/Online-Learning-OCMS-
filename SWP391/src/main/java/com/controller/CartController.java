@@ -71,11 +71,46 @@ public class CartController extends HttpServlet {
         // Calculate cart total
         BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
 
+        // Pagination: max 4 items per page
+        int pageSize = 4;
+        int totalItems = (cartItems != null) ? cartItems.size() : 0;
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
+
+        int currentPage = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null) {
+            try {
+                currentPage = Integer.parseInt(pageParam);
+                if (currentPage < 1) currentPage = 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+            } catch (NumberFormatException e) {
+                currentPage = 1;
+            }
+        }
+
+        List<CartItem> pagedItems;
+        if (cartItems != null && !cartItems.isEmpty()) {
+            int fromIndex = (currentPage - 1) * pageSize;
+            int toIndex = Math.min(fromIndex + pageSize, totalItems);
+            if (fromIndex < totalItems) {
+                pagedItems = cartItems.subList(fromIndex, toIndex);
+            } else {
+                pagedItems = new ArrayList<>();
+            }
+        } else {
+            pagedItems = new ArrayList<>();
+        }
+
         // Set attributes for the JSP
         request.setAttribute("cart", cart);
-        request.setAttribute("cartItems", cartItems);
+        request.setAttribute("cartItems", pagedItems);
         request.setAttribute("cartTotal", cartTotal);
-        request.setAttribute("itemCount", cartItems.size());
+        request.setAttribute("itemCount", totalItems);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("courseDAO", courseDAO);
 
         request.getRequestDispatcher(CART_JSP).forward(request, response);

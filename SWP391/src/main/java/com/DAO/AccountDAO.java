@@ -264,6 +264,23 @@ public class AccountDAO extends DBContext {
         }
         return 0;
     }
+    public boolean updateBasicInfo(int accountId, String fullName, String phone, boolean gender) {
+    String sql = "UPDATE account SET full_name = ?, phone = ?, gender = ? WHERE id = ?";
+    try {
+        statement = connection.prepareStatement(sql);
+        statement.setString(1, fullName);
+        statement.setString(2, phone);
+        statement.setBoolean(3, gender);
+        statement.setInt(4, accountId);
+        int rowsUpdated = statement.executeUpdate();
+        return rowsUpdated > 0;
+    } catch (SQLException ex) {
+        Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+    } finally {
+        closeResources();
+    }
+    return false;
+}
 
 // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {

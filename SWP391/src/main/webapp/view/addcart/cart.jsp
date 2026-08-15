@@ -17,6 +17,7 @@
     <!-- CSS here -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -65,6 +66,43 @@
 .cart-summary .cart-actions a {
     width: 100%;
 }
+
+        /* Pagination */
+        .cart-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .cart-pagination .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            background: #ffffff;
+            color: #1a1a2e;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            padding: 0;
+        }
+        .cart-pagination .page-link:hover {
+            background: #eef2f6;
+            color: #1a1a2e;
+            transform: translateY(-2px);
+        }
+        .cart-pagination .page-link.active {
+            background: #16192b;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
+        }
     </style>
 </head>
 
@@ -124,6 +162,36 @@
                                     </c:forEach>
                                 </c:otherwise>
                             </c:choose>
+
+                            <!-- Pagination (Max 4 items per page) -->
+                            <c:if test="${totalPages > 1}">
+                                <div class="cart-pagination">
+                                    <!-- First Page -->
+                                    <c:if test="${totalPages > 2 && currentPage > 1}">
+                                        <a href="${pageContext.request.contextPath}/cart?page=1" class="page-link" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+                                    </c:if>
+
+                                    <!-- Previous Page -->
+                                    <c:if test="${currentPage > 1}">
+                                        <a href="${pageContext.request.contextPath}/cart?page=${currentPage - 1}" class="page-link" title="Previous Page"><i class="fa-solid fa-angle-left"></i></a>
+                                    </c:if>
+
+                                    <!-- Page Numbers -->
+                                    <c:forEach var="i" begin="1" end="${totalPages}">
+                                        <a href="${pageContext.request.contextPath}/cart?page=${i}" class="page-link ${currentPage == i ? 'active' : ''}">${i}</a>
+                                    </c:forEach>
+
+                                    <!-- Next Page -->
+                                    <c:if test="${currentPage < totalPages}">
+                                        <a href="${pageContext.request.contextPath}/cart?page=${currentPage + 1}" class="page-link" title="Next Page"><i class="fa-solid fa-angle-right"></i></a>
+                                    </c:if>
+
+                                    <!-- Last Page -->
+                                    <c:if test="${totalPages > 2 && currentPage < totalPages}">
+                                        <a href="${pageContext.request.contextPath}/cart?page=${totalPages}" class="page-link" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
+                                    </c:if>
+                                </div>
+                            </c:if>
                         </div>
                     </div>
                     
@@ -152,23 +220,11 @@
     </a>
 
     <!-- Proceed to Checkout -->
-   <form action="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
-      method="post"
-      style="width: 50%;">
-
-    <input type="hidden"
-           name="action"
-           value="checkout">
-
-    <button type="submit"
-            class="btn btn-primary"
-            style="width: 100%;">
-
+    <a href="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+       class="btn btn-primary"
+       style="display: flex; align-items: center; justify-content: center; width: 50%; text-decoration: none;">
         Checkout
-
-    </button>
-
-</form>
+    </a>
 
 </div>                     
 
@@ -176,7 +232,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </main>
     <!-- main-area-end -->
 

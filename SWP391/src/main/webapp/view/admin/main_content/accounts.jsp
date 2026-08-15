@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <div class="account-manager-container">
+    <div class="dashboard-title">Manage Accounts</div>
 
     <!-- Top Filter Bar -->
     <form id="filterForm"
