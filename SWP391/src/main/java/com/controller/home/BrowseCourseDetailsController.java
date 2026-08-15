@@ -42,9 +42,27 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     ReviewDAO reviewDAO = new ReviewDAO();
                     List<Review> reviews = reviewDAO.getReviewsByCourseId(courseId);
                     
+                    com.DAO.LessonDAO lessonDAO = new com.DAO.LessonDAO();
+                    java.util.List<com.entity.Section> sections = lessonDAO.getSectionsByCourseId(courseId);
+                    java.util.Map<Integer, java.util.List<com.entity.Lesson>> lessonsMap = new java.util.HashMap<>();
+                    java.util.Map<Integer, String> lessonVideosMap = new java.util.HashMap<>();
+                    
+                    for (com.entity.Section s : sections) {
+                        java.util.List<com.entity.Lesson> ls = lessonDAO.getLessonsBySectionId(s.getId());
+                        lessonsMap.put(s.getId(), ls);
+                        for (com.entity.Lesson l : ls) {
+                            if ("video".equals(l.getType())) {
+                                lessonVideosMap.put(l.getId(), lessonDAO.getLessonYoutube(l.getId()));
+                            }
+                        }
+                    }
+                    
                     request.setAttribute("course", course);
                     request.setAttribute("authorName", authorNames.get(course.getCreatedBy()));
                     request.setAttribute("reviews", reviews);
+                    request.setAttribute("sections", sections);
+                    request.setAttribute("lessonsMap", lessonsMap);
+                    request.setAttribute("lessonVideosMap", lessonVideosMap);
                     // Also pass authorNames so we can lookup reviewer names in the JSP
                     request.setAttribute("accountNames", authorNames);
                 } else {

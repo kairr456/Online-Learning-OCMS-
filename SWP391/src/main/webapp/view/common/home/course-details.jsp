@@ -421,8 +421,48 @@
                                     <div class="courses__curriculum-wrap">
                                         <h3 class="title">Course Curriculum</h3>
                                         <div class="accordion" id="accordionExample">
-                                            <!-- Curriculum content will be loaded dynamically -->
-                                        </div>
+                                            <c:forEach var="section" items="${sections}" varStatus="status">
+                                                <div class="accordion-item" style="margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+                                                    <h2 class="accordion-header" id="heading${status.index}">
+                                                        <button class="accordion-button ${status.index != 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${status.index}" aria-expanded="${status.index == 0 ? 'true' : 'false'}" aria-controls="collapse${status.index}" style="background-color: #f8f9fa; font-weight: 600; padding: 15px 20px;">
+                                                            ${section.title}
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapse${status.index}" class="accordion-collapse collapse ${status.index == 0 ? 'show' : ''}" aria-labelledby="heading${status.index}" data-bs-parent="#accordionExample">
+                                                        <div class="accordion-body" style="padding: 0;">
+                                                            <ul class="list-group list-group-flush">
+                                                                <c:forEach var="lesson" items="${lessonsMap[section.id]}">
+                                                                    <li class="list-group-item" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                                                                        <span>
+                                                                            <c:if test="${lesson.type == 'video'}">
+                                                                                <i class="fas fa-play-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'file'}">
+                                                                                <i class="fas fa-file-alt" style="color: #28a745; margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'text'}">
+                                                                                <i class="fas fa-book" style="color: #ffc107; margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            
+                                                                            <!-- If it's a video, make it clickable to open popup -->
+                                                                            <c:choose>
+                                                                                <c:when test="${lesson.type == 'video'}">
+                                                                                    <a href="${lessonVideosMap[lesson.id]}" target="_blank" onclick="window.open(this.href, 'youtubePopup', 'width=800,height=600'); return false;" style="color: #333; text-decoration: none; cursor: pointer;">
+                                                                                        ${lesson.title}
+                                                                                    </a>
+                                                                                </c:when>
+                                                                                <c:otherwise>
+                                                                                    ${lesson.title}
+                                                                                </c:otherwise>
+                                                                            </c:choose>
+                                                                        </span>
+                                                                    </li>
+                                                                </c:forEach>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </c:forEach>
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="instructors-tab-pane" role="tabpanel" aria-labelledby="instructors-tab" tabindex="0">

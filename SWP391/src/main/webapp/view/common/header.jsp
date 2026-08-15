@@ -84,6 +84,9 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
+                        <% if (headerAccount.getRoleId() == 2) { %>
+                            <a href="<%= ctx %>/lesson">Create Course</a>
+                        <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
