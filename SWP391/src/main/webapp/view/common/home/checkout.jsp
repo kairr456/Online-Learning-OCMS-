@@ -1,1530 +1,884 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="com.entity.Account, com.entity.Cart, com.entity.CartItem, com.DAO.CartDAO, com.DAO.CartItemDAO, com.DAO.CourseDAO, com.ocms.config.GlobalConfig, java.util.List, java.math.BigDecimal"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%
+    // Đảm bảo dữ liệu giỏ hàng luôn được nạp đầy đủ kể cả khi truy cập trực tiếp qua checkout.jsp
+    Account acc = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
+    if (acc == null) {
+        acc = (Account) session.getAttribute("account");
+    }
+    
+    if (request.getAttribute("cartItems") == null && acc != null) {
+        CartDAO cartDAO = new CartDAO();
+        CartItemDAO cartItemDAO = new CartItemDAO();
+        CourseDAO courseDAO = new CourseDAO();
+        
+        Cart userCart = cartDAO.findByAccountId(acc.getId());
+        if (userCart == null) {
+            userCart = cartDAO.getOrCreateCart(acc.getId());
+        }
+        
+        if (userCart != null && userCart.getId() != null) {
+            List<CartItem> items = cartItemDAO.getCartItemsWithCourseDetails(userCart.getId());
+            BigDecimal total = cartItemDAO.getCartTotal(userCart.getId());
+            
+            request.setAttribute("cart", userCart);
+            request.setAttribute("cartItems", items);
+            request.setAttribute("cartTotal", total != null ? total : BigDecimal.ZERO);
+            request.setAttribute("itemCount", items != null ? items.size() : 0);
+            request.setAttribute("courseDAO", courseDAO);
+        }
+    }
+%>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
-
     <meta charset="UTF-8">
-
     <title>Checkout - OCMS</title>
-    <meta name="description" content="Complete your course purchase securely">
+    <meta name="description" content="Thanh toán khóa học an toàn và nhanh chóng trên OCMS">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1">
-
-    <jsp:include page="/view/common/home/css-home.jsp" />
+    <!-- CSS chung -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --primary-purple: #6f2bd9;
+            --primary-purple-hover: #5b21b6;
+            --dark-text: #1a1a2e;
+            --muted-text: #6c757d;
+            --border-color: #e2e8f0;
+            --bg-light: #f8fafc;
+        }
 
-        .checkout-wrapper {
-            padding: 0;
-            background: #fff;
+        body {
+            background-color: #fdfdfd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        .checkout-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 40px 15px 60px;
+        }
+
+        .checkout-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .checkout-title {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 35px;
+            color: var(--dark-text);
+            margin: 0;
         }
 
-        .checkout-box {
-            border: 1px solid #ddd;
+        .back-to-cart {
+            color: var(--primary-purple);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .back-to-cart:hover {
+            color: var(--primary-purple-hover);
+            text-decoration: underline;
+        }
+
+        .section-box {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .section-heading {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark-text);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .secure-badge {
+            font-size: 13px;
+            font-weight: 500;
+            color: #16a34a;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            height: 46px;
             border-radius: 8px;
-            padding: 25px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(111, 43, 217, 0.15);
+        }
+
+        /* Payment Methods Accordion */
+        .payment-option-card {
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: all 0.2s ease;
             background: #fff;
         }
 
-        .checkout-box h4 {
-            font-weight: 700;
-            margin-bottom: 25px;
+        .payment-option-card.active {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 2px rgba(111, 43, 217, 0.12);
         }
 
-        .payment-box {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 20px;
-            margin-top: 25px;
-        }
-
-        .payment-header {
+        .payment-option-header {
+            padding: 16px 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 18px;
-            font-weight: 600;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            background: #fff;
         }
 
-        .payment-header input {
+        .payment-option-card.active .payment-option-header {
+            background: #faf5ff;
+        }
+
+        .payment-radio-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .payment-radio-wrap input[type="radio"] {
             width: 18px;
             height: 18px;
+            accent-color: var(--primary-purple);
+            cursor: pointer;
         }
 
-        .form-control {
-            height: 50px;
-            border-radius: 5px;
+        .payment-logos {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .payment-logos img, .payment-logos .badge-card {
+            height: 24px;
+            border-radius: 4px;
+            object-fit: contain;
         }
 
-        .form-group label {
+        .badge-card {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #334155;
+        }
+
+        .badge-qr {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 3px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .payment-option-body {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+            background: #fff;
+        }
+
+        .payment-option-card.active .payment-option-body {
             display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
         }
 
-        .country-select {
-            width: 100%;
-            height: 50px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            padding: 0 15px;
-            font-size: 15px;
-            background-color: #fff;
-            color: #212529;
-            appearance: auto;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .country-select:focus {
-            border-color: #6f2bd9;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(111,43,217,.15);
+        /* QR Code Payment Box */
+        .qr-payment-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
         }
 
-        .gender-group {
+        .qr-image-wrapper {
+            background: #fff;
+            display: inline-block;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qr-image-wrapper img {
+            width: 210px;
+            height: 210px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .bank-info-grid {
+            text-align: left;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 480px;
+            margin: 0 auto 16px;
+        }
+
+        .bank-info-row {
             display: flex;
-            gap: 30px;
+            justify-content: space-between;
             align-items: center;
-            margin-top: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
         }
 
-        .gender-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-weight: 400 !important;
-            margin-bottom: 0 !important;
-            cursor: pointer;
-        }
-
-        .gender-item input {
-            width: 17px;
-            height: 17px;
-        }
-
-        .course-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .course-item:last-child {
+        .bank-info-row:last-child {
             border-bottom: none;
         }
 
-        .summary-box {
-            background: #f7f7f8;
-            padding: 30px;
-            border-radius: 8px;
+        .bank-info-label {
+            color: var(--muted-text);
+            font-weight: 500;
         }
 
-        .summary-row {
+        .bank-info-value {
+            font-weight: 700;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-copy {
+            background: none;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 11px;
+            padding: 2px 6px;
+            color: var(--primary-purple);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary-purple);
+            color: #fff;
+        }
+
+        .qr-instruction-alert {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #1e40af;
+            text-align: left;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Order Summary Side */
+        .order-summary-box {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark-text);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .course-item-summary {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .course-item-summary:last-child {
+            border-bottom: none;
+        }
+
+        .course-thumb-mini {
+            width: 60px;
+            height: 45px;
+            border-radius: 6px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #e2e8f0;
+        }
+
+        .course-info-mini {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .course-name-mini {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark-text);
+            margin: 0 0 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .course-price-mini {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-purple);
+        }
+
+        .summary-calc-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 14px;
+            color: #475569;
         }
 
-        .summary-total {
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-            margin-top: 20px;
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .pay-button {
-            width: 100%;
-            border: none;
-            padding: 18px;
-            background: #6f2bd9;
-            color: white;
+        .summary-calc-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0 10px;
+            border-top: 1.5px solid var(--border-color);
+            margin-top: 10px;
             font-size: 18px;
             font-weight: 700;
-            border-radius: 8px;
-            margin-top: 25px;
+            color: var(--dark-text);
+        }
+
+        .total-amount-display {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-purple);
+        }
+
+        .btn-pay-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-purple);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 20px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(111, 43, 217, 0.35);
         }
 
-        .pay-button:hover {
-            opacity: .9;
+        .btn-pay-submit:hover {
+            background: var(--primary-purple-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(111, 43, 217, 0.4);
         }
 
-        .guarantee {
-            margin-top: 40px;
-            padding: 25px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        .guarantee-card {
+            margin-top: 24px;
+            padding: 18px;
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            border-radius: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
 
-        .error-message {
-            background: #ffe5e5;
-            color: #c00;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+        .guarantee-icon {
+            font-size: 24px;
+            color: #9333ea;
         }
 
-        .success-message {
-            background: #e5ffe9;
-            color: #198754;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+        .guarantee-text h5 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 4px;
+            color: #581c87;
+        }
+
+        .guarantee-text p {
+            font-size: 12px;
+            color: #6b21a8;
+            margin: 0;
+            line-height: 1.4;
         }
 
         .field-error {
-            color: #dc3545;
-            font-size: 13px;
-            margin-top: 5px;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
             display: none;
         }
 
         .input-error {
-            border: 1px solid #dc3545 !important;
+            border-color: #dc2626 !important;
         }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-top: 30px;
-            margin-bottom: 20px;
-        }
-
     </style>
-
-
-    <!-- Toast CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
-
 </head>
-
 
 <body>
 
     <!-- HEADER -->
     <jsp:include page="/view/common/header.jsp"></jsp:include>
 
+    <main class="checkout-container">
 
-    <main style="min-height:70vh; padding: 48px 0;">
+        <!-- Top Navigation -->
+        <div class="checkout-header">
+            <h1 class="checkout-title">Thanh toán (Checkout)</h1>
+            <a href="${pageContext.request.contextPath}/cart" class="back-to-cart">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại Giỏ hàng
+            </a>
+        </div>
 
-        <section class="checkout-wrapper">
+        <!-- Alert messages -->
+        <c:if test="${not empty error}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> ${error}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
 
-            <div class="container">
+        <div class="row g-4">
 
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
-                    <h1 class="checkout-title" style="margin-bottom:0;">Checkout</h1>
-                    <a href="${pageContext.request.contextPath}/cart"
-                       style="font-size:14px; color:#6f2bd9; text-decoration:none;">
-                        &larr; Back to Cart
-                    </a>
-                </div>
+            <!-- LEFT COLUMN: BILLING & PAYMENT METHODS -->
+            <div class="col-lg-7">
 
+                <form action="${pageContext.request.contextPath}/checkout" method="post" id="checkoutForm">
+                    <input type="hidden" name="action" value="pay">
+                    
+                    <!-- Selected Payment Method Value -->
+                    <input type="hidden" name="paymentMethod" id="selectedPaymentMethodInput" value="Card">
 
-                <!-- SERVER ERROR -->
+                    <!-- 1. BILLING ADDRESS -->
+                    <div class="section-box">
+                        <div class="section-heading">
+                            <span>1. Thông tin thanh toán (Billing Address)</span>
+                        </div>
 
-                <c:if test="${not empty error}">
+                        <div class="mb-3">
+                            <label class="form-label">Quốc gia / Khu vực</label>
+                            <select class="form-select" name="country" id="country">
+                                <option value="Vietnam" selected>🇻🇳 Vietnam</option>
+                                <option value="United States">🇺🇸 United States</option>
+                                <option value="Japan">🇯🇵 Japan</option>
+                                <option value="Singapore">🇸🇬 Singapore</option>
+                                <option value="Australia">🇦🇺 Australia</option>
+                            </select>
+                        </div>
 
-                    <div class="error-message">
-                        ${error}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" class="form-control" name="fullName" id="fullName" 
+                                       value="${sessionScope.account != null ? sessionScope.account.username : ''}" 
+                                       placeholder="VD: Nguyễn Văn A" required>
+                                <div class="field-error" id="fullNameError">Vui lòng nhập họ và tên.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email liên hệ</label>
+                                <input type="email" class="form-control" name="email" id="email" 
+                                       value="${sessionScope.account != null ? sessionScope.account.email : ''}" 
+                                       placeholder="email@example.com" required>
+                                <div class="field-error" id="emailError">Vui lòng nhập email hợp lệ.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" name="address" id="address" 
+                                   placeholder="Số nhà, tên đường, quận/huyện..." value="Hồ Chí Minh, Việt Nam">
+                        </div>
                     </div>
 
-                </c:if>
+                    <!-- 2. PAYMENT METHOD SELECTION -->
+                    <div class="section-box">
+                        <div class="section-heading">
+                            <span>2. Phương thức thanh toán (Payment Method)</span>
+                            <span class="secure-badge">
+                                <i class="fa-solid fa-shield-halved"></i> Bảo mật 256-bit
+                            </span>
+                        </div>
 
-
-                <div class="row">
-
-
-                    <!-- ========================= -->
-                    <!-- LEFT -->
-                    <!-- ========================= -->
-
-                    <div class="col-lg-7">
-
-
-                        <form
-                            action="${pageContext.request.contextPath}/checkout"
-                            method="post"
-                            id="checkoutForm">
-
-                            <input
-                                type="hidden"
-                                name="action"
-                                value="pay">
-
-
-                            <!-- ========================= -->
-                            <!-- BILLING -->
-                            <!-- ========================= -->
-
-                            <div class="checkout-box">
-
-                                <h4>
-                                    Billing address
-                                </h4>
-
-
-                                <!-- COUNTRY -->
-
-                                <div class="form-group">
-
-                                    <label for="country">
-                                        Country
+                        <!-- OPTION 1: CREDIT / DEBIT CARD -->
+                        <div class="payment-option-card active" id="cardOptionBox">
+                            <div class="payment-option-header" onclick="selectPaymentMethod('Card')">
+                                <div class="payment-radio-wrap">
+                                    <input type="radio" name="paymentTypeRadio" id="radioCard" value="Card" checked>
+                                    <label for="radioCard" class="mb-0" style="cursor:pointer;">
+                                        <i class="fa-regular fa-credit-card me-1 text-primary"></i> Thẻ tín dụng / Ghi nợ (Cards)
                                     </label>
+                                </div>
+                                <div class="payment-logos">
+                                    <span class="badge-card text-primary font-weight-bold">VISA</span>
+                                    <span class="badge-card text-danger font-weight-bold">MasterCard</span>
+                                    <span class="badge-card text-success font-weight-bold">JCB</span>
+                                </div>
+                            </div>
 
-                                    <select
-                                        id="country"
-                                        name="country"
-                                        class="country-select"
-                                        required>
-
-                                        <option value="">-- Select your country --</option>
-                                        <optgroup label="Asia">
-                                            <option value="Vietnam" ${param.country == 'Vietnam' ? 'selected' : ''}>Vietnam</option>
-                                            <option value="Japan" ${param.country == 'Japan' ? 'selected' : ''}>Japan</option>
-                                            <option value="South Korea" ${param.country == 'South Korea' ? 'selected' : ''}>South Korea</option>
-                                            <option value="China" ${param.country == 'China' ? 'selected' : ''}>China</option>
-                                            <option value="Thailand" ${param.country == 'Thailand' ? 'selected' : ''}>Thailand</option>
-                                            <option value="Singapore" ${param.country == 'Singapore' ? 'selected' : ''}>Singapore</option>
-                                            <option value="Malaysia" ${param.country == 'Malaysia' ? 'selected' : ''}>Malaysia</option>
-                                            <option value="Indonesia" ${param.country == 'Indonesia' ? 'selected' : ''}>Indonesia</option>
-                                            <option value="Philippines" ${param.country == 'Philippines' ? 'selected' : ''}>Philippines</option>
-                                            <option value="India" ${param.country == 'India' ? 'selected' : ''}>India</option>
-                                        </optgroup>
-                                        <optgroup label="Oceania">
-                                            <option value="Australia" ${param.country == 'Australia' ? 'selected' : ''}>Australia</option>
-                                            <option value="New Zealand" ${param.country == 'New Zealand' ? 'selected' : ''}>New Zealand</option>
-                                        </optgroup>
-                                        <optgroup label="Europe">
-                                            <option value="United Kingdom" ${param.country == 'United Kingdom' ? 'selected' : ''}>United Kingdom</option>
-                                            <option value="France" ${param.country == 'France' ? 'selected' : ''}>France</option>
-                                            <option value="Germany" ${param.country == 'Germany' ? 'selected' : ''}>Germany</option>
-                                            <option value="Italy" ${param.country == 'Italy' ? 'selected' : ''}>Italy</option>
-                                            <option value="Spain" ${param.country == 'Spain' ? 'selected' : ''}>Spain</option>
-                                            <option value="Netherlands" ${param.country == 'Netherlands' ? 'selected' : ''}>Netherlands</option>
-                                            <option value="Switzerland" ${param.country == 'Switzerland' ? 'selected' : ''}>Switzerland</option>
-                                        </optgroup>
-                                        <optgroup label="Americas">
-                                            <option value="United States" ${param.country == 'United States' ? 'selected' : ''}>United States</option>
-                                            <option value="Canada" ${param.country == 'Canada' ? 'selected' : ''}>Canada</option>
-                                            <option value="Brazil" ${param.country == 'Brazil' ? 'selected' : ''}>Brazil</option>
-                                            <option value="Mexico" ${param.country == 'Mexico' ? 'selected' : ''}>Mexico</option>
-                                        </optgroup>
-
-                                    </select>
-
-                                    <div
-                                        id="countryError"
-                                        class="field-error">
-                                        Please select your country.
+                            <!-- CARD FORM BODY -->
+                            <div class="payment-option-body" id="cardBody">
+                                <div class="mb-3">
+                                    <label class="form-label">Số thẻ (Card Number)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
+                                               placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric">
+                                        <span class="input-group-text bg-white"><i class="fa-regular fa-credit-card"></i></span>
                                     </div>
-
+                                    <div class="field-error" id="cardNumberError">Số thẻ phải gồm 16 chữ số hợp lệ.</div>
                                 </div>
 
-
-                                <p style="color:#777; font-size:14px;">
-                                    Transaction taxes may apply depending on your country.
-                                </p>
-
-
-                                <!-- ========================= -->
-                                <!-- PERSONAL INFORMATION -->
-                                <!-- ========================= -->
-
-                                <div class="section-title">
-
-                                    Personal information
-
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Ngày hết hạn (MM/YY)</label>
+                                        <input type="text" class="form-control" id="expiry" name="expiry" 
+                                               placeholder="MM/YY" maxlength="5" inputmode="numeric">
+                                        <div class="field-error" id="expiryError">Định dạng MM/YY không hợp lệ.</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Mã CVC / CVV</label>
+                                        <input type="password" class="form-control" id="cvc" name="cvc" 
+                                               placeholder="CVC" maxlength="4" inputmode="numeric">
+                                        <div class="field-error" id="cvcError">CVC gồm 3-4 chữ số.</div>
+                                    </div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label class="form-label">Tên in trên thẻ (Name on Card)</label>
+                                    <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
+                                           placeholder="NGUYEN VAN A">
+                                    <div class="field-error" id="cardNameError">Vui lòng nhập tên trên thẻ.</div>
+                                </div>
 
-                                <!-- FULL NAME -->
-
-                                <div class="form-group">
-
-                                    <label for="fullName">
-                                        Full name
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saveCard" name="saveCard" checked>
+                                    <label class="form-check-label text-muted" for="saveCard" style="font-size:13px;">
+                                        Lưu thông tin thẻ an toàn cho lần thanh toán sau
                                     </label>
-
-                                    <input
-                                        type="text"
-                                        id="fullName"
-                                        name="fullName"
-                                        class="form-control"
-                                        value="${param.fullName}"
-                                        placeholder="Enter your full name"
-                                        required>
-
-                                    <div
-                                        id="fullNameError"
-                                        class="field-error">
-
-                                        Full name must contain at least
-                                        2 characters.
-
-                                    </div>
-
                                 </div>
+                            </div>
+                        </div>
 
-
-                                <!-- EMAIL + PHONE -->
-
-                                <div class="row">
-
-                                    <div class="col-md-6">
-
-                                        <div class="form-group">
-
-                                            <label for="email">
-                                                Email
-                                            </label>
-
-                                            <input
-                                                type="email"
-                                                id="email"
-                                                name="email"
-                                                class="form-control"
-                                                value="${param.email}"
-                                                placeholder="example@gmail.com"
-                                                required>
-
-                                            <div
-                                                id="emailError"
-                                                class="field-error">
-
-                                                Please enter a valid email.
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <div class="col-md-6">
-
-                                        <div class="form-group">
-
-                                            <label for="phone">
-                                                Phone number
-                                            </label>
-
-                                            <input
-                                                type="tel"
-                                                id="phone"
-                                                name="phone"
-                                                class="form-control"
-                                                value="${param.phone}"
-                                                placeholder="+84 123 456 789"
-                                                required>
-
-                                            <div
-                                                id="phoneError"
-                                                class="field-error">
-                                                Enter a valid phone number (9–15 digits, e.g. 0912345678 or +84912345678).
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- GENDER -->
-
-                                <div class="form-group">
-
-                                    <label>
-                                        Gender
+                        <!-- OPTION 2: QR CODE / VIETQR -->
+                        <div class="payment-option-card" id="qrOptionBox">
+                            <div class="payment-option-header" onclick="selectPaymentMethod('QR_CODE')">
+                                <div class="payment-radio-wrap">
+                                    <input type="radio" name="paymentTypeRadio" id="radioQR" value="QR_CODE">
+                                    <label for="radioQR" class="mb-0" style="cursor:pointer;">
+                                        <i class="fa-solid fa-qrcode me-1 text-success"></i> Thanh toán qua mã QR (VietQR / Mobile Banking)
                                     </label>
-
-                                    <div class="gender-group">
-
-                                        <label class="gender-item">
-
-                                            <input
-                                                type="radio"
-                                                name="gender"
-                                                value="Male"
-                                                ${param.gender == 'Male' ? 'checked' : ''}
-                                                required>
-
-                                            Male
-
-                                        </label>
-
-
-                                        <label class="gender-item">
-
-                                            <input
-                                                type="radio"
-                                                name="gender"
-                                                value="Female"
-                                                ${param.gender == 'Female' ? 'checked' : ''}>
-
-                                            Female
-
-                                        </label>
-
-
-                                        <label class="gender-item">
-
-                                            <input
-                                                type="radio"
-                                                name="gender"
-                                                value="Other"
-                                                ${param.gender == 'Other' ? 'checked' : ''}>
-
-                                            Other
-
-                                        </label>
-
-                                    </div>
-
-                                    <div
-                                        id="genderError"
-                                        class="field-error">
-
-                                        Please select your gender.
-
-                                    </div>
-
                                 </div>
-
-
-                                <!-- ADDRESS -->
-
-                                <div class="form-group">
-
-                                    <label for="address">
-                                        Address / Location
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        id="address"
-                                        name="address"
-                                        class="form-control"
-                                        value="${param.address}"
-                                        placeholder="Street address, district..."
-                                        required>
-
-                                    <div
-                                        id="addressError"
-                                        class="field-error">
-
-                                        Please enter your address.
-
-                                    </div>
-
+                                <div class="payment-logos">
+                                    <span class="badge-qr"><i class="fa-solid fa-bolt"></i> Quét mã nhanh</span>
                                 </div>
-
-
-                                <!-- CITY + POSTAL -->
-
-                                <div class="row">
-
-                                    <div class="col-md-8">
-
-                                        <div class="form-group">
-
-                                            <label for="city">
-                                                City
-                                            </label>
-
-                                            <input
-                                                type="text"
-                                                id="city"
-                                                name="city"
-                                                class="form-control"
-                                                value="${param.city}"
-                                                placeholder="Enter your city"
-                                                required>
-
-                                            <div id="cityError" class="field-error">
-                                                City must be at least 2 characters.
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <div class="col-md-4">
-
-                                        <div class="form-group">
-
-                                            <label for="postalCode">
-                                                Postal code
-                                            </label>
-
-                                            <input
-                                                type="text"
-                                                id="postalCode"
-                                                name="postalCode"
-                                                class="form-control"
-                                                value="${param.postalCode}"
-                                                placeholder="e.g. 700000"
-                                                maxlength="6"
-                                                inputmode="numeric">
-                                            <div id="postalCodeError" class="field-error">
-                                                Postal code must be 4–6 digits.
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- ========================= -->
-                                <!-- PAYMENT -->
-                                <!-- ========================= -->
-
-                                <div class="payment-box">
-
-                                    <div class="payment-header">
-
-                                        <input
-                                            type="radio"
-                                            checked>
-
-                                        <span>
-                                            💳 Cards
-                                        </span>
-
-                                    </div>
-
-                                    <hr>
-
-
-                                    <!-- CARD NUMBER -->
-
-                                    <div class="form-group">
-
-                                        <label for="cardNumber">
-                                            Card number
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            id="cardNumber"
-                                            class="form-control"
-                                            name="cardNumber"
-                                            value="${param.cardNumber}"
-                                            placeholder="1234 5678 9012 3456"
-                                            maxlength="19"
-                                            required>
-
-                                        <div
-                                            id="cardNumberError"
-                                            class="field-error">
-
-                                            Card number must contain
-                                            16 digits.
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <!-- EXPIRY + CVC -->
-
-                                    <div class="row">
-
-                                        <div class="col-md-6">
-
-                                            <div class="form-group">
-
-                                                <label for="expiry">
-                                                    Expiry date
-                                                </label>
-
-                                                <input
-                                                    type="text"
-                                                    id="expiry"
-                                                    class="form-control"
-                                                    name="expiry"
-                                                    value="${param.expiry}"
-                                                    placeholder="MM/YYYY"
-                                                    maxlength="7"
-                                                    inputmode="numeric"
-                                                    autocomplete="cc-exp"
-                                                    required>
-
-                                                <div
-                                                    id="expiryError"
-                                                    class="field-error">
-
-                                                    Expiry date must be in
-                                                    MM/YYYY format and must
-                                                    not be expired.
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-
-                                        <div class="col-md-6">
-
-                                            <div class="form-group">
-
-                                                <label for="cvc">
-                                                    CVC/CVV
-                                                </label>
-
-                                                <input
-                                                    type="password"
-                                                    id="cvc"
-                                                    class="form-control"
-                                                    name="cvc"
-                                                    placeholder="CVC"
-                                                    maxlength="4"
-                                                    inputmode="numeric"
-                                                    required>
-
-                                                <div
-                                                    id="cvcError"
-                                                    class="field-error">
-
-                                                    CVC must contain
-                                                    3 or 4 digits.
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <!-- NAME ON CARD -->
-
-                                    <div class="form-group">
-
-                                        <label for="cardName">
-                                            Name on card
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            id="cardName"
-                                            class="form-control"
-                                            name="cardName"
-                                            value="${param.cardName}"
-                                            placeholder="Name on card"
-                                            required>
-
-                                        <div
-                                            id="cardNameError"
-                                            class="field-error">
-
-                                            Please enter the name on card.
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <!-- SAVE CARD -->
-
-                                    <div class="form-group">
-
-                                        <label>
-
-                                            <input
-                                                type="checkbox"
-                                                name="saveCard"
-                                                ${param.saveCard != null ? 'checked' : ''}>
-
-                                            Securely save this card
-                                            for my later purchase
-
-                                        </label>
-
-                                    </div>
-
-                                </div>
-
                             </div>
 
-                        </form>
-
-                    </div>
-
-
-                    <!-- ========================= -->
-                    <!-- RIGHT -->
-                    <!-- ========================= -->
-
-                    <div class="col-lg-5">
-
-                        <div class="summary-box">
-
-                            <h3>
-                                Order summary
-                            </h3>
-
-
-                            <!-- COURSES -->
-
-                            <c:forEach
-                                items="${cartItems}"
-                                var="item">
-
-                                <c:set
-                                    var="course"
-                                    value="${courseDAO.findById(item.courseId)}" />
-
-                                <div class="course-item">
-
-                                    <div>
-
-                                        <strong>
-                                            ${course.name}
-                                        </strong>
-
+                            <!-- QR CODE BODY -->
+                            <div class="payment-option-body" id="qrBody">
+                                <div class="qr-payment-box">
+                                    
+                                    <!-- Dynamic VietQR Image -->
+                                    <div class="qr-image-wrapper">
+                                        <img src="https://img.vietqr.io/image/MB-0357899999-compact2.png?amount=${cartTotal != null ? cartTotal : '0'}&addInfo=OCMS%20DH${sessionScope.account != null ? sessionScope.account.id : '0'}&accountName=CONG%20TY%20OCMS" 
+                                             alt="Mã QR thanh toán ngân hàng" id="vietQrImage">
                                     </div>
 
-                                    <div>
-
-                                        ₫
-
-                                        <fmt:formatNumber
-                                            value="${item.price}"
-                                            pattern="#,##0.00"/>
-
+                                    <!-- Bank Transfer Details -->
+                                    <div class="bank-info-grid">
+                                        <div class="bank-info-row">
+                                            <span class="bank-info-label">Ngân hàng:</span>
+                                            <span class="bank-info-value text-primary">
+                                                <i class="fa-solid fa-building-columns"></i> MB Bank (Ngân hàng Quân Đội)
+                                            </span>
+                                        </div>
+                                        <div class="bank-info-row">
+                                            <span class="bank-info-label">Chủ tài khoản:</span>
+                                            <span class="bank-info-value">CONG TY CONG NGHE OCMS</span>
+                                        </div>
+                                        <div class="bank-info-row">
+                                            <span class="bank-info-label">Số tài khoản:</span>
+                                            <span class="bank-info-value">
+                                                <span id="bankAccNo">0357899999</span>
+                                                <button type="button" class="btn-copy" onclick="copyText('0357899999', 'Đã sao chép số tài khoản!')">
+                                                    <i class="fa-regular fa-copy"></i> Sao chép
+                                                </button>
+                                            </span>
+                                        </div>
+                                        <div class="bank-info-row">
+                                            <span class="bank-info-label">Số tiền:</span>
+                                            <span class="bank-info-value text-danger" style="font-size:16px;">
+                                                ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>
+                                            </span>
+                                        </div>
+                                        <div class="bank-info-row">
+                                            <span class="bank-info-label">Nội dung chuyển khoản:</span>
+                                            <span class="bank-info-value">
+                                                <span id="transferContent" class="text-uppercase">OCMS DH${sessionScope.account != null ? sessionScope.account.id : '0'}</span>
+                                                <button type="button" class="btn-copy" onclick="copyText(document.getElementById('transferContent').innerText, 'Đã sao chép nội dung!')">
+                                                    <i class="fa-regular fa-copy"></i> Sao chép
+                                                </button>
+                                            </span>
+                                        </div>
                                     </div>
 
+                                    <!-- Notice -->
+                                    <div class="qr-instruction-alert">
+                                        <i class="fa-solid fa-circle-info me-1"></i>
+                                        <strong>Lưu ý:</strong> Đơn thanh toán qua QR sẽ ở trạng thái <strong>Pending</strong>. Sau khi hệ thống/Admin xác nhận nhận tiền (Status chuyển sang <strong>Done / Approved</strong>), bạn sẽ được kích hoạt khóa học vào mục <strong>My Learning</strong>.
+                                    </div>
                                 </div>
-
-                            </c:forEach>
-
-
-                            <!-- ORIGINAL PRICE -->
-
-                            <div
-                                class="summary-row"
-                                style="margin-top:25px;">
-
-                                <span>
-                                    Original Price:
-                                </span>
-
-                                <span>
-
-                                    ₫
-
-                                    <fmt:formatNumber
-                                        value="${cartTotal}"
-                                        pattern="#,##0.00"/>
-
-                                </span>
-
                             </div>
-
-
-                            <!-- DISCOUNT -->
-
-                            <div class="summary-row">
-
-                                <span>
-                                    Discounts:
-                                </span>
-
-                                <span>
-                                    ₫0.00
-                                </span>
-
-                            </div>
-
-
-                            <!-- TOTAL -->
-
-                            <div
-                                class="summary-row summary-total">
-
-                                <span>
-
-                                    Total (${itemCount}
-                                    course<c:if
-                                        test="${itemCount > 1}">s</c:if>):
-
-                                </span>
-
-                                <span>
-
-                                    ₫
-
-                                    <fmt:formatNumber
-                                        value="${cartTotal}"
-                                        pattern="#,##0.00"/>
-
-                                </span>
-
-                            </div>
-
-
-                            <p
-                                style="font-size:14px;
-                                       color:#666;
-                                       margin-top:20px;">
-
-                                By completing your purchase,
-                                you agree to these
-
-                                <a href="#">
-                                    Terms of Use
-                                </a>.
-
-                            </p>
-
-
-                            <!-- PAY -->
-
-                            <button
-                                type="submit"
-                                form="checkoutForm"
-                                class="pay-button">
-
-                                🔒 Pay ₫
-
-                                <fmt:formatNumber
-                                    value="${cartTotal}"
-                                    pattern="#,##0.00"/>
-
-                            </button>
-
-
-                            <!-- GUARANTEE -->
-
-                            <div class="guarantee">
-
-                                <h4>
-                                    🔥 30-Day Money-Back Guarantee
-                                </h4>
-
-                                <p>
-
-                                    Not satisfied?
-                                    Get a full refund within
-                                    30 days.
-
-                                    Simple and straightforward!
-
-                                </p>
-
-                            </div>
-
                         </div>
 
                     </div>
 
-                </div>
+                </form>
 
             </div>
 
-        </section>
+            <!-- RIGHT COLUMN: ORDER SUMMARY -->
+            <div class="col-lg-5">
+                <div class="order-summary-box">
+                    <div class="summary-title" style="font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 24px; padding-bottom: 0; border-bottom: none;">
+                        Order summary
+                    </div>
+
+                    <!-- Total Row -->
+                    <div class="summary-calc-total" style="border-top: none; margin-top: 0; padding-top: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: 18px; font-weight: 700; color: #1e293b; padding-bottom: 24px; border-bottom: 1px solid #e2e8f0;">
+                        <span>Total (${itemCount} course<c:if test="${itemCount > 1}">s</c:if>):</span>
+                        <span class="total-amount-display" style="font-size: 24px; font-weight: 800; color: #1e293b;">
+                            ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>
+                        </span>
+                    </div>
+
+                    <p class="text-muted mt-3" style="font-size: 13px; line-height: 1.5; color: #64748b;">
+                        By completing your purchase, you agree to these <a href="#" style="color: #6f2bd9; text-decoration: none;">Terms of Use</a>.
+                    </p>
+
+                    <!-- Pay Submit Button -->
+                    <button type="submit" form="checkoutForm" class="btn-pay-submit" id="btnSubmitPayment" style="background: #6f2bd9; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: 700; box-shadow: none;">
+                        <i class="fa-solid fa-lock me-2"></i>
+                        <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
 
     </main>
-
 
     <!-- FOOTER -->
     <jsp:include page="/view/common/footer.jsp"></jsp:include>
 
-    <!-- JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-
-    <!-- ========================= -->
-    <!-- JAVASCRIPT VALIDATION -->
-    <!-- ========================= -->
-
     <script>
+        // Switch between Card and QR Code methods
+        function selectPaymentMethod(method) {
+            const cardBox = document.getElementById('cardOptionBox');
+            const qrBox = document.getElementById('qrOptionBox');
+            const radioCard = document.getElementById('radioCard');
+            const radioQR = document.getElementById('radioQR');
+            const paymentInput = document.getElementById('selectedPaymentMethodInput');
+            const btnSubmit = document.getElementById('btnSubmitPayment');
 
-        const form = document.getElementById("checkoutForm");
+            paymentInput.value = method;
 
-
-        form.addEventListener("submit", function(event) {
-
-            let valid = true;
-
-            clearErrors();
-
-
-            // =========================
-            // COUNTRY
-            // =========================
-
-            const country =
-                document.getElementById("country").value;
-
-            if (country === "") {
-
-                showError(
-                    "country",
-                    "countryError"
-                );
-
-                valid = false;
+            if (method === 'Card') {
+                cardBox.classList.add('active');
+                qrBox.classList.remove('active');
+                radioCard.checked = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-lock me-2"></i> <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>';
+            } else if (method === 'QR_CODE') {
+                qrBox.classList.add('active');
+                cardBox.classList.remove('active');
+                radioQR.checked = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-qrcode me-2"></i> <span>Xác nhận đã chuyển khoản</span>';
             }
+        }
 
+        // Copy text to clipboard helper
+        function copyText(text, successMsg) {
+            navigator.clipboard.writeText(text).then(function() {
+                Toastify({
+                    text: successMsg || "Đã sao chép thành công!",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#16a34a"
+                }).showToast();
+            }).catch(function(err) {
+                console.error('Không thể sao chép: ', err);
+            });
+        }
 
-            // =========================
-            // FULL NAME
-            // =========================
-
-            const fullName =
-                document.getElementById("fullName")
-                .value.trim();
-
-            if (fullName.length < 2) {
-
-                showError(
-                    "fullName",
-                    "fullNameError"
-                );
-
-                valid = false;
+        // Format Card Number (adds space every 4 digits)
+        document.getElementById('cardNumber')?.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '').substring(0, 16);
+            let formatted = '';
+            for (let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += val[i];
             }
-
-
-            // =========================
-            // EMAIL
-            // =========================
-
-            const email =
-                document.getElementById("email")
-                .value.trim();
-
-            const emailRegex =
-                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailRegex.test(email)) {
-
-                showError(
-                    "email",
-                    "emailError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // PHONE
-            // =========================
-
-            // =========================
-            // PHONE
-            // =========================
-
-            const phone =
-                document.getElementById("phone")
-                .value.trim();
-
-            // Accept: +84xxxxxxxxx, 0xxxxxxxxx, +1-xxx-xxx-xxxx, etc.
-            // At least 9 digits after removing spaces/dashes
-            const phoneDigits = phone.replace(/[\s\-()]/g, "");
-            const phoneRegex = /^\+?[0-9]{9,15}$/;
-
-            if (!phoneRegex.test(phoneDigits)) {
-
-                showError(
-                    "phone",
-                    "phoneError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // GENDER
-            // =========================
-
-            const gender =
-                document.querySelector(
-                    'input[name="gender"]:checked'
-                );
-
-            if (!gender) {
-
-                document.getElementById(
-                    "genderError"
-                ).style.display = "block";
-
-                valid = false;
-            }
-
-
-            // =========================
-            // ADDRESS
-            // =========================
-
-            const address =
-                document.getElementById("address")
-                .value.trim();
-
-            if (address.length < 5) {
-
-                showError(
-                    "address",
-                    "addressError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // CITY
-            // =========================
-
-            const city = document
-                .getElementById("city")
-                .value
-                .trim();
-
-            if (city.length < 2) {
-
-                showError(
-                    "city",
-                    "cityError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // POSTAL CODE (optional - validate only if filled)
-            // =========================
-
-            const postalCode = document
-                .getElementById("postalCode")
-                .value.trim();
-
-            if (postalCode !== "" && !/^\d{4,6}$/.test(postalCode)) {
-
-                showError(
-                    "postalCode",
-                    "postalCodeError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // CARD NUMBER
-            // =========================
-
-            const cardNumber =
-                document.getElementById("cardNumber")
-                .value
-                .replace(/\s/g, "");
-
-            if (!/^\d{16}$/.test(cardNumber)) {
-
-                showError(
-                    "cardNumber",
-                    "cardNumberError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // EXPIRY
-            // =========================
-
-            const expiry =
-                document.getElementById("expiry")
-                .value.trim();
-
-            if (!validateExpiry(expiry)) {
-
-                showError(
-                    "expiry",
-                    "expiryError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // CVC
-            // =========================
-
-            const cvc =
-                document.getElementById("cvc")
-                .value.trim();
-
-            if (!/^\d{3,4}$/.test(cvc)) {
-
-                showError(
-                    "cvc",
-                    "cvcError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // CARD NAME
-            // =========================
-
-            const cardName =
-                document.getElementById("cardName")
-                .value.trim();
-
-            if (cardName.length < 2) {
-
-                showError(
-                    "cardName",
-                    "cardNameError"
-                );
-
-                valid = false;
-            }
-
-
-            // =========================
-            // STOP SUBMIT
-            // =========================
-
-            if (!valid) {
-
-                event.preventDefault();
-
-                const firstError =
-                    document.querySelector(
-                        ".input-error"
-                    );
-
-                if (firstError) {
-                    firstError.focus();
-                }
-
-                return;
-            }
-
-
-            // =========================
-            // CONFIRM PAYMENT
-            // =========================
-
-            const confirmPay = confirmPayment();
-
-            if (!confirmPay) {
-
-                event.preventDefault();
-
-            }
-
+            this.value = formatted;
         });
 
+        // Format Expiry Date (MM/YY)
+        document.getElementById('expiry')?.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 3) {
+                this.value = val.substring(0, 2) + '/' + val.substring(2);
+            } else {
+                this.value = val;
+            }
+        });
 
-        // =========================
-        // CONFIRM PAYMENT
-        // =========================
+        // CVC digits only
+        document.getElementById('cvc')?.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+        });
 
-        function confirmPayment() {
+        // Form Validation on Submit
+        document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+            const method = document.getElementById('selectedPaymentMethodInput').value;
+            let isValid = true;
 
-            return confirm(
-                "Are you sure you want to complete your purchase?"
-            );
+            // Clear previous errors
+            document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('input-error'));
 
-        }
-
-
-        // =========================
-        // SHOW ERROR
-        // =========================
-
-        function showError(inputId, errorId) {
-
-            const input =
-                document.getElementById(inputId);
-
-            const error =
-                document.getElementById(errorId);
-
-            if (input) {
-
-                input.classList.add("input-error");
-
+            // Full Name validation
+            const fullName = document.getElementById('fullName').value.trim();
+            if (!fullName) {
+                document.getElementById('fullNameError').style.display = 'block';
+                document.getElementById('fullName').classList.add('input-error');
+                isValid = false;
             }
 
-            if (error) {
-
-                error.style.display = "block";
-
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            if (!email || !email.includes('@')) {
+                document.getElementById('emailError').style.display = 'block';
+                document.getElementById('email').classList.add('input-error');
+                isValid = false;
             }
 
-        }
-
-
-        // =========================
-        // CLEAR ERROR
-        // =========================
-
-        function clearErrors() {
-
-            document
-                .querySelectorAll(".field-error")
-                .forEach(function(error) {
-
-                    error.style.display = "none";
-
-                });
-
-
-            document
-                .querySelectorAll(".input-error")
-                .forEach(function(input) {
-
-                    input.classList.remove("input-error");
-
-                });
-
-        }
-
-
-        // =========================
-        // EXPIRY VALIDATION
-        // FORMAT: MM/YYYY
-        // =========================
-
-        function validateExpiry(value) {
-
-            /*
-             * Phải đúng:
-             * MM/YYYY
-             *
-             * Ví dụ:
-             * 08/2026
-             * 12/2027
-             *
-             * Không chấp nhận:
-             * 8/2026
-             * 08/26
-             * 13/2026
-             * 00/2026
-             */
-
-            if (!/^\d{2}\/\d{4}$/.test(value)) {
-
-                return false;
-
-            }
-
-
-            const parts = value.split("/");
-
-
-            const month =
-                parseInt(parts[0], 10);
-
-            const year =
-                parseInt(parts[1], 10);
-
-
-            // =========================
-            // CHECK MONTH
-            // =========================
-
-            if (month < 1 || month > 12) {
-
-                return false;
-
-            }
-
-
-            // =========================
-            // CURRENT DATE
-            // =========================
-
-            const now = new Date();
-
-            const currentYear =
-                now.getFullYear();
-
-            const currentMonth =
-                now.getMonth() + 1;
-
-
-            // =========================
-            // CHECK YEAR
-            // =========================
-
-            if (year < currentYear) {
-
-                return false;
-
-            }
-
-
-            // =========================
-            // SAME YEAR
-            // CHECK MONTH
-            // =========================
-
-            if (
-                year === currentYear &&
-                month < currentMonth
-            ) {
-
-                return false;
-
-            }
-
-
-            return true;
-
-        }
-
-
-        // =========================
-        // CARD NUMBER FORMAT
-        // =========================
-
-        document
-            .getElementById("cardNumber")
-            .addEventListener(
-                "input",
-                function() {
-
-                    let value =
-                        this.value
-                        .replace(/\D/g, "");
-
-                    value =
-                        value.substring(0, 16);
-
-                    let formatted = "";
-
-
-                    for (
-                        let i = 0;
-                        i < value.length;
-                        i++
-                    ) {
-
-                        if (
-                            i > 0 &&
-                            i % 4 === 0
-                        ) {
-
-                            formatted += " ";
-
-                        }
-
-                        formatted += value[i];
-
-                    }
-
-
-                    this.value = formatted;
-
+            // If Card payment is chosen, validate card details
+            if (method === 'Card') {
+                const cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                if (cardNum.length !== 16) {
+                    document.getElementById('cardNumberError').style.display = 'block';
+                    document.getElementById('cardNumber').classList.add('input-error');
+                    isValid = false;
                 }
-            );
 
-
-        // =========================
-        // EXPIRY FORMAT
-        // MM/YYYY
-        // =========================
-
-        document
-            .getElementById("expiry")
-            .addEventListener(
-                "input",
-                function() {
-
-                    let value =
-                        this.value
-                        .replace(/\D/g, "");
-
-
-                    // Chỉ cho phép tối đa 6 số
-                    // MMYYYY
-
-                    value =
-                        value.substring(0, 6);
-
-
-                    // Sau khi nhập 2 số
-                    // tự động thêm /
-
-                    if (value.length >= 3) {
-
-                        value =
-                            value.substring(0, 2)
-                            + "/"
-                            + value.substring(2);
-
-                    }
-
-
-                    this.value = value;
-
+                const expiry = document.getElementById('expiry').value.trim();
+                if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+                    document.getElementById('expiryError').style.display = 'block';
+                    document.getElementById('expiry').classList.add('input-error');
+                    isValid = false;
                 }
-            );
 
-
-        // =========================
-        // CVC ONLY NUMBER
-        // =========================
-
-        document
-            .getElementById("cvc")
-            .addEventListener(
-                "input",
-                function() {
-
-                    this.value =
-                        this.value
-                        .replace(/\D/g, "")
-                        .substring(0, 4);
-
+                const cvc = document.getElementById('cvc').value.trim();
+                if (cvc.length < 3 || cvc.length > 4) {
+                    document.getElementById('cvcError').style.display = 'block';
+                    document.getElementById('cvc').classList.add('input-error');
+                    isValid = false;
                 }
-            );
-        // =========================
-        // POSTAL CODE - digits only
-        // =========================
 
-        document
-            .getElementById("postalCode")
-            .addEventListener("input", function () {
-                this.value = this.value.replace(/\D/g, "").substring(0, 6);
-            });
+                const cardName = document.getElementById('cardName').value.trim();
+                if (!cardName) {
+                    document.getElementById('cardNameError').style.display = 'block';
+                    document.getElementById('cardName').classList.add('input-error');
+                    isValid = false;
+                }
+            }
 
+            if (!isValid) {
+                e.preventDefault();
+                Toastify({
+                    text: "Vui lòng điền đầy đủ và chính xác các thông tin cần thiết.",
+                    duration: 4000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#dc2626"
+                }).showToast();
+            }
+        });
     </script>
-
 </body>
-
 </html>
