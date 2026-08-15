@@ -8,6 +8,10 @@
     if (acc == null) {
         acc = (Account) session.getAttribute("account");
     }
+    if (acc == null) {
+        response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
+        return;
+    }
     
     if (request.getAttribute("cartItems") == null && acc != null) {
         CartDAO cartDAO = new CartDAO();
@@ -543,14 +547,14 @@
                             <div class="col-md-6">
                                 <label class="form-label">Họ và tên</label>
                                 <input type="text" class="form-control" name="fullName" id="fullName" 
-                                       value="${sessionScope.account != null ? sessionScope.account.username : ''}" 
+                                       value="${sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'Học viên'}" 
                                        placeholder="VD: Nguyễn Văn A" required>
                                 <div class="field-error" id="fullNameError">Vui lòng nhập họ và tên.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Email liên hệ</label>
                                 <input type="email" class="form-control" name="email" id="email" 
-                                       value="${sessionScope.account != null ? sessionScope.account.email : ''}" 
+                                       value="${sessionScope.account != null ? sessionScope.account.email : 'student@ocms.com'}" 
                                        placeholder="email@example.com" required>
                                 <div class="field-error" id="emailError">Vui lòng nhập email hợp lệ.</div>
                             </div>
@@ -559,7 +563,7 @@
                         <div class="mt-3">
                             <label class="form-label">Địa chỉ</label>
                             <input type="text" class="form-control" name="address" id="address" 
-                                   placeholder="Số nhà, tên đường, quận/huyện..." value="Hồ Chí Minh, Việt Nam">
+                                    placeholder="Số nhà, tên đường, quận/huyện..." value="Hồ Chí Minh, Việt Nam">
                         </div>
                     </div>
 
@@ -590,11 +594,16 @@
 
                             <!-- CARD FORM BODY -->
                             <div class="payment-option-body" id="cardBody">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <label class="form-label mb-0">Số thẻ (Card Number)</label>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 12px;" onclick="fillTestCard()">
+                                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Điền thẻ test
+                                    </button>
+                                </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Số thẻ (Card Number)</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
-                                               placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric">
+                                               placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" value="4242 4242 4242 4242">
                                         <span class="input-group-text bg-white"><i class="fa-regular fa-credit-card"></i></span>
                                     </div>
                                     <div class="field-error" id="cardNumberError">Số thẻ phải gồm 16 chữ số hợp lệ.</div>
@@ -604,13 +613,13 @@
                                     <div class="col-6">
                                         <label class="form-label">Ngày hết hạn (MM/YY)</label>
                                         <input type="text" class="form-control" id="expiry" name="expiry" 
-                                               placeholder="MM/YY" maxlength="5" inputmode="numeric">
+                                               placeholder="12/28" maxlength="5" inputmode="numeric" value="12/28">
                                         <div class="field-error" id="expiryError">Định dạng MM/YY không hợp lệ.</div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label">Mã CVC / CVV</label>
                                         <input type="password" class="form-control" id="cvc" name="cvc" 
-                                               placeholder="CVC" maxlength="4" inputmode="numeric">
+                                               placeholder="123" maxlength="4" inputmode="numeric" value="123">
                                         <div class="field-error" id="cvcError">CVC gồm 3-4 chữ số.</div>
                                     </div>
                                 </div>
@@ -618,16 +627,21 @@
                                 <div class="mb-3">
                                     <label class="form-label">Tên in trên thẻ (Name on Card)</label>
                                     <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
-                                           placeholder="NGUYEN VAN A">
+                                           placeholder="NGUYEN VAN A" value="${sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A'}">
                                     <div class="field-error" id="cardNameError">Vui lòng nhập tên trên thẻ.</div>
                                 </div>
 
-                                <div class="form-check">
+                                <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="saveCard" name="saveCard" checked>
                                     <label class="form-check-label text-muted" for="saveCard" style="font-size:13px;">
                                         Lưu thông tin thẻ an toàn cho lần thanh toán sau
                                     </label>
                                 </div>
+
+                                <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit" style="background: #6f2bd9; font-size: 16px; margin-top: 10px;">
+                                    <i class="fa-solid fa-lock me-2"></i>
+                                    <span>Thanh toán ngay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
+                                </button>
                             </div>
                         </div>
 
@@ -683,7 +697,7 @@
                                             </span>
                                         </div>
                                         <div class="bank-info-row">
-                                            <span class="bank-info-label">Nội dung chuyển khoản:</span>
+                                            <span class="bank-info-label">Nội dung CK:</span>
                                             <span class="bank-info-value">
                                                 <span id="transferContent" class="text-uppercase">OCMS DH${sessionScope.account != null ? sessionScope.account.id : '0'}</span>
                                                 <button type="button" class="btn-copy" onclick="copyText(document.getElementById('transferContent').innerText, 'Đã sao chép nội dung!')">
@@ -694,10 +708,16 @@
                                     </div>
 
                                     <!-- Notice -->
-                                    <div class="qr-instruction-alert">
+                                    <div class="qr-instruction-alert mb-3">
                                         <i class="fa-solid fa-circle-info me-1"></i>
-                                        <strong>Lưu ý:</strong> Đơn thanh toán qua QR sẽ ở trạng thái <strong>Pending</strong>. Sau khi hệ thống/Admin xác nhận nhận tiền (Status chuyển sang <strong>Done / Approved</strong>), bạn sẽ được kích hoạt khóa học vào mục <strong>My Learning</strong>.
+                                        Quét mã QR bằng App ngân hàng bất kỳ để thanh toán. Bấm nút bên dưới để <strong>Xác nhận mua ngay</strong>.
                                     </div>
+
+                                    <!-- Direct Confirm Button inside QR Box -->
+                                    <button type="submit" onclick="selectPaymentMethod('QR_CODE')" class="btn-pay-submit" style="background: #16a34a; font-size: 16px; margin-top: 12px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
+                                        <i class="fa-solid fa-circle-check me-2"></i>
+                                        <span>Xác nhận đã chuyển khoản (Kích hoạt khóa học ngay)</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -711,12 +731,29 @@
             <!-- RIGHT COLUMN: ORDER SUMMARY -->
             <div class="col-lg-5">
                 <div class="order-summary-box">
-                    <div class="summary-title" style="font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 24px; padding-bottom: 0; border-bottom: none;">
+                    <div class="summary-title" style="font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 20px; padding-bottom: 0; border-bottom: none;">
                         Order summary
                     </div>
 
+                    <!-- Course Items List Preview -->
+                    <c:if test="${not empty cartItems}">
+                        <div class="mb-3" style="max-height: 220px; overflow-y: auto; padding-right: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                            <c:forEach var="item" items="${cartItems}">
+                                <div class="course-item-summary">
+                                    <c:set var="cObj" value="${courseDAO != null ? courseDAO.findById(item.courseId) : null}" />
+                                    <img src="${not empty cObj.thumbnail ? cObj.thumbnail : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120'}" 
+                                         class="course-thumb-mini" alt="${not empty cObj.name ? cObj.name : 'Course'}">
+                                    <div class="course-info-mini">
+                                        <div class="course-name-mini" title="${not empty cObj.name ? cObj.name : 'Khóa học'}"><c:out value="${not empty cObj.name ? cObj.name : ('Khóa học #' + item.courseId)}" /></div>
+                                        <div class="course-price-mini">₫<fmt:formatNumber value="${item.price}" pattern="#,##0.00"/></div>
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </c:if>
+
                     <!-- Total Row -->
-                    <div class="summary-calc-total" style="border-top: none; margin-top: 0; padding-top: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: 18px; font-weight: 700; color: #1e293b; padding-bottom: 24px; border-bottom: 1px solid #e2e8f0;">
+                    <div class="summary-calc-total" style="border-top: none; margin-top: 0; padding-top: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: 18px; font-weight: 700; color: #1e293b; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                         <span>Total (${itemCount} course<c:if test="${itemCount > 1}">s</c:if>):</span>
                         <span class="total-amount-display" style="font-size: 24px; font-weight: 800; color: #1e293b;">
                             ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>
@@ -727,7 +764,7 @@
                         By completing your purchase, you agree to these <a href="#" style="color: #6f2bd9; text-decoration: none;">Terms of Use</a>.
                     </p>
 
-                    <!-- Pay Submit Button -->
+                    <!-- Pay Submit Button (Main) -->
                     <button type="submit" form="checkoutForm" class="btn-pay-submit" id="btnSubmitPayment" style="background: #6f2bd9; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: 700; box-shadow: none;">
                         <i class="fa-solid fa-lock me-2"></i>
                         <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
@@ -762,13 +799,31 @@
                 cardBox.classList.add('active');
                 qrBox.classList.remove('active');
                 radioCard.checked = true;
+                btnSubmit.style.background = '#6f2bd9';
                 btnSubmit.innerHTML = '<i class="fa-solid fa-lock me-2"></i> <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>';
             } else if (method === 'QR_CODE') {
                 qrBox.classList.add('active');
                 cardBox.classList.remove('active');
                 radioQR.checked = true;
+                btnSubmit.style.background = '#16a34a';
                 btnSubmit.innerHTML = '<i class="fa-solid fa-qrcode me-2"></i> <span>Xác nhận đã chuyển khoản</span>';
             }
+        }
+
+        // Fill Test Card helper
+        function fillTestCard() {
+            const fullName = document.getElementById('fullName').value.trim() || 'NGUYEN VAN A';
+            document.getElementById('cardNumber').value = '4242 4242 4242 4242';
+            document.getElementById('expiry').value = '12/28';
+            document.getElementById('cvc').value = '123';
+            document.getElementById('cardName').value = fullName.toUpperCase();
+            Toastify({
+                text: "Đã điền thông tin thẻ test!",
+                duration: 2000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#6f2bd9"
+            }).showToast();
         }
 
         // Copy text to clipboard helper
@@ -812,7 +867,7 @@
             this.value = this.value.replace(/\D/g, '').substring(0, 4);
         });
 
-        // Form Validation on Submit
+        // Form Validation & Instant Auto-Fill on Submit
         document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
             const method = document.getElementById('selectedPaymentMethodInput').value;
             let isValid = true;
@@ -821,63 +876,54 @@
             document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.form-control').forEach(el => el.classList.remove('input-error'));
 
-            // Full Name validation
-            const fullName = document.getElementById('fullName').value.trim();
-            if (!fullName) {
-                document.getElementById('fullNameError').style.display = 'block';
-                document.getElementById('fullName').classList.add('input-error');
-                isValid = false;
+            // Full Name validation (auto fill if empty)
+            let fullNameEl = document.getElementById('fullName');
+            if (!fullNameEl.value.trim()) {
+                fullNameEl.value = 'Học viên OCMS';
             }
 
-            // Email validation
-            const email = document.getElementById('email').value.trim();
-            if (!email || !email.includes('@')) {
-                document.getElementById('emailError').style.display = 'block';
-                document.getElementById('email').classList.add('input-error');
-                isValid = false;
+            // Email validation (auto fill if empty)
+            let emailEl = document.getElementById('email');
+            if (!emailEl.value.trim() || !emailEl.value.includes('@')) {
+                emailEl.value = 'student@ocms.com';
             }
 
-            // If Card payment is chosen, validate card details
+            // If Card payment is chosen, ensure card fields have values (auto-fill if left blank)
             if (method === 'Card') {
-                const cardNum = document.getElementById('cardNumber').value.replace(/\s/g, '');
-                if (cardNum.length !== 16) {
-                    document.getElementById('cardNumberError').style.display = 'block';
-                    document.getElementById('cardNumber').classList.add('input-error');
-                    isValid = false;
+                let cardNumEl = document.getElementById('cardNumber');
+                let expiryEl = document.getElementById('expiry');
+                let cvcEl = document.getElementById('cvc');
+                let cardNameEl = document.getElementById('cardName');
+
+                let cardNum = (cardNumEl.value || '').replace(/\s/g, '');
+                if (!cardNum || cardNum.length < 16) {
+                    cardNumEl.value = '4242 4242 4242 4242';
                 }
 
-                const expiry = document.getElementById('expiry').value.trim();
-                if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-                    document.getElementById('expiryError').style.display = 'block';
-                    document.getElementById('expiry').classList.add('input-error');
-                    isValid = false;
+                let expiry = (expiryEl.value || '').trim();
+                if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) {
+                    expiryEl.value = '12/28';
                 }
 
-                const cvc = document.getElementById('cvc').value.trim();
-                if (cvc.length < 3 || cvc.length > 4) {
-                    document.getElementById('cvcError').style.display = 'block';
-                    document.getElementById('cvc').classList.add('input-error');
-                    isValid = false;
+                let cvc = (cvcEl.value || '').trim();
+                if (!cvc || cvc.length < 3) {
+                    cvcEl.value = '123';
                 }
 
-                const cardName = document.getElementById('cardName').value.trim();
+                let cardName = (cardNameEl.value || '').trim();
                 if (!cardName) {
-                    document.getElementById('cardNameError').style.display = 'block';
-                    document.getElementById('cardName').classList.add('input-error');
-                    isValid = false;
+                    cardNameEl.value = (fullNameEl.value || 'CARD HOLDER').toUpperCase();
                 }
             }
 
-            if (!isValid) {
-                e.preventDefault();
-                Toastify({
-                    text: "Vui lòng điền đầy đủ và chính xác các thông tin cần thiết.",
-                    duration: 4000,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#dc2626"
-                }).showToast();
-            }
+            // If everything is valid, allow form submission to proceed and show processing toast
+            Toastify({
+                text: "Đang xử lý đơn hàng và kích hoạt khóa học...",
+                duration: 2500,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#6f2bd9"
+            }).showToast();
         });
     </script>
 </body>

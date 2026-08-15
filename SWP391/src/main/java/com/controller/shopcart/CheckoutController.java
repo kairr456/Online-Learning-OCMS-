@@ -1,4 +1,4 @@
-package com.controller;
+package com.controller.shopcart;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -44,7 +44,10 @@ public class CheckoutController extends HttpServlet {
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            account = (Account) session.getAttribute("account");
+        }
+        if (account == null) {
+            response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
             return;
         }
 
@@ -78,16 +81,16 @@ public class CheckoutController extends HttpServlet {
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            account = (Account) session.getAttribute("account");
+        }
+        if (account == null) {
+            response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
             return;
         }
 
         Cart cart = cartDAO.findByAccountId(account.getId());
         if (cart == null) {
-            session.setAttribute("message", "Không tìm thấy giỏ hàng.");
-            session.setAttribute("messageType", "error");
-            response.sendRedirect(request.getContextPath() + "/cart");
-            return;
+            cart = cartDAO.getOrCreateCart(account.getId());
         }
 
         List<CartItem> cartItems = cartItemDAO.getCartItemsWithCourseDetails(cart.getId());
@@ -103,20 +106,24 @@ public class CheckoutController extends HttpServlet {
             paymentMethod = "Card";
         }
 
-        // Nếu thanh toán qua Card -> Done (hoặc Approved)
-        // Nếu thanh toán qua mã QR -> Pending (chờ Admin đối soát duyệt sang Done)
-        String status = "QR_CODE".equalsIgnoreCase(paymentMethod) ? "Pending" : "Done";
+        String email = request.getParameter("email");
+        if (email == null || email.trim().isEmpty()) {
+            email = account.getEmail();
+        }
 
-        boolean success = checkoutDAO.checkout(account.getId(), account.getEmail(), cart.getId(), cartItems, paymentMethod, status);
+        // Khi người dùng bấm Pay / Xác nhận thanh toán (Card hoặc QR) -> Lưu vào bảng registration với status 'Approved' để mua ngay & vào học ngay
+        String status = "Approved";
+
+        boolean success = checkoutDAO.checkout(account.getId(), email, cart.getId(), cartItems, paymentMethod, status);
         if (success) {
             if ("QR_CODE".equalsIgnoreCase(paymentMethod)) {
-                session.setAttribute("message", "Gửi yêu cầu thanh toán mã QR thành công! Trạng thái đơn hàng: Pending (Chờ Admin duyệt).");
-                session.setAttribute("messageType", "info");
+                session.setAttribute("message", "Xác nhận thanh toán mã QR thành công! Các khóa học đã được kích hoạt.");
+                session.setAttribute("messageType", "success");
             } else {
-                session.setAttribute("message", "Thanh toán thẻ thành công! Bạn có thể học ngay.");
+                session.setAttribute("message", "Thanh toán thẻ thành công! Bạn có thể bắt đầu học ngay.");
                 session.setAttribute("messageType", "success");
             }
-            response.sendRedirect(request.getContextPath() + "/my-learning");
+            response.sendRedirect(request.getContextPath() + "/checkout?status=success");
         } else {
             request.setAttribute("error", "Thanh toán không thành công. Vui lòng thử lại.");
             BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());

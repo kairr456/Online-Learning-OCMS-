@@ -1,4 +1,4 @@
-package com.controller;
+package com.controller.shopcart;
 
 import com.entity.Account;
 import java.io.IOException;
