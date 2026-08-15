@@ -1,4 +1,4 @@
-package com.controller;
+package com.controller.shopcart;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -33,8 +33,8 @@ public class CartController extends HttpServlet {
     private CourseDAO courseDAO;
     private CourseRegistrationDAO registrationDAO;
 
-    private static final String CART_JSP = "view/addcart/cart.jsp";
-    private static final String CHECKOUT_JSP = "view/common/home/checkout.jsp";
+    private static final String CART_JSP = "/view/addcart/cart.jsp";
+    private static final String CHECKOUT_JSP = "/view/common/home/checkout.jsp";
 
     @Override
     public void init() throws ServletException {
@@ -117,50 +117,43 @@ public class CartController extends HttpServlet {
     }
 
     @Override
-protected void doPost(HttpServletRequest request,
-                      HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request,
+                          HttpServletResponse response)
+            throws ServletException, IOException {
 
-    String action = request.getParameter("action");
+        String action = request.getParameter("action");
 
-    if (action != null) {
+        if (action != null) {
 
-        switch (action) {
+            switch (action) {
 
-            case "add":
-                addToCart(request, response);
-                break;
+                case "add":
+                    addToCart(request, response);
+                    break;
 
-            case "remove":
-                removeFromCart(request, response);
-                break;
+                case "remove":
+                    removeFromCart(request, response);
+                    break;
 
-            case "checkout":
-    response.sendRedirect(
-        request.getContextPath() + "/checkout"
-    );
-    
+                case "checkout":
+                    response.sendRedirect(
+                        request.getContextPath() + "/checkout"
+                    );
+                    break;
 
-                break;
+                default:
+                    response.sendRedirect(
+                        request.getContextPath() + "/cart"
+                    );
+                    break;
+            }
 
-            default:
-
-                response.sendRedirect(
-                    request.getContextPath()
-                            + "/cart"
-                );
-
-                break;
+        } else {
+            response.sendRedirect(
+                request.getContextPath() + "/cart"
+            );
         }
-
-    } else {
-
-        response.sendRedirect(
-            request.getContextPath()
-                    + "/cart"
-        );
     }
-}
 
     private void addToCart(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -482,7 +475,7 @@ protected void doPost(HttpServletRequest request,
                 registration.setCourseId(item.getCourseId());
                 registration.setPackages("Standard"); // Default package
                 registration.setTotalCost(item.getPrice());
-                registration.setStatus("Pending"); // Set as Pending since payment is confirmed
+                registration.setStatus("Approved"); // Set as Approved since payment is confirmed and activated
                 registration.setValidFrom(validFrom);
                 registration.setValidTo(validTo);
                 registration.setLastUpdateByPerson(account.getId());

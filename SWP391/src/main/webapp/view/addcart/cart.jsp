@@ -220,7 +220,7 @@
     </a>
 
     <!-- Proceed to Checkout -->
-    <a href="${pageContext.request.contextPath}/view/common/home/checkout.jsp"
+    <a href="${pageContext.request.contextPath}/checkout"
        class="btn btn-primary"
        style="display: flex; align-items: center; justify-content: center; width: 50%; text-decoration: none;">
         Checkout
