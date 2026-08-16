@@ -110,6 +110,32 @@ public class registerValidator {
         return "male".equalsIgnoreCase(gender);
     }
 
+    /**
+     * Validates a "change password" submission: length limits (same
+     * PASSWORD_MIN_LENGTH/MAX_LENGTH used at registration) and that the two
+     * fields match. Returns the first failing rule's message, or null if
+     * both fields pass. Deliberately does NOT check the account's current
+     * password -- that requires a DB lookup, so it stays in ProfileController
+     * alongside the other DAO calls, same separation as the uniqueness
+     * checks in RegisterController.
+     */
+    public static String validatePasswordChange(String newPassword, String confirmPassword) {
+        if (isBlank(newPassword) || isBlank(confirmPassword)) {
+            return "Please fill in both password fields.";
+        }
+
+        if (newPassword.length() < PASSWORD_MIN_LENGTH || newPassword.length() > PASSWORD_MAX_LENGTH) {
+            return "Password must be between " + PASSWORD_MIN_LENGTH
+                    + " and " + PASSWORD_MAX_LENGTH + " characters.";
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            return "Passwords do not match.";
+        }
+
+        return null;
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

@@ -282,6 +282,25 @@ public class AccountDAO extends DBContext {
     return false;
 }
 
+    // Takes the already-hashed password -- ProfileController hashes with
+    // PasswordUtil.md5() before calling this, same as RegisterController
+    // does on sign-up. This method just writes whatever string it's given.
+    public boolean updatePassword(int accountId, String hashedPassword) {
+        String sql = "UPDATE account SET password = ? WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, hashedPassword);
+            statement.setInt(2, accountId);
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
 // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {
         String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "

@@ -1,6 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.entity.Account" %>
-<%@ page import="com.DAO.AccountDAO" %>
 <%
     // NOTE: session key here is "account" to match what header.jsp currently
     // reads (session.getAttribute("account")). If LoginController on your
@@ -12,39 +11,31 @@
         return;
     }
 
+    // This page is a pure view now -- both the Info and Password updates
+    // are handled by ProfileController ("/profile/info" and
+    // "/profile/password"), which either:
+    //   - forwards back here on validation/DB failure, with "errorMessage"
+    //     and "activeTab" set as request attributes, or
+    //   - redirects back here on success, with ?updated=info|password
+    // Either way, this page just reads whichever of those is present and
+    // renders the right banner + starts on the right tab.
+    String errorMessage = (String) request.getAttribute("errorMessage");
+    String activeTab = (String) request.getAttribute("activeTab");
     String successMessage = null;
-    String errorMessage = null;
 
-    // This page handles its own POST (the Info form submits back to itself)
-    // rather than going through a separate controller servlet -- same
-    // direct-DAO-in-JSP pattern already used by header.jsp for categories.
-    if ("POST".equalsIgnoreCase(request.getMethod())) {
-        String fullName = request.getParameter("fullName");
-        String phone = request.getParameter("phone");
-        String genderParam = request.getParameter("gender");
-
-        if (fullName == null || fullName.trim().isEmpty()
-                || phone == null || phone.trim().isEmpty()
-                || genderParam == null || genderParam.trim().isEmpty()) {
-            errorMessage = "Please fill in all fields.";
-        } else {
-            boolean genderValue = "male".equalsIgnoreCase(genderParam);
-            boolean updated = new AccountDAO().updateBasicInfo(
-                    profileAccount.getId(), fullName.trim(), phone.trim(), genderValue);
-
-            if (updated) {
-                // Keep the session copy in sync so the header/dashboard
-                // reflect the change immediately, without waiting for the
-                // next login.
-                profileAccount.setFullName(fullName.trim());
-                profileAccount.setPhone(phone.trim());
-                profileAccount.setGender(genderValue);
-                session.setAttribute("account", profileAccount);
-                successMessage = "Profile updated successfully.";
-            } else {
-                errorMessage = "Could not update your profile. Please try again.";
-            }
+    if (errorMessage == null) {
+        String updated = request.getParameter("updated");
+        if ("password".equals(updated)) {
+            activeTab = "password";
+            successMessage = "Password updated successfully.";
+        } else if ("info".equals(updated)) {
+            activeTab = "info";
+            successMessage = "Profile updated successfully.";
         }
+    }
+
+    if (activeTab == null) {
+        activeTab = "info"; // default tab when there's no error/success to react to
     }
 
     String ctx = request.getContextPath();
@@ -77,26 +68,26 @@
                 <p class="profile-avatar__label">Profile avatar</p>
 
                 <nav class="profile-nav">
-                    <button type="button" class="profile-nav__item is-active" data-tab="info">Info</button>
+                    <button type="button" class="profile-nav__item <%= "info".equals(activeTab) ? "is-active" : "" %>" data-tab="info">Info</button>
                     <button type="button" class="profile-nav__item" data-tab="email">Email</button>
-                    <button type="button" class="profile-nav__item" data-tab="password">Password</button>
+                    <button type="button" class="profile-nav__item <%= "password".equals(activeTab) ? "is-active" : "" %>" data-tab="password">Password</button>
                 </nav>
             </aside>
 
             <main class="profile-main">
 
+                <% if (successMessage != null) { %>
+                <div class="profile-alert profile-alert--success"><%= successMessage %></div>
+                <% } %>
+                <% if (errorMessage != null) { %>
+                <div class="profile-alert profile-alert--error"><%= errorMessage %></div>
+                <% } %>
+
                 <!-- ===================== Info tab ===================== -->
-                <section class="profile-panel is-active" id="tab-info">
+                <section class="profile-panel <%= "info".equals(activeTab) ? "is-active" : "" %>" id="tab-info">
                     <h1>Update your Info</h1>
 
-                    <% if (successMessage != null) { %>
-                    <div class="profile-alert profile-alert--success"><%= successMessage %></div>
-                    <% } %>
-                    <% if (errorMessage != null) { %>
-                    <div class="profile-alert profile-alert--error"><%= errorMessage %></div>
-                    <% } %>
-
-                    <form method="post" action="<%= ctx %>/view/common/profile.jsp">
+                    <form method="post" action="<%= ctx %>/profile/info">
 
                         <div class="profile-field">
                             <label for="fullName">Full Name</label>
@@ -135,20 +126,24 @@
                     </div>
                 </section>
 
-                <!-- ===================== Password tab (placeholder) ===================== -->
-                <section class="profile-panel" id="tab-password">
-                    <h1>Password</h1>
-                    <p class="profile-placeholder-note">
-                        Not wired up to the backend yet -- this tab is a placeholder for now.
-                    </p>
-                    <div class="profile-field">
-                        <label>Current password</label>
-                        <input type="password" placeholder="••••••••" disabled>
-                    </div>
-                    <div class="profile-field">
-                        <label>New password</label>
-                        <input type="password" placeholder="••••••••" disabled>
-                    </div>
+                <!-- ===================== Password tab ===================== -->
+                <section class="profile-panel <%= "password".equals(activeTab) ? "is-active" : "" %>" id="tab-password">
+                    <h1>Update Password</h1>
+
+                    <form method="post" action="<%= ctx %>/profile/password">
+
+                        <div class="profile-field">
+                            <label for="newPassword">New password</label>
+                            <input type="password" id="newPassword" name="newPassword" required>
+                        </div>
+
+                        <div class="profile-field">
+                            <label for="confirmPassword">re-enter password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+
+                        <button type="submit" class="profile-submit">Update</button>
+                    </form>
                 </section>
 
             </main>
