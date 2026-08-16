@@ -444,17 +444,10 @@
                                                                                 <i class="fas fa-book" style="color: #ffc107; margin-right: 10px;"></i>
                                                                             </c:if>
                                                                             
-                                                                            <!-- If it's a video, make it clickable to open popup -->
-                                                                            <c:choose>
-                                                                                <c:when test="${lesson.type == 'video'}">
-                                                                                    <a href="${lessonVideosMap[lesson.id]}" target="_blank" onclick="window.open(this.href, 'youtubePopup', 'width=800,height=600'); return false;" style="color: #333; text-decoration: none; cursor: pointer;">
-                                                                                        ${lesson.title}
-                                                                                    </a>
-                                                                                </c:when>
-                                                                                <c:otherwise>
-                                                                                    ${lesson.title}
-                                                                                </c:otherwise>
-                                                                            </c:choose>
+                                                                            <!-- Link to the unified lesson details page -->
+                                                                            <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" style="color: #333; text-decoration: none; cursor: pointer; font-weight: 500;">
+                                                                                ${lesson.title}
+                                                                            </a>
                                                                         </span>
                                                                     </li>
                                                                 </c:forEach>

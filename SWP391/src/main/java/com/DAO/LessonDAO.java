@@ -168,4 +168,46 @@ public class LessonDAO extends DBContext {
         } catch (Exception ex) {} finally { closeResources(); }
         return url;
     }
+
+    public Lesson getLessonById(int lessonId) {
+        String sql = "SELECT * FROM lesson WHERE id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Lesson lesson = new Lesson();
+                lesson.setId(resultSet.getInt("id"));
+                lesson.setSectionId(resultSet.getInt("section_id"));
+                lesson.setTitle(resultSet.getString("title"));
+                lesson.setType(resultSet.getString("type"));
+                lesson.setOrderNumber(resultSet.getInt("order_number"));
+                return lesson;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting lesson: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
+    public String getLessonText(int lessonId) {
+        String sql = "SELECT content FROM lesson_text WHERE lesson_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("content");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting lesson text: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return "";
+    }
 }
