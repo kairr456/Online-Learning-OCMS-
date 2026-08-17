@@ -381,9 +381,7 @@
                         </div>
                         <div class="courses__details-content">
                             <ul class="courses__item-meta list-wrap">
-                                <li class="courses__item-tag">
-                                    <a href="#">${course.categoryId}</a>
-                                </li>
+
                                 <li class="avg-rating"><i class="fas fa-star"></i> (${course.rating} Reviews)</li>
                             </ul>
                             <h2 class="title">${course.name}</h2>
@@ -629,6 +627,12 @@
             </div>
         </section>
         <!-- courses-details-area-end -->
+        
+        <div class="container text-center" style="padding-bottom: 40px;">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn-primary" style="background-color: var(--primary-color); border: none; padding: 10px 25px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <i class="fas fa-arrow-up me-2"></i> Back to Top
+            </button>
+        </div>
 
     </main>
     <!-- main-area-end -->

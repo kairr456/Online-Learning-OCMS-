@@ -105,11 +105,6 @@ public class LoginController extends HttpServlet {
         if (account == null) {
             // Fallback: some accounts (e.g. seeded/legacy test data) may
             // still have a plain-text password column instead of a hash.
-            // Rather than break login for those, we also try the raw
-            // password the user typed before giving up. This intentionally
-            // keeps the old unhashed check working alongside the new
-            // hashed one -- remove this fallback once all accounts in the
-            // database are confirmed to be hashed.
             account = new AccountDAO().login(username, password);
         }
 

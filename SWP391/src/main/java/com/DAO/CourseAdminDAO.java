@@ -70,6 +70,7 @@ public class CourseAdminDAO extends DBContext {
                 // Dùng lại mapper chung của CourseDAO (đã đổi thành static)
                 Course course = mapCourse( resultSet);
                 course.setCategoryName(resultSet.getString("category_name"));
+                course.setTeacherName(resultSet.getString("teacher_name"));
                 courses.add(course);
             }
         } catch (SQLException ex) {

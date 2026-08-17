@@ -281,7 +281,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             String teacherName, String courseName, String sort, int pageNumber, int pageSize) {
         List<Course> courses = new ArrayList<>();
         // Join with account table to search by teacher name
-        StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE c.status = 'active'");
         List<Object> params = new ArrayList<>();
         String orderBy = "c.id"; // default
 
@@ -365,7 +365,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
     public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName, String courseName) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE c.status = 'active'");
         List<Object> params = new ArrayList<>();
 
         // Add filters similar to findWithFilters method

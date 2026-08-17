@@ -114,63 +114,10 @@
                     <button
                         type="button"
                         class="login-eye"
-                        data-toggle-password
-                        aria-pressed="false"
+                        data-password-target="password"
                         aria-label="Show password"
                     >
-
-                        <svg
-                            class="icon-eye"
-                            viewBox="0 0 22 16"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M1 8C1 8 4.6 1.5 11 1.5S21 8 21 8s-3.6 6.5-10 6.5S1 8 1 8Z"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linejoin="round"
-                            />
-
-                            <circle
-                                cx="11"
-                                cy="8"
-                                r="3"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                            />
-                        </svg>
-
-
-                        <svg
-                            class="icon-eye-off"
-                            viewBox="0 0 22 16"
-                            fill="none"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M1 8C1 8 4.6 1.5 11 1.5S21 8 21 8s-3.6 6.5-10 6.5S1 8 1 8Z"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linejoin="round"
-                            />
-
-                            <circle
-                                cx="11"
-                                cy="8"
-                                r="3"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                            />
-
-                            <path
-                                d="M2 14 20 2"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-
+                        &#128065;
                     </button>
 
                 </div>
@@ -196,7 +143,7 @@
 
                 <a
                     class="login-forgot"
-                    href="forgot-password"
+                    href="${pageContext.request.contextPath}/view/authen/forgot-password.jsp"
                 >
                     Forgot password?
                 </a>
