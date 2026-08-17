@@ -2,6 +2,7 @@ package com.controller.auth;
 
 import com.DAO.AccountDAO;
 import com.entity.Account;
+import com.ocms.config.GlobalConfig;
 import com.utils.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -72,7 +73,7 @@ public class LoginController extends HttpServlet {
         if (account != null) {
             // Login successful: Create session
             HttpSession session = request.getSession();
-            session.setAttribute("currentAccount", account);
+            session.setAttribute(GlobalConfig.SESSION_ACCOUNT, account);
 
             String contextPath = request.getContextPath();
             int roleId = account.getRoleId();

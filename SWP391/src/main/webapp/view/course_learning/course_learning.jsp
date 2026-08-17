@@ -335,11 +335,11 @@
         <div class="container">
             <h1>My Learning</h1>
             <ul class="my-learning-tabs" id="myLearningTabs">
-                <li><button class="nav-link active" onclick="switchTab('all-courses', this)">All Courses</button></li>
-                <li><button class="nav-link" onclick="switchTab('my-lists', this)">My Lists</button></li>
-                <li><button class="nav-link" onclick="switchTab('wishlist', this)">Wishlist</button></li>
-                <li><button class="nav-link" onclick="switchTab('archived', this)">Archived</button></li>
-                <li><button class="nav-link" onclick="switchTab('learning-tools', this)">Learning Tools</button></li>
+                <li><button class="nav-link active" data-tab="all-courses" onclick="switchTab('all-courses', this)">All Courses</button></li>
+                <li><button class="nav-link" data-tab="my-lists" onclick="switchTab('my-lists', this)">My Lists</button></li>
+                <li><button class="nav-link" data-tab="wishlist" onclick="switchTab('wishlist', this)">Wishlist</button></li>
+                <li><button class="nav-link" data-tab="archived" onclick="switchTab('archived', this)">Archived</button></li>
+                <li><button class="nav-link" data-tab="learning-tools" onclick="switchTab('learning-tools', this)">Learning Tools</button></li>
             </ul>
         </div>
     </div>
@@ -615,6 +615,9 @@
     <!-- Script xử lý logic JavaScript chính -->
     <script>
         const API_URL = '${pageContext.request.contextPath}/user-learning-list';
+        // sessionStorage keeps the active tab across reloads within the same tab
+        // (so refresh / list operations stay on the current tab) but clears it
+        // when the browser tab/session is closed, returning to All Courses.
         const STORAGE_KEY = 'my_learning_active_tab';
         let activeCourse = null;
 
@@ -636,7 +639,23 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const navButtons = document.querySelectorAll('#myLearningTabs .nav-link');
-            switchTab('all-courses', navButtons[0]);
+
+            // A ?tab=... query parameter (set by the "My Learning" header/footer
+            // links) forces the tab back to All Courses. It must be consumed
+            // only once and stripped from the URL, otherwise it would still be
+            // present on every subsequent location.reload() (after a list
+            // operation) and keep resetting the tab.
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabFromUrl = urlParams.get('tab');
+
+            if (tabFromUrl) {
+                sessionStorage.removeItem(STORAGE_KEY);
+                history.replaceState({}, '', window.location.pathname);
+            }
+
+            const initialTab = tabFromUrl || sessionStorage.getItem(STORAGE_KEY) || 'all-courses';
+            const initialButton = document.querySelector('#myLearningTabs .nav-link[data-tab="' + initialTab + '"]') || navButtons[0];
+            switchTab(initialTab, initialButton);
 
             renderMyLists();
         });
@@ -655,8 +674,14 @@
             });
         }
 
+        function reloadPreservingTab() {
+            const current = sessionStorage.getItem(STORAGE_KEY);
+            const url = window.location.pathname + (current && current !== 'all-courses' ? '?tab=' + current : '');
+            window.location.href = url;
+        }
+
         function switchTab(tabId, element) {
-            localStorage.setItem(STORAGE_KEY, tabId);
+            sessionStorage.setItem(STORAGE_KEY, tabId);
 
             document.querySelectorAll('#myLearningTabs .nav-link').forEach(function (btn) {
                 btn.classList.remove('active');
@@ -813,7 +838,7 @@
             sendAjaxRequest({ action: 'addCourse', listId: listId, courseId: courseId })
                 .then(data => {
                     if (data.status === 'success') {
-                        location.reload();
+                        reloadPreservingTab();
                     } else {
                         alert('Error adding course: ' + (data.message || 'Operation failed'));
                     }
@@ -902,7 +927,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     closeAddToListModal();
-                    location.reload();
+                    reloadPreservingTab();
                 } else {
                     alert('Create failed: ' + (data.message || 'Error occurred'));
                 }
@@ -934,7 +959,7 @@
             .then(data => {
                 if (data.status === 'success') {
                     closeAddToListModal();
-                    location.reload();
+                    reloadPreservingTab();
                 } else {
                     alert('Update failed: ' + (data.message || 'Error occurred'));
                 }
@@ -951,7 +976,7 @@
                 .then(data => {
                     if (data.status === 'success') {
                         closeAddToListModal();
-                        location.reload();
+                        reloadPreservingTab();
                     } else {
                         alert('Add course failed: ' + (data.message || 'Error occurred'));
                     }
@@ -964,7 +989,7 @@
             sendAjaxRequest({ action: 'delete', listId: listId })
                 .then(data => {
                     if (data.status === 'success') {
-                        location.reload();
+                        reloadPreservingTab();
                     } else {
                         alert('Delete list failed: ' + (data.message || 'Error occurred'));
                     }
@@ -977,7 +1002,7 @@
             sendAjaxRequest({ action: 'removeCourse', listId: listId, courseId: courseId })
                 .then(data => {
                     if (data.status === 'success') {
-                        location.reload();
+                        reloadPreservingTab();
                     } else {
                         alert('Remove course failed: ' + (data.message || 'Error occurred'));
                     }

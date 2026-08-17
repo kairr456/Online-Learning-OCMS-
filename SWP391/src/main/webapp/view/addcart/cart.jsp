@@ -15,7 +15,11 @@
     <!-- Place favicon.ico in the root directory -->
 
     <!-- CSS here -->
-    <jsp:include page="../common/home/css-home.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+    <!-- Bootstrap CSS for layout utilities -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Toast CSS -->
     <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
@@ -60,7 +64,7 @@
     <!-- Scroll-top-end-->
 
     <!-- header-area -->
-    <jsp:include page="../common/home/header-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/header.jsp"></jsp:include>
     <!-- header-area-end -->
 
     <!-- main-area -->
@@ -171,11 +175,11 @@
     <!-- main-area-end -->
 
     <!-- footer-area -->
-    <jsp:include page="../common/home/footer-home.jsp"></jsp:include>
+    <jsp:include page="/view/common/footer.jsp"></jsp:include>
     <!-- footer-area-end -->
 
     <!-- JS here -->
-    <jsp:include page="../common/home/js-home.jsp" />
+    <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
     
     <!-- Toast JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

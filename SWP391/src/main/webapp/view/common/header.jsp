@@ -9,7 +9,7 @@
     // All links below are context-path-relative, so it renders correctly
     // no matter how deep the including page lives (view/admin/, view/common/, etc.)
     // Pages that include this fragment must also link assets/css/common/header.css.
-    Account headerAccount = (Account) session.getAttribute("currentAccount");
+    Account headerAccount = (Account) session.getAttribute("account");
     String ctx = request.getContextPath();
 
     // Category dropdown options come straight from the database now instead
@@ -28,7 +28,7 @@
             <a href="<%= ctx %>/">Home</a>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
-            <a href="${pageContext.request.contextPath}/my-learning">My Learning</a>
+            <a href="${pageContext.request.contextPath}/my-learning?tab=all-courses">My Learning</a>
             <% } %>
         </nav>
 
@@ -51,13 +51,13 @@
         <div class="site-header__account">
             <% if (headerAccount != null) { %>
 
-                <a class="site-header__icon-btn" href="<%= ctx %>/view/common/wishlist.jsp" title="Wishlist" aria-label="Wishlist">
+                <a class="site-header__icon-btn" href="<%= ctx %>/my-learning" title="Wishlist" aria-label="Wishlist">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                     </svg>
                 </a>
 
-                <a class="site-header__icon-btn" href="<%= ctx %>/view/common/cart.jsp" title="Cart" aria-label="Cart">
+                <a class="site-header__icon-btn" href="<%= ctx %>/cart" title="Cart" aria-label="Cart">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3.5 4.5h2l2.1 11.1a1.6 1.6 0 0 0 1.6 1.3h8.1a1.6 1.6 0 0 0 1.6-1.3l1.4-7.4H6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9.5" cy="20.2" r="1.3" fill="currentColor"/>
@@ -78,7 +78,7 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <a href="<%= ctx %>/view/common/profile.jsp">Change profile</a>
+                        <a href="<%= ctx %>/my-learning">Change profile</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
                 </div>
