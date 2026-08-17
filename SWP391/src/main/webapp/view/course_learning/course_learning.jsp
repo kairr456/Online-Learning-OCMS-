@@ -575,6 +575,23 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL 3: CONFIRM DELETE ==================== -->
+    <div class="custom-modal-backdrop" id="confirmModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="fw-bold mb-0">Confirm</h5>
+                <button type="button" class="btn-close" onclick="hideConfirmDialog()"></button>
+            </div>
+            <div class="custom-modal-body">
+                <p id="confirmModalMessage" class="mb-0"></p>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideConfirmDialog()">Cancel</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="confirmDeleteAction()">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script chứa dữ liệu JSON từ JSTL -->
     <script id="myListsJsonData" type="application/json">
     [
@@ -973,30 +990,51 @@
                 .catch(() => alert('Connection error occurred!'));
         }
 
+        let confirmDeleteCallback = null;
+
+        function showConfirmDialog(message, onConfirm) {
+            confirmDeleteCallback = onConfirm;
+            document.getElementById('confirmModalMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function hideConfirmDialog() {
+            confirmDeleteCallback = null;
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+
+        function confirmDeleteAction() {
+            const callback = confirmDeleteCallback;
+            hideConfirmDialog();
+            if (typeof callback === 'function') callback();
+        }
+
         function deleteList(listId) {
-            if (!confirm('Are you sure you want to delete this list?')) return;
-            sendAjaxRequest({ action: 'delete', listId: listId })
-                .then(data => {
-                    if (data.status === 'success') {
-                        reloadPreservingTab();
-                    } else {
-                        alert('Delete list failed: ' + (data.message || 'Error occurred'));
-                    }
-                })
-                .catch(() => alert('Connection error occurred!'));
+            showConfirmDialog('Are you sure you want to delete this list?', function () {
+                sendAjaxRequest({ action: 'delete', listId: listId })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            reloadPreservingTab();
+                        } else {
+                            alert('Delete list failed: ' + (data.message || 'Error occurred'));
+                        }
+                    })
+                    .catch(() => alert('Connection error occurred!'));
+            });
         }
 
         function removeCourseFromList(listId, courseId) {
-            if (!confirm('Are you sure you want to remove this course from the list?')) return;
-            sendAjaxRequest({ action: 'removeCourse', listId: listId, courseId: courseId })
-                .then(data => {
-                    if (data.status === 'success') {
-                        reloadPreservingTab();
-                    } else {
-                        alert('Remove course failed: ' + (data.message || 'Error occurred'));
-                    }
-                })
-                .catch(() => alert('Connection error occurred!'));
+            showConfirmDialog('Are you sure you want to remove this course from the list?', function () {
+                sendAjaxRequest({ action: 'removeCourse', listId: listId, courseId: courseId })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            reloadPreservingTab();
+                        } else {
+                            alert('Remove course failed: ' + (data.message || 'Error occurred'));
+                        }
+                    })
+                    .catch(() => alert('Connection error occurred!'));
+            });
         }
 
         function searchCourses() {
