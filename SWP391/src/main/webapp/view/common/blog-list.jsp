@@ -1,16 +1,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/java/core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <!-- Tái sử dụng CSS chung của dự án -->
-    <jsp:include page="home/css-home.jsp" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+    <!-- Bootstrap CSS for card layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
     <!-- Header chung -->
-    <jsp:include page="home/header-home.jsp" />
+    <jsp:include page="/view/common/header.jsp" />
 
     <div class="container my-5">
         <h2 class="mb-4 text-center text-primary">Danh Sách Bài Viết</h2>
@@ -37,8 +41,10 @@
     </div>
 
     <!-- Footer và JS chung -->
-    <jsp:include page="home/footer-home.jsp" />
-    <jsp:include page="home/js-home.jsp" />
+    <jsp:include page="/view/common/footer.jsp" />
+    <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
+    <!-- Bootstrap JS for card/collapse components -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

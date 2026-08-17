@@ -317,7 +317,7 @@
                                                             <input type="hidden" name="search" value="<c:out value="${search}"/>">
                                                             <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
                                                             <input type="hidden" name="page" value="${currentPage}">
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmRemove(${item.id}, '${course.name}')">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
                                                                 <i class="fas fa-trash"></i> Remove
                                                             </button>
                                                         </form>
@@ -465,6 +465,25 @@
                     confirmRemove(itemId, courseName);
                 });
             });
+            
+            // Handle checkout confirmation
+            const checkoutForm = document.getElementById('checkoutForm');
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to complete your purchase? This will register you for all courses in your cart.')) {
+                        this.submit();
+                    }
+                });
+            }
+
+            // Check for session messages and display toast safely
+            const sessionMessage = "${sessionScope.message}";
+            const sessionMessageType = "${sessionScope.messageType}";
+            
+            if (sessionMessage && sessionMessage.trim() !== "") {
+                showToast(sessionMessage, sessionMessageType);
+            }
         });
         
         // Function to show toast message
@@ -489,29 +508,13 @@
                 stopOnFocus: true
             }).showToast();
         }
-        
-        // Check for session messages and display toast
-        <c:if test="${not empty sessionScope.message}">
-            document.addEventListener("DOMContentLoaded", function() {
-                showToast("${sessionScope.message}", "${sessionScope.messageType}");
-            });
-            <c:remove var="message" scope="session" />
-            <c:remove var="messageType" scope="session" />
-        </c:if>
-        
-        // Handle checkout confirmation
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkoutForm = document.getElementById('checkoutForm');
-            if (checkoutForm) {
-                checkoutForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to complete your purchase? This will register you for all courses in your cart.')) {
-                        this.submit();
-                    }
-                });
-            }
-        });
     </script>
+
+    <!-- Xóa session message sau khi hiển thị để tránh lặp lại thông báo -->
+    <c:if test="${not empty sessionScope.message}">
+        <c:remove var="message" scope="session" />
+        <c:remove var="messageType" scope="session" />
+    </c:if>
 </body>
 
 </html>
