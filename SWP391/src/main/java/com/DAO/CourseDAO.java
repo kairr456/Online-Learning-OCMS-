@@ -113,6 +113,8 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
    public Course getFromResultSet(ResultSet rs) throws SQLException {
+    java.sql.Timestamp cDate = rs.getTimestamp("created_date");
+    java.sql.Timestamp mDate = rs.getTimestamp("modified_date");
     return new Course(
             rs.getInt("id"),
             rs.getString("name"),
@@ -121,8 +123,8 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             rs.getInt("rating"),
             rs.getFloat("price"),
             rs.getString("status"),
-            rs.getTimestamp("created_date").toLocalDateTime(),
-            rs.getTimestamp("modified_date").toLocalDateTime(),
+            cDate != null ? cDate.toLocalDateTime() : null,
+            mDate != null ? mDate.toLocalDateTime() : null,
             rs.getInt("created_by"),
             rs.getInt("category_id")
     );
@@ -276,7 +278,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
     public List<Course> findWithFilters(List<Integer> categoryIds, List<Integer> ratings,
-            String teacherName, String sort, int pageNumber, int pageSize) {
+            String teacherName, String courseName, String sort, int pageNumber, int pageSize) {
         List<Course> courses = new ArrayList<>();
         // Join with account table to search by teacher name
         StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
@@ -326,6 +328,12 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             params.add("%" + teacherName + "%");
         }
 
+        // Add course name search -- same LIKE pattern as the teacher-name filter above
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND c.name LIKE ?");
+            params.add("%" + courseName + "%");
+        }
+
         // Add pagination
         sql.append(" ORDER BY ").append(orderBy).append(" LIMIT ? OFFSET ?");
         params.add(pageSize);
@@ -356,7 +364,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
         return courses;
     }
 
-    public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName) {
+    public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName, String courseName) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -379,6 +387,11 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             sql.append(" AND (a.full_name LIKE ? OR a.username LIKE ?)");
             params.add("%" + teacherName + "%");
             params.add("%" + teacherName + "%");
+        }
+
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND c.name LIKE ?");
+            params.add("%" + courseName + "%");
         }
 
         try {

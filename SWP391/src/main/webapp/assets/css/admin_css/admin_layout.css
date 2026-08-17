@@ -1,9 +1,26 @@
-/* Layout tổng thể */
-body {
-    background-color: #fff;
+/* ==========================================
+   1. BASE & CONTAINER LAYOUT
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-/* Header nằm ngang đỉnh trang */
+body {
+    background-color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Khung tổng dưới Header */
+.admin-container {
+    display: flex;
+    min-height: calc(100vh - 80px);
+}
+
+/* ==========================================
+   2. HEADER (Chỉ giữ Logo & Profile Icon)
+   ========================================== */
 .header {
     display: flex;
     justify-content: space-between;
@@ -15,62 +32,42 @@ body {
 
 .logo-box {
     border: 1.5px solid #000;
-    padding: 12px 45px;
+    padding: 10px 40px;
     border-radius: 12px;
     font-size: 18px;
     font-weight: 500;
+    display: inline-block;
+    text-decoration: none;
+    color: #000;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
-}
-
-.search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.search-box input {
-    padding: 8px 35px 8px 15px;
-    border: 1px solid #777;
-    border-radius: 4px;
-    width: 220px;
-    font-size: 16px;
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    color: #555;
-    cursor: pointer;
 }
 
 .profile-icon {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border: 2px solid #007bff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #007bff;
-    font-size: 20px;
+    font-size: 22px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
-/* Khung dưới Header */
-.admin-container {
-    display: flex;
-    min-height: calc(100vh - 80px);
-}
-
-/* Sidebar bên trái */
+/* ==========================================
+   3. SIDEBAR (Bên trái)
+   ========================================== */
 .sidebar {
-    width: 280px;
+    width: 260px;
     border-right: 2px solid #000;
     padding: 30px 0;
+    flex-shrink: 0;
 }
 
 .sidebar-menu {
@@ -79,19 +76,315 @@ body {
 }
 
 .sidebar-menu a {
-    padding: 14px 35px;
+    padding: 14px 30px;
     font-size: 15px;
     color: #000;
     font-weight: 400;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
     font-weight: bold;
+    background-color: #f5f5f5;
 }
 
-/* Content bên phải */
+/* ==========================================
+   4. MAIN CONTENT AREA (Bên phải)
+   ========================================== */
 .main-content {
     flex: 1;
     padding: 30px 40px;
+    overflow-x: auto;
+}
+
+/* ==========================================
+   5. TOOLBAR (Search, Filters & Add User)
+   ========================================== */
+.toolbar-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+/* Ô Search viền cong bo góc tròn */
+.search-box {
+    position: relative;
+    width: 320px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 40px 10px 16px;
+    border: 1.5px solid #E7E7E7;
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box input:focus {
+    border-color: #5751E1;
+    box-shadow: 0 0 0 3px rgba(87, 81, 225, 0.12);
+}
+
+.search-box .btn-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #5751E1;
+    font-size: 16px;
+}
+
+/* Bộ lọc Dropdown */
+.filter-group {
+    display: flex;
+    gap: 12px;
+}
+
+.filter-select {
+    padding: 10px 20px;
+    border: 1.5px solid #E7E7E7;
+    border-radius: 25px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+    border-color: #5751E1;
+}
+
+/* Nút Add User màu tím góc phải */
+.btn-add-user {
+    background-color: #5751E1;
+    color: #fff;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(87, 81, 225, 0.25);
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-add-user:hover {
+    background-color: #463FC0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(87, 81, 225, 0.3);
+}
+
+/* ==========================================
+   6. ACCOUNT TABLE STYLING
+   ========================================== */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #E7E7E7;
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.account-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+.account-table th,
+.account-table td {
+    padding: 12px 14px;
+    border: 1px solid #EEEDF2;
+    text-align: left;
+    font-size: 13.5px;
+    white-space: nowrap;
+}
+
+.account-table th {
+    background-color: #F3F3F9;
+    font-weight: 700;
+    color: #161439;
+}
+
+.account-table tbody tr:hover {
+    background-color: #F9F9FD;
+}
+
+/* Nút thao tác Edit / Delete */
+.action-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #555;
+    text-decoration: none;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-action.edit:hover {
+    background: rgba(87, 81, 225, 0.12);
+    color: #5751E1;
+}
+
+.btn-action.delete:hover {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+/* Badge hiển thị trạng thái Status */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge.active {
+    background: #E7F6EC;
+    color: #1B8F4A;
+}
+.badge.inactive {
+    background: #FDEBEC;
+    color: #D63646;
+}
+
+/* Modal Add/Edit */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(22, 20, 57, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-content {
+    background: #fff;
+    padding: 26px;
+    border-radius: 12px;
+    width: 440px;
+    max-width: 90%;
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(22, 20, 57, 0.2);
+}
+.modal-content label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 600;
+    color: #161439;
+}
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 4px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: #5751E1;
+}
+.modal-content button {
+    margin-top: 16px;
+    padding: 10px 18px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.modal-content button[type="submit"] {
+    background: #5751E1;
+    border-color: #5751E1;
+    color: #fff;
+}
+.modal-content button[type="submit"]:hover {
+    background: #463FC0;
+}
+.modal-close {
+    float: right;
+    cursor: pointer;
+    font-size: 22px;
+    color: #555;
+}
+
+/* Phân trang */
+.pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin: 20px 0;
+}
+.page-link {
+    padding: 7px 13px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #161439;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s;
+}
+.page-link:hover {
+    background: rgba(87, 81, 225, 0.08);
+}
+.page-link.active {
+    background: #5751E1;
+    color: #fff;
+    border-color: #5751E1;
+}
+
+/* Textarea trong modal (dùng cho mô tả khóa học) */
+.modal-content textarea {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 4px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.modal-content textarea:focus {
+    border-color: #5751E1;
+}
+
+/* Badge trạng thái Draft của khóa học */
+.badge.draft {
+    background: #F3F3F9;
+    color: #6B7280;
 }

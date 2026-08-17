@@ -56,7 +56,7 @@
         <% } %>
 
         <!-- Login form -->
-        <form id="loginForm" method="post" action="login">
+        <form id="loginForm" method="post" action="${pageContext.request.contextPath}/login">
 
             <!-- Username -->
             <div class="login-field">
@@ -76,6 +76,9 @@
                         id="username"
                         name="username"
                         placeholder="Enter your username or email"
+                        value="<%= request.getAttribute("rememberedUsername") != null
+                            ? request.getAttribute("rememberedUsername")
+                            : "" %>"
                         autocomplete="username"
                         required
                         autofocus
@@ -182,6 +185,8 @@
                     <input
                         type="checkbox"
                         name="remember"
+                        value="true"
+                        <%= request.getAttribute("rememberChecked") != null && (Boolean) request.getAttribute("rememberChecked") ? "checked" : "" %>
                     >
 
                     <span>Remember me</span>

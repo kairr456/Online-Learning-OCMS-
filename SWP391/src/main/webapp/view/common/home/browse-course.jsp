@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -432,10 +433,20 @@
                                 ${course.name}
                             </a>
                             
-                            <div class="course-footer">
-                                <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn">enroll now</a>
-                                <span class="course-price">${course.price}$</span>
-                            </div>
+                                <div class="course-footer">
+                                    <c:choose>
+                                        <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
+                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
+                                                    data-course-id="${course.id}"
+                                                    data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                                    onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>$</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                         </div>
                     </div>
                 </c:forEach>
@@ -482,6 +493,20 @@
                 filterForm.submit();
             }
         }
+        
+        function submitAddToCart(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var price    = btn.getAttribute('data-price');
+            document.getElementById('cartCourseId').value = courseId;
+            document.getElementById('cartPrice').value    = price;
+            document.getElementById('addToCartForm').submit();
+        }
     </script>
+    
+    <form id="addToCartForm" action="${pageContext.request.contextPath}/cart" method="post" style="display:none;">
+        <input type="hidden" name="action" value="add">
+        <input type="hidden" name="courseId" id="cartCourseId">
+        <input type="hidden" name="price" id="cartPrice">
+    </form>
 </body>
 </html>

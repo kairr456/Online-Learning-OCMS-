@@ -391,7 +391,7 @@
                                 <ul class="list-wrap">
                                     <li class="author-two">
                                         By
-                                        <a href="#">${course.createdBy}</a>
+                                        <a href="teacher-detail.jsp?id=${course.createdBy}">${authorName}</a>
                                     </li>
                                     <li class="date"><i class="fas fa-calendar"></i> ${course.createdDate}</li>
                                 </ul>
@@ -421,7 +421,51 @@
                                     <div class="courses__curriculum-wrap">
                                         <h3 class="title">Course Curriculum</h3>
                                         <div class="accordion" id="accordionExample">
-                                            <!-- Curriculum content will be loaded dynamically -->
+                                            <c:forEach var="section" items="${sections}" varStatus="status">
+                                                <div class="accordion-item" style="margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+                                                    <h2 class="accordion-header" id="heading${status.index}">
+                                                        <button class="accordion-button ${status.index != 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${status.index}" aria-expanded="${status.index == 0 ? 'true' : 'false'}" aria-controls="collapse${status.index}" style="background-color: #f8f9fa; font-weight: 600; padding: 15px 20px;">
+                                                            ${section.title}
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapse${status.index}" class="accordion-collapse collapse ${status.index == 0 ? 'show' : ''}" aria-labelledby="heading${status.index}" data-bs-parent="#accordionExample">
+                                                        <div class="accordion-body" style="padding: 0;">
+                                                            <ul class="list-group list-group-flush">
+                                                                <c:forEach var="lesson" items="${lessonsMap[section.id]}">
+                                                                    <li class="list-group-item" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                                                                        <span>
+                                                                            <c:if test="${lesson.type == 'video'}">
+                                                                                <i class="fas fa-play-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'file'}">
+                                                                                <i class="fas fa-file-alt" style="color: #28a745; margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'text'}">
+                                                                                <i class="fas fa-book" style="color: #ffc107; margin-right: 10px;"></i>
+                                                                            </c:if>
+                                                                            
+                                                                            <!-- Link to the unified lesson details page -->
+                                                                            <!-- Conditional Link based on Enrollment / Free first lesson -->
+                                                                            <c:choose>
+                                                                                <c:when test="${isEnrolled or lesson.id == firstLessonId}">
+                                                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" style="color: #333; text-decoration: none; cursor: pointer; font-weight: 500;">
+                                                                                        ${lesson.title}
+                                                                                    </a>
+                                                                                </c:when>
+                                                                                <c:otherwise>
+                                                                                    <a href="javascript:void(0);" onclick="alert('Bạn chưa mua khóa học này! Vui lòng mua để xem toàn bộ bài giảng.');" style="color: #888; text-decoration: none; cursor: pointer; font-weight: 500;">
+                                                                                        <i class="fas fa-lock" style="font-size: 12px; margin-right: 5px;"></i> ${lesson.title}
+                                                                                    </a>
+                                                                                </c:otherwise>
+                                                                            </c:choose>
+                                                                        </span>
+                                                                    </li>
+                                                                </c:forEach>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </c:forEach>
                                         </div>
                                     </div>
                                 </div>
@@ -434,7 +478,34 @@
                                 <div class="tab-pane fade" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
                                     <div class="courses__rating-wrap">
                                         <h2 class="title">Reviews</h2>
-                                        <!-- Reviews will be loaded dynamically -->
+                                        
+                                        <!-- Reviews List -->
+                                        <div class="course-reviews-list" style="margin-bottom: 30px;">
+                                            <c:if test="${empty reviews}">
+                                                <p style="color: #666; font-style: italic;">No reviews yet. Be the first to review this course!</p>
+                                            </c:if>
+                                            <c:forEach var="review" items="${reviews}">
+                                                <div class="review-item" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                                                    <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                                        <strong style="font-size: 16px;">${accountNames[review.accountId]}</strong>
+                                                        <span style="color: #888; font-size: 14px;">${review.createdDate}</span>
+                                                    </div>
+                                                    <div class="review-rating" style="color: #ffc107; margin-bottom: 10px; font-size: 14px;">
+                                                        <c:forEach begin="1" end="5" var="i">
+                                                            <c:choose>
+                                                                <c:when test="${i <= review.rating}">
+                                                                    <i class="fas fa-star"></i>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <i class="far fa-star"></i>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </c:forEach>
+                                                    </div>
+                                                    <p class="review-comment" style="color: #444; line-height: 1.5; margin: 0;">${review.comment}</p>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
                                         
                                         <!-- Review Form -->
                                         <div class="course-review-form" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
@@ -455,7 +526,14 @@
                                                     <label for="reviewComment" style="display: block; font-weight: 600; margin-bottom: 8px;">Your Comment:</label>
                                                     <textarea name="comment" id="reviewComment" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none;" placeholder="What do you think about this course?" required></textarea>
                                                 </div>
-                                                <button type="submit" class="btn" style="background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Submit Review</button>
+                                                <c:choose>
+                                                    <c:when test="${not empty sessionScope.account}">
+                                                        <button type="submit" class="btn" style="background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Submit Review</button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <a href="${pageContext.request.contextPath}/login" class="btn" style="display: inline-block; background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; text-decoration: none;">Login to Submit Review</a>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </form>
                                             <script>
                                                 document.addEventListener("DOMContentLoaded", function() {
@@ -485,12 +563,26 @@
                     </div>
                     <div class="col-xl-3 col-lg-4">
                         <div class="courses__details-sidebar">
-                            <div class="courses__cost-wrap">
-                                <span>This Course Fee:</span>
-                                <h2 class="title">
-                                    $${course.price}
-                                </h2>
-                            </div>
+                            <c:choose>
+                                <c:when test="${isEnrolled}">
+                                    <div class="courses__cost-wrap" style="background-color: #28a745;">
+                                        <span>Status:</span>
+                                        <h2 class="title" style="font-size: 24px;">
+                                            <i class="fas fa-check-circle"></i> Purchased
+                                        </h2>
+                                        <p style="margin-top: 10px; margin-bottom: 0; font-size: 14px;">You can now access all lessons in the curriculum.</p>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="courses__cost-wrap">
+                                        <span>This Course Fee:</span>
+                                        <h2 class="title">
+                                            $${course.price}
+                                        </h2>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+
                             <div class="courses__information-wrap">
                                 <h5 class="title">Course includes:</h5>
                                 <ul class="list-wrap">
@@ -518,16 +610,19 @@
                                     <li><a href="#"><i class="fab fa-youtube"></i></a></li>
                                 </ul>
                             </div>
-                            <div class="courses__details-enroll">
-                                <form action="${pageContext.request.contextPath}/cart" method="post">
-                                    <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="courseId" value="${course.id}">
-                                    <input type="hidden" name="price" value="${course.price}">
-                                    <button type="submit" class="btn-two">
-                                        Add To Cart
-                                    </button>
-                                </form>
-                            </div>
+                            
+                            <c:if test="${not isEnrolled}">
+                                <div class="courses__details-enroll">
+                                    <form action="${pageContext.request.contextPath}/cart" method="post">
+                                        <input type="hidden" name="action" value="add">
+                                        <input type="hidden" name="courseId" value="${course.id}">
+                                        <input type="hidden" name="price" value="${course.price}">
+                                        <button type="submit" class="btn-two">
+                                            Add To Cart
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
                         </div>
                     </div>
                 </div>

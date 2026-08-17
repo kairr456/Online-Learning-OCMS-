@@ -14,13 +14,13 @@ public class Course {
     private LocalDateTime modifiedDate;
     private int createdBy;
     private int categoryId;
-
+    private String teacherName;
+    private String categoryName;
+    
     public Course() {
     }
 
-    public Course(int id, String name, String description, String thumbnail, int rating,
-                  float price, String status, LocalDateTime createdDate,
-                  LocalDateTime modifiedDate, int createdBy, int categoryId) {
+    public Course(int id, String name, String description, String thumbnail, int rating, float price, String status, LocalDateTime createdDate, LocalDateTime modifiedDate, int createdBy, int categoryId) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -121,5 +121,21 @@ public class Course {
 
     public void setCategoryId(int categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 }
