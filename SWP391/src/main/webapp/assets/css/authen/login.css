@@ -419,47 +419,41 @@
     width: 34px;
     height: 34px;
 
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    border: 0;
-
+    border: none;
     border-radius: 8px;
 
     background: transparent;
 
-    color: #000;
+    color: rgba(255, 255, 255, 0.45);
+
+    font-size: 16px;
 
     cursor: pointer;
+
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
 }
 
 
 .login-eye:hover {
-    color: #000;
+    color: #fff;
 
     background:
-        rgba(0, 0, 0, 0.08);
+        rgba(255, 255, 255, 0.08);
 }
 
 
-.login-eye svg {
-    width: 18px;
-    height: 14px;
-}
+.login-eye:focus {
+    outline:
+        2px solid
+        var(--amber, #d8a24a);
 
-
-.login-eye .icon-eye-off {
-    display: none;
-}
-
-
-.login-eye[aria-pressed="true"] .icon-eye {
-    display: none;
-}
-
-
-.login-eye[aria-pressed="true"] .icon-eye-off {
-    display: block;
+    outline-offset: 1px;
 }
 
 
