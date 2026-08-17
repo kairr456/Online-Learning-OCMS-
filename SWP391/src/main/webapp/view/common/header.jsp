@@ -16,6 +16,43 @@
     // of being hardcoded -- new categories show up here automatically.
     List<Category> headerCategories = new CategoryDAO().findAll();
 %>
+<style>
+.site-header__nav-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+.site-header__nav-dropdown .nav-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    min-width: 180px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    z-index: 1000;
+    padding: 10px 0;
+    border: 1px solid #eaeaea;
+}
+.site-header__nav-dropdown:hover .nav-dropdown-menu {
+    display: block;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a {
+    display: block;
+    padding: 10px 20px;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #5d3fd3; /* primary color */
+}
+</style>
 <header class="site-header">
     <div class="site-header__inner">
 
@@ -26,6 +63,17 @@
 
         <nav class="site-header__nav">
             <a href="<%= ctx %>/">Home</a>
+            <% if (headerAccount != null && headerAccount.getRoleId() == 2) { %>
+            <div class="site-header__nav-dropdown">
+                <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle">Course Dashboard <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i></a>
+                <div class="nav-dropdown-menu">
+                    <a href="<%= ctx %>/course-dashboard">My Courses</a>
+                    <a href="<%= ctx %>/lesson">Course Add</a>
+                    <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                    <a href="<%= ctx %>/quiz-attempt">Quiz Attempt</a>
+                </div>
+            </div>
+            <% } %>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
             <a href="<%= ctx %>/view/course_learning/course_learning.jsp">My Learning</a>
@@ -84,9 +132,6 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <% if (headerAccount.getRoleId() == 2) { %>
-                            <a href="<%= ctx %>/lesson">Create Course</a>
-                        <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>

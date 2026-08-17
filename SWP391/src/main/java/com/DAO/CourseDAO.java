@@ -441,6 +441,129 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
         return null;
     }
 
+    public List<Course> findCreatorCoursesWithFilters(int creatorId, List<Integer> categoryIds, List<Integer> ratings,
+            String courseName, String sort, int pageNumber, int pageSize) {
+        List<Course> courses = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM course WHERE created_by = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(creatorId);
+        String orderBy = "id"; // default
+
+        if (sort != null) {
+            switch (sort) {
+                case "Average Rating (High To Low)":
+                    orderBy = "rating DESC";
+                    break;
+                case "Average Rating (Low To High)":
+                    orderBy = "rating ASC";
+                    break;
+                case "Latest":
+                    orderBy = "created_date DESC";
+                    break;
+                case "Earliest":
+                    orderBy = "created_date ASC";
+                    break;
+                default:
+                    orderBy = "id";
+                    break;
+            }
+        }
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sql.append(" AND category_id IN (")
+                    .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
+                    .append(")");
+            params.addAll(categoryIds);
+        }
+
+        if (ratings != null && !ratings.isEmpty()) {
+            sql.append(" AND rating IN (")
+                    .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
+                    .append(")");
+            params.addAll(ratings);
+        }
+
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND name LIKE ?");
+            params.add("%" + courseName + "%");
+        }
+
+        sql.append(" ORDER BY ").append(orderBy).append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((pageNumber - 1) * pageSize);
+
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                if (params.get(i) instanceof Integer) {
+                    statement.setInt(i + 1, (Integer) params.get(i));
+                } else {
+                    statement.setString(i + 1, (String) params.get(i));
+                }
+            }
+
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                courses.add(getFromResultSet(resultSet));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error in creator filtered search: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return courses;
+    }
+
+    public int getTotalCreatorFilteredRecords(int creatorId, List<Integer> categoryIds, List<Integer> ratings, String courseName) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course WHERE created_by = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(creatorId);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sql.append(" AND category_id IN (")
+                    .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
+                    .append(")");
+            params.addAll(categoryIds);
+        }
+
+        if (ratings != null && !ratings.isEmpty()) {
+            sql.append(" AND rating IN (")
+                    .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
+                    .append(")");
+            params.addAll(ratings);
+        }
+
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND name LIKE ?");
+            params.add("%" + courseName + "%");
+        }
+
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                if (params.get(i) instanceof Integer) {
+                    statement.setInt(i + 1, (Integer) params.get(i));
+                } else {
+                    statement.setString(i + 1, (String) params.get(i));
+                }
+            }
+
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("total");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting total creator filtered records: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
     public static void main(String[] args) {
         CourseDAO courseDAO = new CourseDAO();
         // List<Course> courses = courseDAO.findAll();

@@ -13,6 +13,11 @@ public class Lesson {
     private String status; // Enum values: 'active', 'inactive'
     private Timestamp createdDate;
     private Timestamp modifiedDate;
+    
+    // Transient fields for specific content types
+    private String textContent;
+    private String videoUrl;
+    private String fileUrl;
 
     public Lesson() {
     }
@@ -110,4 +115,12 @@ public class Lesson {
         this.modifiedDate = modifiedDate;
     }
     
+    public String getTextContent() { return textContent; }
+    public void setTextContent(String textContent) { this.textContent = textContent; }
+    
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    
+    public String getFileUrl() { return fileUrl; }
+    public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
 }

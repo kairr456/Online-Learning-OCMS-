@@ -228,4 +228,131 @@ public class LessonDAO extends DBContext {
         }
         return "";
     }
+
+    public String getLessonFileUrl(int lessonId) {
+        String sql = "SELECT file_url FROM lesson_file WHERE lesson_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("file_url");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting lesson file: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return "";
+    }
+
+    public void updateSection(Section section) {
+        String sql = "UPDATE section SET title = ?, description = ?, order_number = ? WHERE id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, section.getTitle());
+            statement.setString(2, section.getDescription());
+            statement.setInt(3, section.getOrderNumber());
+            statement.setInt(4, section.getId());
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error updating section: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+    }
+
+    public void updateLesson(Lesson lesson) {
+        String sql = "UPDATE lesson SET title = ?, type = ?, order_number = ? WHERE id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, lesson.getTitle());
+            statement.setString(2, lesson.getType());
+            statement.setInt(3, lesson.getOrderNumber());
+            statement.setInt(4, lesson.getId());
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Error updating lesson: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+    }
+
+    public void upsertLessonVideo(int lessonId, String videoUrl) {
+        String sqlCheck = "SELECT lesson_id FROM lesson_video WHERE lesson_id = ?";
+        boolean exists = false;
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sqlCheck);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) exists = true;
+        } catch (Exception e) {} finally { closeResources(); }
+        
+        if (exists) {
+            String sqlUpdate = "UPDATE lesson_video SET video_url = ? WHERE lesson_id = ?";
+            try {
+                connection = new DBContext().connection;
+                statement = connection.prepareStatement(sqlUpdate);
+                statement.setString(1, videoUrl);
+                statement.setInt(2, lessonId);
+                statement.executeUpdate();
+            } catch (Exception e) {} finally { closeResources(); }
+        } else {
+            insertLessonVideo(lessonId, videoUrl);
+        }
+    }
+
+    public void upsertLessonFile(int lessonId, String fileUrl) {
+        String sqlCheck = "SELECT lesson_id FROM lesson_file WHERE lesson_id = ?";
+        boolean exists = false;
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sqlCheck);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) exists = true;
+        } catch (Exception e) {} finally { closeResources(); }
+        
+        if (exists) {
+            String sqlUpdate = "UPDATE lesson_file SET file_url = ? WHERE lesson_id = ?";
+            try {
+                connection = new DBContext().connection;
+                statement = connection.prepareStatement(sqlUpdate);
+                statement.setString(1, fileUrl);
+                statement.setInt(2, lessonId);
+                statement.executeUpdate();
+            } catch (Exception e) {} finally { closeResources(); }
+        } else {
+            insertLessonFile(lessonId, fileUrl);
+        }
+    }
+
+    public void upsertLessonText(int lessonId, String content) {
+        String sqlCheck = "SELECT lesson_id FROM lesson_text WHERE lesson_id = ?";
+        boolean exists = false;
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sqlCheck);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) exists = true;
+        } catch (Exception e) {} finally { closeResources(); }
+        
+        if (exists) {
+            String sqlUpdate = "UPDATE lesson_text SET content = ? WHERE lesson_id = ?";
+            try {
+                connection = new DBContext().connection;
+                statement = connection.prepareStatement(sqlUpdate);
+                statement.setString(1, content);
+                statement.setInt(2, lessonId);
+                statement.executeUpdate();
+            } catch (Exception e) {} finally { closeResources(); }
+        } else {
+            insertLessonText(lessonId, content);
+        }
+    }
 }
