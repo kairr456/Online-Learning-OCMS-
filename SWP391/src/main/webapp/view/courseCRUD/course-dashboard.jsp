@@ -277,7 +277,6 @@
             background: var(--primary-dark);
             color: var(--white);
             box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
-        }
     </style>
 </head>
 <body>
@@ -334,15 +333,32 @@
                             <img src="${course.thumbnail != null ? course.thumbnail : 'https://via.placeholder.com/300x150.png?text=img'}" alt="Course Image" class="course-image">
                         </a>
                         <div class="course-body">
-                            <div class="course-meta">
-                                <span class="course-rating">
-                                    rating ${course.rating}
+                            <div class="course-meta d-flex align-items-center mb-2">
+                                <span class="course-rating me-2">
+                                    <i class="fas fa-star text-warning"></i> ${course.rating}
+                                </span>
+                                <span class="fw-bold text-success me-2" style="font-size: 0.9rem;">
+                                    <c:choose>
+                                        <c:when test="${course.price == 0}">Free</c:when>
+                                        <c:otherwise>$${course.price}</c:otherwise>
+                                    </c:choose>
+                                </span>
+                                <span class="badge ${course.status == 'active' ? 'bg-success' : 'bg-secondary'} ms-auto">
+                                    ${course.status}
                                 </span>
                             </div>
                             
-                            <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="course-title">
+                            <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="course-title d-block mb-1">
                                 ${course.name}
                             </a>
+                            
+                            <c:if test="${not empty course.categoryName}">
+                                <div class="text-muted small mb-2"><i class="fas fa-tag"></i> ${course.categoryName}</div>
+                            </c:if>
+                            
+                            <div class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 40px;">
+                                ${course.description}
+                            </div>
                             
                             <div class="course-footer">
                                 <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>

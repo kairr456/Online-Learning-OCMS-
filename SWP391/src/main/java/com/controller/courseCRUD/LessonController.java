@@ -35,6 +35,10 @@ public class LessonController extends HttpServlet {
             com.DAO.CategoryDAO categoryDAO = new com.DAO.CategoryDAO();
             request.setAttribute("categories", categoryDAO.findAll());
             
+            // Fetch Quiz Bank
+            com.DAO.QuizDAO quizDAO = new com.DAO.QuizDAO();
+            request.setAttribute("quizBank", quizDAO.getQuizBankByTeacher(account.getId()));
+            
             String courseIdStr = request.getParameter("courseId");
             if (courseIdStr != null && !courseIdStr.isEmpty()) {
                 int courseId = Integer.parseInt(courseIdStr);

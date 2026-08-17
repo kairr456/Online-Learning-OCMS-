@@ -133,6 +133,12 @@
     </div>
 
     <script>
+        const quizBankList = [
+            <c:forEach var="q" items="${quizBank}" varStatus="loop">
+                { id: "${q.quiz_id}", title: "${fn:escapeXml(q.lesson_title)}" }${!loop.last ? ',' : ''}
+            </c:forEach>
+        ];
+
         let sectionIndex = ${not empty sections ? fn:length(sections) : 0};
         let lessonIndexes = {};
         let blockIndexes = {};
@@ -244,11 +250,22 @@
                 `;
                 container.innerHTML = html;
             } else if (type === 'quiz') {
+                let selectedQuizId = "";
+                if (rawHtml && rawHtml.startsWith("Quiz ID: ")) {
+                    selectedQuizId = rawHtml.substring(9).trim();
+                }
+                
+                let optionsHtml = '<option value="">-- Select Quiz from Bank --</option>';
+                quizBankList.forEach(q => {
+                    const selected = (q.id == selectedQuizId) ? 'selected' : '';
+                    optionsHtml += `<option value="\${q.id}" \${selected}>\${escapeHtml(q.title)}</option>`;
+                });
+
                 html = `
                     <div class="mb-3">
                         <label class="form-label text-warning"><i class="fas fa-question-circle"></i> Quiz Bank</label>
-                        <select name="lessonQuiz_\${lessonKey}" class="form-select">
-                            <option value="1">Placeholder Quiz 1 (Load from Bank)</option>
+                        <select name="lessonQuiz_\${lessonKey}" class="form-select" required>
+                            \${optionsHtml}
                         </select>
                     </div>
                 `;

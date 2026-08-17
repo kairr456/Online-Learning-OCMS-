@@ -40,12 +40,18 @@ public class LessonDetails extends HttpServlet {
             boolean isEnrolled = false;
             com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
             if (account != null) {
-                com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
-                java.util.List<com.entity.Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
-                for (com.entity.Course c : enrolledCourses) {
-                    if (c.getId() == courseId) {
-                        isEnrolled = true;
-                        break;
+                com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
+                com.entity.Course course = courseDAO.findById(courseId);
+                if (course != null && course.getCreatedBy() == account.getId()) {
+                    isEnrolled = true;
+                } else {
+                    com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                    java.util.List<com.entity.Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                    for (com.entity.Course c : enrolledCourses) {
+                        if (c.getId() == courseId) {
+                            isEnrolled = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -67,12 +73,17 @@ public class LessonDetails extends HttpServlet {
 
             // Get the rich text block-built content
             String lessonContent = lessonDAO.getLessonText(lessonId);
+            
+            if ("video".equals(lesson.getType())) {
+                String videoUrl = lessonDAO.getLessonYoutube(lessonId);
+                request.setAttribute("videoUrl", videoUrl);
+            }
 
             request.setAttribute("lesson", lesson);
             request.setAttribute("lessonContent", lessonContent);
             request.setAttribute("courseId", courseId);
 
-            request.getRequestDispatcher("/view/common/home/lesson-details.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/courseCRUD/lesson-details.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/courses");

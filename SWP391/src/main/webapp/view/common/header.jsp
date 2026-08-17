@@ -64,15 +64,7 @@
         <nav class="site-header__nav">
             <a href="<%= ctx %>/">Home</a>
             <% if (headerAccount != null && headerAccount.getRoleId() == 2) { %>
-            <div class="site-header__nav-dropdown">
-                <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle">Course Dashboard <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i></a>
-                <div class="nav-dropdown-menu">
-                    <a href="<%= ctx %>/course-dashboard">My Courses</a>
-                    <a href="<%= ctx %>/lesson">Course Add</a>
-                    <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
-                    <a href="<%= ctx %>/quiz-attempt">Quiz Attempt</a>
-                </div>
-            </div>
+                <!-- Moved Course Dashboard to right side -->
             <% } %>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
@@ -102,8 +94,21 @@
             </button>
         </form>
 
-        <div class="site-header__account">
+        <div class="site-header__account d-flex align-items-center">
             <% if (headerAccount != null) { %>
+
+                <% if (headerAccount.getRoleId() == 2) { %>
+                <div class="site-header__nav-dropdown" style="margin-right: 15px;">
+                    <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle" style="color: #fff; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                        Course Dashboard 
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </a>
+                    <div class="nav-dropdown-menu">
+                        <a href="<%= ctx %>/lesson">Course Add</a>
+                        <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                    </div>
+                </div>
+                <% } %>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/view/common/wishlist.jsp" title="Wishlist" aria-label="Wishlist">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
