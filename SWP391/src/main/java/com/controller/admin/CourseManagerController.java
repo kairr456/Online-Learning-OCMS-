@@ -2,6 +2,7 @@ package com.controller.admin;
 
 import com.DAO.CategoryDAO;
 import com.DAO.CourseAdminDAO;
+import com.DAO.CourseApprovalDAO;
 import com.DAO.CourseDAO;
 import com.entity.Category;
 import com.entity.Course;
@@ -48,6 +49,10 @@ public class CourseManagerController extends HttpServlet {
             handleDelete(request, response);
             return;
         }
+        if ("approve".equals(action)) {
+            handleApprove(request, response);
+            return;
+        }
 
         // Lấy thông tin filter & search từ URL
         String keyword = request.getParameter("keyword");
@@ -80,6 +85,7 @@ public class CourseManagerController extends HttpServlet {
         request.setAttribute("categoryList", categoryList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("courseApprovalLogs", new CourseApprovalDAO().getRecentLogs(10));
 
         // Main content cần render
         request.setAttribute("contentPage", "courses.jsp");
@@ -106,14 +112,49 @@ public class CourseManagerController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/admin/courses");
     }
 
+    // ---------- Approve / Reject / History ----------
+    private void handleApprove(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String idRaw = request.getParameter("id");
+        if (idRaw != null && !idRaw.trim().isEmpty()) {
+            try {
+                int adminId = getAdminId(request);
+                new CourseApprovalDAO().approveCourse(Integer.parseInt(idRaw), adminId, request.getRemoteAddr());
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/admin/courses?status=pending");
+    }
+
+    private void handleReject(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int id;
+        try {
+            id = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            writeJson(response, false, "Invalid course id.");
+            return;
+        }
+        String note = trim(request.getParameter("note"));
+        int adminId = getAdminId(request);
+        boolean ok = new CourseApprovalDAO().rejectCourse(id, adminId, note, request.getRemoteAddr());
+        writeJson(response, ok, ok ? null : "Reject failed.");
+    }
+
+    private int getAdminId(HttpServletRequest request) {
+        com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+        return account != null ? account.getId() : 0;
+    }
+
     // ---------- POST: edit (từ modal, trả JSON) ----------
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");   // "edit"
+        String action = request.getParameter("action");   // "edit" | "reject"
         if ("edit".equals(action)) {
             handleEdit(request, response);
+        } else if ("reject".equals(action)) {
+            handleReject(request, response);
         }
     }
 

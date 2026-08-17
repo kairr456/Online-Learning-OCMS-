@@ -69,7 +69,7 @@ public class LessonController extends HttpServlet {
             course.setCategoryId(categoryId);
             course.setCreatedBy(account.getId());
             course.setThumbnail(request.getContextPath() + "/" + thumbnailRelPath);
-            course.setStatus("active");
+            course.setStatus("pending");
             course.setRating(0);
             course.setCreatedDate(java.time.LocalDateTime.now());
             course.setModifiedDate(java.time.LocalDateTime.now());
@@ -78,6 +78,8 @@ public class LessonController extends HttpServlet {
             int courseId = courseDAO.insert(course);
 
             if (courseId > 0) {
+                new com.DAO.CourseApprovalDAO().insertLog(courseId, "SUBMIT", "draft", "pending",
+                        account.getId(), "", request.getRemoteAddr());
                 com.DAO.LessonDAO lessonDAO = new com.DAO.LessonDAO();
                 int sectionCount = Integer.parseInt(request.getParameter("sectionCount"));
 
