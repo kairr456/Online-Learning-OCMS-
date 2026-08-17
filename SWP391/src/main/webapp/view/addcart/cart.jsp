@@ -317,7 +317,7 @@
                                                             <input type="hidden" name="search" value="<c:out value="${search}"/>">
                                                             <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
                                                             <input type="hidden" name="page" value="${currentPage}">
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmRemove(${item.id}, '${course.name}')">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
                                                                 <i class="fas fa-trash"></i> Remove
                                                             </button>
                                                         </form>
