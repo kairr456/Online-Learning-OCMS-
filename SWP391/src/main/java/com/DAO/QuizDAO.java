@@ -182,12 +182,13 @@ public class QuizDAO extends DBContext {
         return lessonId;
     }
 
-    // 5. Create Lesson_Quiz mapping with passing_score
-    public int insertLessonQuiz(int lessonId, int passingScore) throws SQLException {
-        String sql = "INSERT INTO lesson_quiz (lesson_id, passing_score) VALUES (?, ?)";
+    // 5. Create Lesson_Quiz mapping with passing_score and max_retakes
+    public int insertLessonQuiz(int lessonId, int passingScore, int maxRetakes) throws SQLException {
+        String sql = "INSERT INTO lesson_quiz (lesson_id, passing_score, max_retakes) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, lessonId);
             ps.setInt(2, passingScore);
+            ps.setInt(3, maxRetakes);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -233,6 +234,7 @@ public class QuizDAO extends DBContext {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
                     map.put("passing_score", rs.getInt("passing_score"));
+                    map.put("max_retakes", rs.getInt("max_retakes"));
                     return map;
                 }
             }
@@ -282,18 +284,47 @@ public class QuizDAO extends DBContext {
         return answers;
     }
 
-    public boolean insertQuizAttempt(int accountId, int quizId, float score, boolean passed) {
+    public int insertQuizAttempt(int accountId, int quizId, float score, boolean passed) {
         String sql = "INSERT INTO quiz_attempt (account_id, quiz_id, score, passed, start_time, end_time) VALUES (?, ?, ?, ?, NOW(), NOW())";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, accountId);
             ps.setInt(2, quizId);
             ps.setFloat(3, score);
             ps.setBoolean(4, passed);
-            return ps.executeUpdate() > 0;
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return -1;
+    }
+
+    public void insertQuizAttemptAnswer(int attemptId, int questionId, int selectedAnswerId) {
+        String sql = "INSERT INTO quiz_attempt_answer (attempt_id, question_id, selected_answer_id) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, attemptId);
+            ps.setInt(2, questionId);
+            ps.setInt(3, selectedAnswerId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int countUserAttemptsForQuiz(int accountId, int quizId) {
+        String sql = "SELECT COUNT(*) FROM quiz_attempt WHERE account_id = ? AND quiz_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ps.setInt(2, quizId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public Map<String, Object> getLessonQuizById(int quizId) {
@@ -304,7 +335,9 @@ public class QuizDAO extends DBContext {
                 if (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
+                    map.put("lesson_id", rs.getInt("lesson_id"));
                     map.put("passing_score", rs.getInt("passing_score"));
+                    map.put("max_retakes", rs.getInt("max_retakes"));
                     return map;
                 }
             }
@@ -334,5 +367,152 @@ public class QuizDAO extends DBContext {
             e.printStackTrace();
         }
         return quizzes;
+    }
+
+    public List<Map<String, Object>> getAttemptAnswers(int attemptId) {
+        List<Map<String, Object>> ans = new ArrayList<>();
+        String sql = "SELECT qaa.question_id, qaa.selected_answer_id, qa.is_correct " +
+                     "FROM quiz_attempt_answer qaa " +
+                     "JOIN quiz_answer qa ON qaa.selected_answer_id = qa.id " +
+                     "WHERE qaa.attempt_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, attemptId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("question_id", rs.getInt("question_id"));
+                    map.put("selected_answer_id", rs.getInt("selected_answer_id"));
+                    map.put("is_correct", rs.getBoolean("is_correct"));
+                    ans.add(map);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ans;
+    }
+
+    public List<Map<String, Object>> getAttemptsByQuizId(int quizId) {
+        List<Map<String, Object>> attempts = new ArrayList<>();
+        String sql = "SELECT qa.id, acc.full_name AS student_name, " +
+                     "qa.score, qa.passed, qa.end_time " +
+                     "FROM quiz_attempt qa " +
+                     "JOIN account acc ON qa.account_id = acc.id " +
+                     "WHERE qa.quiz_id = ? " +
+                     "ORDER BY qa.end_time DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, quizId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("id", rs.getInt("id"));
+                    a.put("student_name", rs.getString("student_name"));
+                    a.put("score", rs.getDouble("score"));
+                    a.put("passed", rs.getInt("passed") == 1);
+                    a.put("end_time", rs.getTimestamp("end_time"));
+                    attempts.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return attempts;
+    }
+
+    public boolean deleteQuiz(int quizId) {
+        Map<String, Object> quiz = getLessonQuizById(quizId);
+        if (quiz != null) {
+            int lessonId = (Integer) quiz.get("lesson_id");
+            
+            // Cascade delete manually since foreign keys might not have ON DELETE CASCADE
+            String[] sqls = {
+                "DELETE FROM quiz_attempt_answer WHERE attempt_id IN (SELECT id FROM quiz_attempt WHERE quiz_id = ?)",
+                "DELETE FROM quiz_attempt WHERE quiz_id = ?",
+                "DELETE FROM quiz_answer WHERE question_id IN (SELECT id FROM quiz_question WHERE quiz_id = ?)",
+                "DELETE FROM quiz_question WHERE quiz_id = ?",
+                "DELETE FROM lesson_quiz WHERE id = ?",
+                "DELETE FROM lesson WHERE id = ?"
+            };
+            
+            try {
+                connection.setAutoCommit(false);
+                
+                for (int i = 0; i < 5; i++) {
+                    try (PreparedStatement ps = connection.prepareStatement(sqls[i])) {
+                        ps.setInt(1, quizId);
+                        ps.executeUpdate();
+                    }
+                }
+                
+                // Delete lesson
+                try (PreparedStatement ps = connection.prepareStatement(sqls[5])) {
+                    ps.setInt(1, lessonId);
+                    ps.executeUpdate();
+                }
+                
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                e.printStackTrace();
+            } finally {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    public void updateQuizLesson(com.entity.Lesson lesson) {
+        String sql = "UPDATE lesson SET title = ?, description = ?, duration_minutes = ?, status = ? WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, lesson.getTitle());
+            ps.setString(2, lesson.getDescription());
+            ps.setInt(3, lesson.getDurationMinutes());
+            ps.setString(4, lesson.getStatus());
+            ps.setInt(5, lesson.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateLessonQuiz(int quizId, int passingScore, int maxRetakes) {
+        String sql = "UPDATE lesson_quiz SET passing_score = ?, max_retakes = ? WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, passingScore);
+            ps.setInt(2, maxRetakes);
+            ps.setInt(3, quizId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clearQuizQuestions(int quizId) {
+        // Cascade delete manually
+        String[] sqls = {
+            "DELETE FROM quiz_attempt_answer WHERE attempt_id IN (SELECT id FROM quiz_attempt WHERE quiz_id = ?)",
+            "DELETE FROM quiz_attempt WHERE quiz_id = ?",
+            "DELETE FROM quiz_answer WHERE question_id IN (SELECT id FROM quiz_question WHERE quiz_id = ?)",
+            "DELETE FROM quiz_question WHERE quiz_id = ?"
+        };
+        try {
+            for (String sql : sqls) {
+                try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                    ps.setInt(1, quizId);
+                    ps.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

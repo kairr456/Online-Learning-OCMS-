@@ -199,8 +199,11 @@ public class LessonDAO extends DBContext {
                 lesson.setId(resultSet.getInt("id"));
                 lesson.setSectionId(resultSet.getInt("section_id"));
                 lesson.setTitle(resultSet.getString("title"));
+                lesson.setDescription(resultSet.getString("description"));
                 lesson.setType(resultSet.getString("type"));
                 lesson.setOrderNumber(resultSet.getInt("order_number"));
+                lesson.setDurationMinutes(resultSet.getInt("duration_minutes"));
+                lesson.setStatus(resultSet.getString("status"));
                 return lesson;
             }
         } catch (SQLException ex) {

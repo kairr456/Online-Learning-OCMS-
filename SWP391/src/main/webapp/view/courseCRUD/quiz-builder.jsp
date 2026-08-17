@@ -40,6 +40,7 @@
         <p class="text-muted mb-4">Create dynamic, interactive quizzes to evaluate your students.</p>
 
         <form id="quizForm" action="quiz-builder" method="POST">
+            <input type="hidden" name="quizId" value="${quizInfo != null ? quizInfo.id : ''}">
             
             <!-- Part 1: General Settings -->
             <div class="section-card">
@@ -65,26 +66,27 @@
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Quiz Title <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control" placeholder="e.g. Midterm Java Examination" required>
+                    <input type="text" name="title" class="form-control" value="${lesson != null ? lesson.title : ''}" placeholder="e.g. Midterm Java Examination" required>
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Description / Instructions</label>
-                    <textarea name="description" class="form-control" rows="3" placeholder="Provide rules or instructions..."></textarea>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Provide rules or instructions...">${lesson != null ? lesson.description : ''}</textarea>
                 </div>
                 
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Duration (Minutes)</label>
-                        <input type="number" class="form-control" name="durationMinutes" min="1" value="15" required>
+                        <input type="number" class="form-control" name="durationMinutes" min="1" value="${lesson != null ? lesson.durationMinutes : '15'}" required>
                     </div>
-                    <div class="col-md-4" style="display: none;">
-                        <label class="form-label">Display Order</label>
-                        <input type="number" class="form-control" name="orderNumber" min="1" value="1">
+                    <div class="col-md-4">
+                        <label class="form-label">Max Retakes</label>
+                        <input type="number" class="form-control" name="maxRetakes" min="-1" value="${quizInfo != null ? quizInfo.max_retakes : '-1'}" placeholder="-1 for unlimited" required>
+                        <small class="text-muted" style="font-size: 0.75rem;">Set to -1 for unlimited.</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Passing Score (%)</label>
-                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="80" required>
+                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="${quizInfo != null ? quizInfo.passing_score : '80'}" required>
                     </div>
                 </div>
             </div>
@@ -276,8 +278,64 @@
             form.submit();
         }
         
-        // Init with 1 question
-        addQuestion();
+        // Init
+        const isEdit = ${isEdit != null ? isEdit : false};
+        
+        if (isEdit) {
+            const editQuestions = ${questionsJson != null ? questionsJson : '[]'};
+            const editAnswers = ${answersJson != null ? answersJson : '{}'};
+            
+            editQuestions.forEach((q, qIndex) => {
+                questionCounter++;
+                const qId = questionCounter;
+                
+                let answersHtml = '';
+                const qAnswers = editAnswers[q.id] || [];
+                qAnswers.forEach((a, aIndex) => {
+                    const aId = aIndex + 1;
+                    const checkedAttr = a.is_correct ? 'checked' : '';
+                    const correctClass = a.is_correct ? 'correct' : '';
+                    
+                    // Escape quotes for answer text
+                    const safeAnswerText = a.answer_text ? a.answer_text.replace(/"/g, '&quot;') : '';
+                    
+                    answersHtml += '<div class="answer-row ' + correctClass + '" id="a_row_' + qId + '_' + aId + '">' +
+                        '<input type="hidden" name="aIds_' + qId + '" value="' + aId + '">' +
+                        '<input class="form-check-input mt-0" type="radio" name="a_correct_' + qId + '" value="' + aId + '" ' + checkedAttr + ' onchange="highlightCorrect(' + qId + ', ' + aId + ')" required>' +
+                        '<input type="text" name="a_text_' + qId + '_' + aId + '" class="answer-text" value="' + safeAnswerText + '" placeholder="Answer option..." required>' +
+                        '<button type="button" class="btn btn-sm text-danger" onclick="removeAnswer(' + qId + ', ' + aId + ')"><i class="fas fa-times"></i></button>' +
+                    '</div>';
+                });
+                
+                const safeQuestionText = q.question_text ? q.question_text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                
+                const html = '<div class="question-card" id="q_card_' + qId + '">' +
+                    '<input type="hidden" name="qIds" value="' + qId + '">' +
+                    '<div class="question-header">' +
+                        '<div class="question-number"><i class="fas fa-grip-vertical drag-handle"></i> Question ' + qId + '</div>' +
+                        '<div>' +
+                            '<div class="input-group input-group-sm d-inline-flex" style="width: 120px;">' +
+                                '<span class="input-group-text bg-light">Points</span>' +
+                                '<input type="number" name="q_points_' + qId + '" class="form-control text-center point-input" value="' + (q.points || 1) + '" min="1" onchange="updateSummary()" required>' +
+                            '</div>' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeQuestion(' + qId + ')"><i class="fas fa-trash"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<textarea name="q_text_' + qId + '" class="form-control mb-3" rows="2" placeholder="Type your question here..." required>' + safeQuestionText + '</textarea>' +
+                    '<div class="answers-container mb-2" id="answers_container_' + qId + '">' +
+                        answersHtml +
+                    '</div>' +
+                    '<button type="button" class="btn btn-sm btn-link text-decoration-none" onclick="addAnswer(' + qId + ')">' +
+                        '<i class="fas fa-plus"></i> Add Answer Option' +
+                    '</button>' +
+                '</div>';
+                
+                document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', html);
+            });
+            updateSummary();
+        } else {
+            addQuestion();
+        }
     </script>
 </body>
 </html>

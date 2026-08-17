@@ -169,14 +169,14 @@
                                             <span class="status-badge ${q.status == 'active' ? 'status-active' : 'status-inactive'}">${q.status}</span>
                                         </td>
                                         <td class="text-end">
-                                            <button class="btn btn-outline-primary btn-action" title="Manage Questions" onclick="alert('Manage Questions for Quiz ID: ${q.quiz_id}')">
-                                                <i class="fas fa-list"></i>
-                                            </button>
-                                            <button class="btn btn-outline-success btn-action" title="View Results" onclick="alert('View Results for Quiz ID: ${q.quiz_id}')">
+                                            <a href="${pageContext.request.contextPath}/quiz-results?quizId=${q.quiz_id}" class="btn btn-outline-success btn-action" title="View Results">
                                                 <i class="fas fa-chart-bar"></i>
-                                            </button>
-                                            <button class="btn btn-outline-secondary btn-action" title="Edit Settings">
-                                                <i class="fas fa-cog"></i>
+                                            </a>
+                                            <a href="${pageContext.request.contextPath}/quiz-edit?quizId=${q.quiz_id}" class="btn btn-outline-primary btn-action" title="Edit Quiz">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger btn-action" title="Delete Quiz" onclick="if(confirm('Are you sure you want to delete this quiz?')) window.location.href='${pageContext.request.contextPath}/quiz-delete?quizId=${q.quiz_id}'">
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>

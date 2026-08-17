@@ -63,6 +63,17 @@ public class TakeQuizController extends HttpServlet {
             }
 
             int quizId = (Integer) lessonQuiz.get("id");
+            int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
+            
+            // Check retake limits
+            if (maxRetakes != -1) {
+                int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
+                if (userAttempts >= maxRetakes) {
+                    session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz.");
+                    response.sendRedirect(request.getContextPath() + "/courses");
+                    return;
+                }
+            }
             List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
             
             // Map questionId -> answers
@@ -158,7 +169,19 @@ public class TakeQuizController extends HttpServlet {
             boolean passed = scorePercent >= passingScore;
             
             // Save attempt
-            quizDAO.insertQuizAttempt(account.getId(), quizId, scorePercent, passed);
+            int attemptId = quizDAO.insertQuizAttempt(account.getId(), quizId, scorePercent, passed);
+            
+            if (attemptId > 0) {
+                // Save individual answers
+                for (Map<String, Object> q : questions) {
+                    int qId = (Integer) q.get("id");
+                    String selectedAnswerIdStr = request.getParameter("q_" + qId);
+                    if (selectedAnswerIdStr != null && !selectedAnswerIdStr.isEmpty()) {
+                        int selectedAnswerId = Integer.parseInt(selectedAnswerIdStr);
+                        quizDAO.insertQuizAttemptAnswer(attemptId, qId, selectedAnswerId);
+                    }
+                }
+            }
             
             // Send back JSON response
             response.setContentType("application/json");
