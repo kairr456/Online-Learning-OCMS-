@@ -65,16 +65,26 @@ public class CartController extends HttpServlet {
         // Get the user's cart
         Cart cart = cartDAO.getOrCreateCart(account.getId());
 
-        // Get cart items with course details
-        List<CartItem> cartItems = cartItemDAO.getCartItemsWithCourseDetails(cart.getId());
+        // Get filter & sort parameters
+        String search = request.getParameter("search");
+        String sort = request.getParameter("sort");
+        if (sort == null || sort.trim().isEmpty()) {
+            sort = "newest";
+        }
+
+        // Get filtered and sorted cart items with course details
+        List<CartItem> cartItems = cartItemDAO.getCartItemsWithFilters(cart.getId(), search, sort);
+
+        // Count total unfiltered items in cart
+        int totalCartItems = cartItemDAO.countCartItems(cart.getId());
 
         // Calculate cart total
         BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
 
         // Pagination: max 4 items per page
         int pageSize = 4;
-        int totalItems = (cartItems != null) ? cartItems.size() : 0;
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        int totalFilteredItems = (cartItems != null) ? cartItems.size() : 0;
+        int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
         if (totalPages == 0) {
             totalPages = 1;
         }
@@ -94,8 +104,8 @@ public class CartController extends HttpServlet {
         List<CartItem> pagedItems;
         if (cartItems != null && !cartItems.isEmpty()) {
             int fromIndex = (currentPage - 1) * pageSize;
-            int toIndex = Math.min(fromIndex + pageSize, totalItems);
-            if (fromIndex < totalItems) {
+            int toIndex = Math.min(fromIndex + pageSize, totalFilteredItems);
+            if (fromIndex < totalFilteredItems) {
                 pagedItems = cartItems.subList(fromIndex, toIndex);
             } else {
                 pagedItems = new ArrayList<>();
@@ -108,7 +118,10 @@ public class CartController extends HttpServlet {
         request.setAttribute("cart", cart);
         request.setAttribute("cartItems", pagedItems);
         request.setAttribute("cartTotal", cartTotal);
-        request.setAttribute("itemCount", totalItems);
+        request.setAttribute("itemCount", totalFilteredItems);
+        request.setAttribute("totalCartItems", totalCartItems);
+        request.setAttribute("search", search != null ? search : "");
+        request.setAttribute("sort", sort);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("courseDAO", courseDAO);
@@ -294,8 +307,26 @@ public class CartController extends HttpServlet {
             session.setAttribute("messageType", "error");
         }
 
-        // Redirect back to cart page
-        response.sendRedirect(request.getContextPath() + "/cart");
+        // Redirect back to cart page with preserved filter/sort params
+        String search = request.getParameter("search");
+        String sort = request.getParameter("sort");
+        String page = request.getParameter("page");
+
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/cart?");
+        if (page != null && !page.trim().isEmpty()) {
+            redirectUrl.append("page=").append(page.trim()).append("&");
+        }
+        if (sort != null && !sort.trim().isEmpty()) {
+            redirectUrl.append("sort=").append(sort.trim()).append("&");
+        }
+        if (search != null && !search.trim().isEmpty()) {
+            redirectUrl.append("search=").append(java.net.URLEncoder.encode(search.trim(), "UTF-8")).append("&");
+        }
+        String finalUrl = redirectUrl.toString();
+        if (finalUrl.endsWith("?") || finalUrl.endsWith("&")) {
+            finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
+        }
+        response.sendRedirect(finalUrl);
     }
 
     private void processCheckout(HttpServletRequest request, HttpServletResponse response)

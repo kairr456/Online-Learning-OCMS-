@@ -246,7 +246,8 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
         String sql = "SELECT ci.*, c.name as course_name, c.thumbnail as course_thumbnail " +
                      "FROM cart_item ci " +
                      "JOIN course c ON ci.course_id = c.id " +
-                     "WHERE ci.cart_id = ?";
+                     "WHERE ci.cart_id = ? " +
+                     "ORDER BY ci.added_date DESC, ci.id DESC";
         try {
             connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
@@ -260,6 +261,55 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
             }
         } catch (SQLException ex) {
             System.out.println("Error getting cart items with course details: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return cartItems;
+    }
+
+    /**
+     * Get cart items with course details filtered by search keyword and sorted
+     * @param cartId The cart ID
+     * @param search Search keyword for course name
+     * @param sort Sort direction ("newest" or "oldest")
+     * @return List of filtered and sorted cart items
+     */
+    public List<CartItem> getCartItemsWithFilters(Integer cartId, String search, String sort) {
+        List<CartItem> cartItems = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ci.*, c.name as course_name, c.thumbnail as course_thumbnail ")
+           .append("FROM cart_item ci ")
+           .append("JOIN course c ON ci.course_id = c.id ")
+           .append("WHERE ci.cart_id = ? ");
+
+        boolean hasSearch = (search != null && !search.trim().isEmpty());
+        if (hasSearch) {
+            sql.append("AND LOWER(c.name) LIKE ? ");
+        }
+
+        if ("oldest".equalsIgnoreCase(sort)) {
+            sql.append("ORDER BY ci.added_date ASC, ci.id ASC");
+        } else {
+            sql.append("ORDER BY ci.added_date DESC, ci.id DESC");
+        }
+
+        try {
+            connection = new DBContext().getConnection();
+            statement = connection.prepareStatement(sql.toString());
+            int paramIndex = 1;
+            statement.setInt(paramIndex++, cartId);
+            if (hasSearch) {
+                String keyword = "%" + search.trim().toLowerCase() + "%";
+                statement.setString(paramIndex++, keyword);
+            }
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                CartItem item = getFromResultSet(resultSet);
+                cartItems.add(item);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting cart items with filters: " + ex.getMessage());
         } finally {
             closeResources();
         }
