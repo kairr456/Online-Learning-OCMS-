@@ -11,8 +11,6 @@
     <meta name="description" content="Shopping Cart">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Place favicon.ico in the root directory -->
-
     <!-- CSS here -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
@@ -55,15 +53,132 @@
             display: flex !important;
             gap: 10px;
         }
-
         .cart-summary .cart-actions a,
         .cart-summary .cart-actions form {
             width: 50%;
         }
-
         .cart-summary .cart-actions button,
         .cart-summary .cart-actions a {
             width: 100%;
+        }
+
+        /* Cart Toolbar (Search & Sort) */
+        .cart-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .cart-search-box {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+            max-width: 380px;
+        }
+        .cart-search-form {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+        }
+        .cart-search-input {
+            width: 100%;
+            padding: 9px 42px 9px 14px;
+            border-radius: 8px;
+            border: 1px solid #dce2e8;
+            outline: none;
+            font-size: 14px;
+            background: #ffffff !important;
+            color: #0F1E33 !important;
+            transition: all 0.2s ease;
+        }
+        .cart-search-input::placeholder {
+            color: #8C99AC !important;
+            opacity: 1;
+        }
+        .cart-search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .cart-search-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 15px;
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+        .cart-search-btn:hover {
+            color: #1d4ed8;
+        }
+        .cart-clear-btn {
+            position: absolute;
+            right: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .cart-clear-btn:hover {
+            color: #ef4444;
+        }
+        .cart-sort-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #0F1E33;
+            font-weight: 500;
+        }
+        .cart-sort-wrap label {
+            margin: 0;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0F1E33;
+            cursor: pointer;
+        }
+        .cart-sort-select {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #dce2e8;
+            background: #ffffff !important;
+            color: #0F1E33 !important;
+            font-size: 13.5px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+        .cart-sort-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         /* Pagination */
@@ -121,10 +236,13 @@
             <div class="row">
                 <div class="col-lg-8">
                     <div class="cart-items-wrapper">
-                        <h4 class="mb-4">Your Cart (${itemCount} items)</h4>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">Your Cart (${totalCartItems != null ? totalCartItems : itemCount} items)</h4>
+                        </div>
                         
                         <c:choose>
-                            <c:when test="${empty cartItems}">
+                            <%-- Giỏ hàng hoàn toàn trống --%>
+                            <c:when test="${(empty totalCartItems || totalCartItems == 0) && empty search}">
                                 <div class="empty-cart">
                                     <i class="fas fa-shopping-cart"></i>
                                     <h5>Your cart is empty</h5>
@@ -133,32 +251,82 @@
                                 </div>
                             </c:when>
                             <c:otherwise>
-                                <c:forEach items="${cartItems}" var="item" varStatus="status">
-                                    <div class="cart-item">
-                                        <div class="row align-items-center">
-                                            <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
-                                            <div class="col-md-2">
-                                                <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h5>${course.name}</h5>
-                                                <small>Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
-                                            </div>
-                                            <div class="col-md-2 text-right">
-                                                <span class="price">$<fmt:formatNumber value="${item.price}" pattern="#,##0.00"/></span>
-                                            </div>
-                                            <div class="col-md-2 text-right">
-                                                <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="${course.name}">
-                                                    <input type="hidden" name="action" value="remove">
-                                                    <input type="hidden" name="itemId" value="${item.id}">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="fas fa-trash"></i> Remove
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
+                                <!-- Cart Toolbar (Search & Sort) -->
+                                <div class="cart-toolbar">
+                                    <!-- Ô Tìm Kiếm -->
+                                    <div class="cart-search-box">
+                                        <form action="${pageContext.request.contextPath}/cart" method="get" class="cart-search-form" id="cartSearchForm">
+                                            <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
+                                            <input type="text" name="search" id="cartSearchInput" class="cart-search-input" 
+                                                   placeholder="Tìm kiếm khóa học..." value="<c:out value="${search}"/>" 
+                                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('cartSearchForm').submit(); }">
+                                            <c:if test="${not empty search}">
+                                                <a href="${pageContext.request.contextPath}/cart?sort=<c:out value="${sort}"/>" class="cart-clear-btn" title="Xóa tìm kiếm">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </a>
+                                            </c:if>
+                                            <button type="submit" class="cart-search-btn" title="Tìm kiếm">
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                            </button>
+                                        </form>
                                     </div>
-                                </c:forEach>
+
+                                    <!-- Bộ Sắp Xếp (Mới nhất / Cũ nhất) -->
+                                    <div class="cart-sort-wrap">
+                                        <label for="cartSortSelect">
+                                            <i class="fa-solid fa-arrow-down-short-wide"></i> Sắp xếp:
+                                        </label>
+                                        <select id="cartSortSelect" class="cart-sort-select" onchange="applyCartSort(this.value)">
+                                            <option value="newest" ${sort == 'newest' ? 'selected' : ''}>Mới nhất</option>
+                                            <option value="oldest" ${sort == 'oldest' ? 'selected' : ''}>Cũ nhất</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <c:choose>
+                                    <%-- Khi tìm kiếm không có kết quả phù hợp --%>
+                                    <c:when test="${empty cartItems}">
+                                        <div class="empty-cart" style="padding: 40px 0;">
+                                            <i class="fa-solid fa-magnifying-glass" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i>
+                                            <h5>Không tìm thấy khóa học nào phù hợp</h5>
+                                            <p class="text-muted mb-3">Không có khóa học nào trong giỏ hàng khớp với từ khóa "<strong><c:out value="${search}"/></strong>".</p>
+                                            <a href="${pageContext.request.contextPath}/cart?sort=<c:out value="${sort}"/>" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa-solid fa-rotate-left me-1"></i> Xem tất cả trong giỏ hàng
+                                            </a>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:forEach items="${cartItems}" var="item" varStatus="status">
+                                            <div class="cart-item">
+                                                <div class="row align-items-center">
+                                                    <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
+                                                    <div class="col-md-2">
+                                                        <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h5>${course.name}</h5>
+                                                        <small>Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
+                                                    </div>
+                                                    <div class="col-md-2 text-right">
+                                                        <span class="price">$<fmt:formatNumber value="${item.price}" pattern="#,##0.00"/></span>
+                                                    </div>
+                                                    <div class="col-md-2 text-right">
+                                                        <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="${course.name}">
+                                                            <input type="hidden" name="action" value="remove">
+                                                            <input type="hidden" name="itemId" value="${item.id}">
+                                                            <input type="hidden" name="search" value="<c:out value="${search}"/>">
+                                                            <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
+                                                            <input type="hidden" name="page" value="${currentPage}">
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmRemove(${item.id}, '${course.name}')">
+                                                                <i class="fas fa-trash"></i> Remove
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
                             </c:otherwise>
                         </c:choose>
 
@@ -167,27 +335,52 @@
                             <div class="cart-pagination">
                                 <!-- First Page -->
                                 <c:if test="${totalPages > 2 && currentPage > 1}">
-                                    <a href="${pageContext.request.contextPath}/cart?page=1" class="page-link" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+                                    <c:url var="firstPageUrl" value="/cart">
+                                        <c:param name="page" value="1"/>
+                                        <c:if test="${not empty search}"><c:param name="search" value="${search}"/></c:if>
+                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
+                                    </c:url>
+                                    <a href="${firstPageUrl}" class="page-link" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
                                 </c:if>
 
                                 <!-- Previous Page -->
                                 <c:if test="${currentPage > 1}">
-                                    <a href="${pageContext.request.contextPath}/cart?page=${currentPage - 1}" class="page-link" title="Previous Page"><i class="fa-solid fa-angle-left"></i></a>
+                                    <c:url var="prevPageUrl" value="/cart">
+                                        <c:param name="page" value="${currentPage - 1}"/>
+                                        <c:if test="${not empty search}"><c:param name="search" value="${search}"/></c:if>
+                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
+                                    </c:url>
+                                    <a href="${prevPageUrl}" class="page-link" title="Previous Page"><i class="fa-solid fa-angle-left"></i></a>
                                 </c:if>
 
                                 <!-- Page Numbers -->
                                 <c:forEach var="i" begin="1" end="${totalPages}">
-                                    <a href="${pageContext.request.contextPath}/cart?page=${i}" class="page-link ${currentPage == i ? 'active' : ''}">${i}</a>
+                                    <c:url var="itemPageUrl" value="/cart">
+                                        <c:param name="page" value="${i}"/>
+                                        <c:if test="${not empty search}"><c:param name="search" value="${search}"/></c:if>
+                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
+                                    </c:url>
+                                    <a href="${itemPageUrl}" class="page-link ${currentPage == i ? 'active' : ''}">${i}</a>
                                 </c:forEach>
 
                                 <!-- Next Page -->
                                 <c:if test="${currentPage < totalPages}">
-                                    <a href="${pageContext.request.contextPath}/cart?page=${currentPage + 1}" class="page-link" title="Next Page"><i class="fa-solid fa-angle-right"></i></a>
+                                    <c:url var="nextPageUrl" value="/cart">
+                                        <c:param name="page" value="${currentPage + 1}"/>
+                                        <c:if test="${not empty search}"><c:param name="search" value="${search}"/></c:if>
+                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
+                                    </c:url>
+                                    <a href="${nextPageUrl}" class="page-link" title="Next Page"><i class="fa-solid fa-angle-right"></i></a>
                                 </c:if>
 
                                 <!-- Last Page -->
                                 <c:if test="${totalPages > 2 && currentPage < totalPages}">
-                                    <a href="${pageContext.request.contextPath}/cart?page=${totalPages}" class="page-link" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
+                                    <c:url var="lastPageUrl" value="/cart">
+                                        <c:param name="page" value="${totalPages}"/>
+                                        <c:if test="${not empty search}"><c:param name="search" value="${search}"/></c:if>
+                                        <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
+                                    </c:url>
+                                    <a href="${lastPageUrl}" class="page-link" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
                                 </c:if>
                             </div>
                         </c:if>
@@ -209,7 +402,6 @@
                             <strong>Total:</strong>
                             <strong>$<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></strong>
                         </div>
-
                         <div class="cart-actions mt-4">
                             <!-- Continue Shopping -->
                             <a href="${pageContext.request.contextPath}/courses"
@@ -243,6 +435,17 @@
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     
     <script>
+        // Function to apply sorting
+        function applyCartSort(sortVal) {
+            const searchInput = document.getElementById('cartSearchInput');
+            const searchVal = searchInput ? searchInput.value.trim() : '';
+            let url = '${pageContext.request.contextPath}/cart?page=1&sort=' + encodeURIComponent(sortVal);
+            if (searchVal) {
+                url += '&search=' + encodeURIComponent(searchVal);
+            }
+            window.location.href = url;
+        }
+
         // Function to confirm item removal
         function confirmRemove(itemId, courseName) {
             if (confirm('Are you sure you want to remove "' + courseName + '" from your cart?')) {
