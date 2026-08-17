@@ -73,7 +73,7 @@
     <main class="main-area" style="background-color: #f8f9fa; min-height: 80vh; padding: 20px 0;">
         <div class="container">
             <div class="lesson-container">
-                <a href="javascript:history.back()" class="back-to-course"><i class="fas fa-arrow-left me-2"></i>Back to Course</a>
+                <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="back-to-course"><i class="fas fa-arrow-left me-2"></i>Back to Course</a>
                 
                 <h1 class="lesson-title">${lesson.title}</h1>
                 

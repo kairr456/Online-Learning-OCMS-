@@ -40,8 +40,8 @@
         <div class="site-footer__col">
             <h4>Explore</h4>
             <a href="<%= ctx %>/">Home</a>
-            <a href="<%= ctx %>/view/common/browse-course.jsp">Browse Course</a>
-            <a href="<%= ctx %>/view/common/my-learning.jsp">My Learning</a>
+            <a href="<%= ctx %>/courses">Browse Course</a>
+            <a href="<%= ctx %>/my-learning?tab=all-courses">My Learning</a>
         </div>
 
         <div class="site-footer__col">

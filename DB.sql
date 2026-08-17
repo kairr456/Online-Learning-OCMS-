@@ -24,6 +24,29 @@ USE `ocms`;
 DROP TABLE IF EXISTS `account`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+-- 1. Bảng lưu trữ danh sách học tập của người dùng
+CREATE TABLE IF NOT EXISTS user_learning_list (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Bảng trung gian liên kết giữa danh sách học tập và khóa học
+CREATE TABLE IF NOT EXISTS user_learning_list_course (
+    list_id INT NOT NULL,
+    course_id INT NOT NULL,
+    PRIMARY KEY (list_id, course_id),
+    CONSTRAINT fk_list_learning 
+        FOREIGN KEY (list_id) REFERENCES user_learning_list(id) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_list_course 
+        FOREIGN KEY (course_id) REFERENCES course(id) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE
+);
 CREATE TABLE `account` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(255) NOT NULL,

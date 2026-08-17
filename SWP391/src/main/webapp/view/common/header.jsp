@@ -28,7 +28,7 @@
             <a href="<%= ctx %>/">Home</a>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
-            <a href="<%= ctx %>/view/course_learning/course_learning.jsp">My Learning</a>
+            <a href="${pageContext.request.contextPath}/my-learning?tab=all-courses">My Learning</a>
             <% } %>
         </nav>
 
