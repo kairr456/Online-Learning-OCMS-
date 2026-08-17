@@ -154,6 +154,24 @@ public class LessonDAO extends DBContext {
         return list;
     }
 
+    public int getCourseIdBySectionId(int sectionId) {
+        String sql = "SELECT course_id FROM section WHERE id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, sectionId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("course_id");
+            }
+        } catch (java.sql.SQLException ex) {
+            System.out.println("Error getting course id: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return -1;
+    }
+
     public String getLessonYoutube(int lessonId) {
         String url = "";
         String sql = "SELECT video_url FROM lesson_video WHERE lesson_id = ?";

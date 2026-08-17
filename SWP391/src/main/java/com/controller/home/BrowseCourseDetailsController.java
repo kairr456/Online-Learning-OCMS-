@@ -57,12 +57,35 @@ public class BrowseCourseDetailsController extends HttpServlet {
                         }
                     }
                     
+                    boolean isEnrolled = false;
+                    com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+                    if (account != null) {
+                        com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                        java.util.List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                        for (Course c : enrolledCourses) {
+                            if (c.getId() == courseId) {
+                                isEnrolled = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    int firstLessonId = -1;
+                    if (!sections.isEmpty()) {
+                        java.util.List<com.entity.Lesson> firstSectionLessons = lessonsMap.get(sections.get(0).getId());
+                        if (firstSectionLessons != null && !firstSectionLessons.isEmpty()) {
+                            firstLessonId = firstSectionLessons.get(0).getId();
+                        }
+                    }
+                    
                     request.setAttribute("course", course);
                     request.setAttribute("authorName", authorNames.get(course.getCreatedBy()));
                     request.setAttribute("reviews", reviews);
                     request.setAttribute("sections", sections);
                     request.setAttribute("lessonsMap", lessonsMap);
                     request.setAttribute("lessonVideosMap", lessonVideosMap);
+                    request.setAttribute("isEnrolled", isEnrolled);
+                    request.setAttribute("firstLessonId", firstLessonId);
                     // Also pass authorNames so we can lookup reviewer names in the JSP
                     request.setAttribute("accountNames", authorNames);
                 } else {

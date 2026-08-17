@@ -76,12 +76,24 @@ public class CourseHomeController extends HttpServlet {
             AccountDAO accountDAO = new AccountDAO();
             Map<Integer, String> authorNames = accountDAO.getAuthorNames();
             
+            // 4.5. Load Enrolled Courses
+            java.util.List<Integer> enrolledCourseIds = new ArrayList<>();
+            com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+            if (account != null) {
+                com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                for (Course c : enrolledCourses) {
+                    enrolledCourseIds.add(c.getId());
+                }
+            }
+            
             // 5. Set Attributes
             request.setAttribute("courses", courses);
             request.setAttribute("authorNames", authorNames);
             request.setAttribute("totalRecords", totalRecords);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("currentPage", currentPage);
+            request.setAttribute("enrolledCourseIds", enrolledCourseIds);
             
             // Keep selected filter state in UI
             request.setAttribute("selectedCategories", categoryIds);

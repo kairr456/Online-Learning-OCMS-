@@ -35,11 +35,42 @@ public class LessonDetails extends HttpServlet {
                 return;
             }
 
+            int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
+            
+            boolean isEnrolled = false;
+            com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+            if (account != null) {
+                com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                java.util.List<com.entity.Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                for (com.entity.Course c : enrolledCourses) {
+                    if (c.getId() == courseId) {
+                        isEnrolled = true;
+                        break;
+                    }
+                }
+            }
+            
+            int firstLessonId = -1;
+            java.util.List<com.entity.Section> sections = lessonDAO.getSectionsByCourseId(courseId);
+            if (sections != null && !sections.isEmpty()) {
+                java.util.List<com.entity.Lesson> firstSectionLessons = lessonDAO.getLessonsBySectionId(sections.get(0).getId());
+                if (firstSectionLessons != null && !firstSectionLessons.isEmpty()) {
+                    firstLessonId = firstSectionLessons.get(0).getId();
+                }
+            }
+            
+            if (!isEnrolled && lessonId != firstLessonId) {
+                // Not enrolled and not the free trial lesson
+                response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
+                return;
+            }
+
             // Get the rich text block-built content
             String lessonContent = lessonDAO.getLessonText(lessonId);
 
             request.setAttribute("lesson", lesson);
             request.setAttribute("lessonContent", lessonContent);
+            request.setAttribute("courseId", courseId);
 
             request.getRequestDispatcher("/view/common/home/lesson-details.jsp").forward(request, response);
         } catch (Exception e) {

@@ -445,9 +445,19 @@
                                                                             </c:if>
                                                                             
                                                                             <!-- Link to the unified lesson details page -->
-                                                                            <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" style="color: #333; text-decoration: none; cursor: pointer; font-weight: 500;">
-                                                                                ${lesson.title}
-                                                                            </a>
+                                                                            <!-- Conditional Link based on Enrollment / Free first lesson -->
+                                                                            <c:choose>
+                                                                                <c:when test="${isEnrolled or lesson.id == firstLessonId}">
+                                                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" style="color: #333; text-decoration: none; cursor: pointer; font-weight: 500;">
+                                                                                        ${lesson.title}
+                                                                                    </a>
+                                                                                </c:when>
+                                                                                <c:otherwise>
+                                                                                    <a href="javascript:void(0);" onclick="alert('Bạn chưa mua khóa học này! Vui lòng mua để xem toàn bộ bài giảng.');" style="color: #888; text-decoration: none; cursor: pointer; font-weight: 500;">
+                                                                                        <i class="fas fa-lock" style="font-size: 12px; margin-right: 5px;"></i> ${lesson.title}
+                                                                                    </a>
+                                                                                </c:otherwise>
+                                                                            </c:choose>
                                                                         </span>
                                                                     </li>
                                                                 </c:forEach>
@@ -553,12 +563,26 @@
                     </div>
                     <div class="col-xl-3 col-lg-4">
                         <div class="courses__details-sidebar">
-                            <div class="courses__cost-wrap">
-                                <span>This Course Fee:</span>
-                                <h2 class="title">
-                                    $${course.price}
-                                </h2>
-                            </div>
+                            <c:choose>
+                                <c:when test="${isEnrolled}">
+                                    <div class="courses__cost-wrap" style="background-color: #28a745;">
+                                        <span>Status:</span>
+                                        <h2 class="title" style="font-size: 24px;">
+                                            <i class="fas fa-check-circle"></i> Purchased
+                                        </h2>
+                                        <p style="margin-top: 10px; margin-bottom: 0; font-size: 14px;">You can now access all lessons in the curriculum.</p>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="courses__cost-wrap">
+                                        <span>This Course Fee:</span>
+                                        <h2 class="title">
+                                            $${course.price}
+                                        </h2>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+
                             <div class="courses__information-wrap">
                                 <h5 class="title">Course includes:</h5>
                                 <ul class="list-wrap">
@@ -586,16 +610,19 @@
                                     <li><a href="#"><i class="fab fa-youtube"></i></a></li>
                                 </ul>
                             </div>
-                            <div class="courses__details-enroll">
-                                <form action="${pageContext.request.contextPath}/cart" method="post">
-                                    <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="courseId" value="${course.id}">
-                                    <input type="hidden" name="price" value="${course.price}">
-                                    <button type="submit" class="btn-two">
-                                        Add To Cart
-                                    </button>
-                                </form>
-                            </div>
+                            
+                            <c:if test="${not isEnrolled}">
+                                <div class="courses__details-enroll">
+                                    <form action="${pageContext.request.contextPath}/cart" method="post">
+                                        <input type="hidden" name="action" value="add">
+                                        <input type="hidden" name="courseId" value="${course.id}">
+                                        <input type="hidden" name="price" value="${course.price}">
+                                        <button type="submit" class="btn-two">
+                                            Add To Cart
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
                         </div>
                     </div>
                 </div>

@@ -434,11 +434,18 @@
                             </a>
                             
                                 <div class="course-footer">
-                                    <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
-                                            data-course-id="${course.id}"
-                                            data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
-                                            onclick="submitAddToCart(this);">ENROLL NOW</button>
-                                    <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>$</span>
+                                    <c:choose>
+                                        <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
+                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
+                                                    data-course-id="${course.id}"
+                                                    data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                                    onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>$</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                         </div>
                     </div>
