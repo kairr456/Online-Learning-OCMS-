@@ -2,7 +2,6 @@ package com.controller.auth;
 
 import com.DAO.AccountDAO;
 import com.entity.Account;
-import com.ocms.config.GlobalConfig;
 import com.utils.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import jakarta.servlet.http.Cookie;
 
 
 // This single servlet now answers two routes: "/login" (show the form / handle
@@ -27,37 +27,80 @@ public class LoginController extends HttpServlet {
         // was matched for this request -- either "/login" or "/logout" -- so
         // we can tell the two routes apart even though one class handles both.
         String path = request.getServletPath();
-
         if ("/logout".equals(path)) {
-            // --- Logout action: no page to show, just end the session ---
-            // getSession(false) means "give me the session if one exists,
-            // but don't create a new one" -- there's nothing to invalidate
-            // if the user was never logged in, so we avoid creating a
-            // throwaway session just to immediately kill it.
             HttpSession session = request.getSession(false);
+            boolean hasRememberMeCookie = hasRememberMeCookie(request);
+
+            // Keep the session consistent with the rest of the app: it stores the
+            // logged-in user under the "account" key.
             if (session != null) {
-                session.invalidate(); // clears currentAccount and everything else tied to this session
+                session.removeAttribute("account");
+                if (!hasRememberMeCookie) {
+                    session.invalidate();
+                }
             }
+
+            // Preserve the Remember Me username so the login form can repopulate it.
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("rememberedUsername".equals(cookie.getName())) {
+                        Cookie rememberCookie = new Cookie(
+                                "rememberedUsername",
+                                cookie.getValue()
+                        );
+                        rememberCookie.setMaxAge(30 * 24 * 60 * 60);
+                        rememberCookie.setPath(
+                                request.getContextPath().isEmpty()
+                                        ? "/"
+                                        : request.getContextPath()
+                        );
+                        response.addCookie(rememberCookie);
+                        break;
+                    }
+                }
+            }
+
             response.sendRedirect(request.getContextPath() + "/login");
-            return; // stop here -- don't fall through to the login-page forward below
+            return;
         }
 
-        // --- "/login" via GET: just show the login form ---
+        // --- "/login" via GET: show the login form and restore remembered username ---
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("rememberedUsername".equals(cookie.getName())
+                        && cookie.getValue() != null
+                        && !cookie.getValue().isEmpty()) {
+                    request.setAttribute("rememberedUsername", cookie.getValue());
+                    request.setAttribute("rememberChecked", true);
+                    break;
+                }
+            }
+        }
         request.getRequestDispatcher("/view/authen/login.jsp").forward(request, response);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Retrieve form data
-        String user = request.getParameter("username");
-        String pass = request.getParameter("password");
+    private boolean hasRememberMeCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return false;
+        }
 
+        for (Cookie cookie : cookies) {
+            if ("rememberedUsername".equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected Account authenticate(String username, String password) {
         // Accounts created through RegisterController store an MD5 hash
         // (see PasswordUtil.md5), so we hash what was typed and compare
         // against that first.
-        String hashedPass = PasswordUtil.md5(pass);
-        Account account = new AccountDAO().login(user, hashedPass);
+        String hashedPass = PasswordUtil.md5(password);
+        Account account = new AccountDAO().login(username, hashedPass);
 
         if (account == null) {
             // Fallback: some accounts (e.g. seeded/legacy test data) may
@@ -67,13 +110,57 @@ public class LoginController extends HttpServlet {
             // keeps the old unhashed check working alongside the new
             // hashed one -- remove this fallback once all accounts in the
             // database are confirmed to be hashed.
-            account = new AccountDAO().login(user, pass);
+            account = new AccountDAO().login(username, password);
         }
-        
+
+        return account;
+    }
+
+    protected void storeAuthenticatedAccount(HttpSession session, Account account) {
+        session.setAttribute("account", account);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Retrieve form data
+        String user = request.getParameter("username");
+        String pass = request.getParameter("password");
+
+        boolean rememberMe =
+        request.getParameter("remember") != null;
+
+        Account account = authenticate(user, pass);
+
         if (account != null) {
             // Login successful: Create session
             HttpSession session = request.getSession();
-            session.setAttribute(GlobalConfig.SESSION_ACCOUNT, account);
+            storeAuthenticatedAccount(session, account);
+            // =========================================================
+            // Remember Me
+            // =========================================================
+            Cookie rememberCookie;
+            if (rememberMe) {
+                rememberCookie = new Cookie(
+                        "rememberedUsername",
+                        user
+                );
+                // Remember username for 30 days
+                rememberCookie.setMaxAge(30 * 24 * 60 * 60);
+            } else {
+                // Delete existing remembered username
+                rememberCookie = new Cookie(
+                        "rememberedUsername",
+                        ""
+                );
+                rememberCookie.setMaxAge(0);
+            }
+            rememberCookie.setPath(
+                    request.getContextPath().isEmpty()
+                            ? "/"
+                            : request.getContextPath()
+            );
+            response.addCookie(rememberCookie);
 
             String contextPath = request.getContextPath();
             int roleId = account.getRoleId();
@@ -91,7 +178,23 @@ public class LoginController extends HttpServlet {
         } else {
             // Login failed: Set error message and forward back to login page
             request.setAttribute("errorMessage", "Invalid username or password!");
-            request.getRequestDispatcher("/view/authen/login.jsp").forward(request, response);
+           // --- "/login" via GET: load remembered username ---
+    // --- "/login" via GET ---
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("rememberedUsername".equals(cookie.getName())) {
+                        request.setAttribute(
+                                "rememberedUsername",
+                                cookie.getValue()
+                        );
+                        break;
+                    }
+                }
+            }
+request.getRequestDispatcher(
+        "/view/authen/login.jsp"
+).forward(request, response);
         }
     }
 }

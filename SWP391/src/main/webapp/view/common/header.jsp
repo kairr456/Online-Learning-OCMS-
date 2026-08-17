@@ -32,14 +32,20 @@
             <% } %>
         </nav>
 
-        <form class="site-header__search" action="<%= ctx %>/search" method="get">
+        <form class="site-header__search" action="<%= ctx %>/courses" method="get">
             <select name="category" class="site-header__select" aria-label="Category">
                 <option value="">Category</option>
                 <% for (Category cat : headerCategories) { %>
                 <option value="<%= cat.getId() %>"><%= cat.getName() %></option>
                 <% } %>
             </select>
-            <input type="search" name="q" class="site-header__input" placeholder="Search">
+            <input
+                type="search"
+                name="courseName"
+                class="site-header__input"
+                placeholder="Search courses"
+                value="<%= request.getParameter("courseName") != null ? request.getParameter("courseName") : "" %>"
+            >
             <button type="submit" class="site-header__search-btn" aria-label="Search">
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
@@ -51,7 +57,7 @@
         <div class="site-header__account">
             <% if (headerAccount != null) { %>
 
-                <a class="site-header__icon-btn" href="<%= ctx %>/my-learning" title="Wishlist" aria-label="Wishlist">
+                <a class="site-header__icon-btn" href="<%= ctx %>/view/common/wishlist.jsp" title="Wishlist" aria-label="Wishlist">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                     </svg>
@@ -78,7 +84,10 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <a href="<%= ctx %>/my-learning">Change profile</a>
+                        <% if (headerAccount.getRoleId() == 2) { %>
+                            <a href="<%= ctx %>/lesson">Create Course</a>
+                        <% } %>
+                        <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
                 </div>

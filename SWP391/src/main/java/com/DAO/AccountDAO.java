@@ -1,8 +1,11 @@
 package com.DAO;
 
 import com.entity.Account;
+import com.utils.AccountFilterBuilder;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,7 +83,8 @@ public class AccountDAO extends DBContext {
             if (rowsInserted > 0) {
                 resultSet = statement.getGeneratedKeys();
                 if (resultSet.next()) {
-                    account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the caller
+                    account.setId(resultSet.getInt(1)); // Account is passed by reference, so this is visible to the
+                    // caller
                 }
                 return true;
             }
@@ -147,5 +151,202 @@ public class AccountDAO extends DBContext {
             closeResources();
         }
         return authors;
+    }
+
+    /**
+     * Lấy danh sách tài khoản theo điều kiện: - Tìm kiếm username, email,
+     * full_name - Lọc Role - Lọc Status
+     */
+    public List<Account> searchAccounts(String keyword, String roleId, String status, int page, int pageSize) {
+        List<Account> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, username, email, phone, full_name, "
+                + "gender, is_active, role_id "
+                + "FROM Account WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+        // Tìm kiếm theo username, email hoặc full_name
+        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);
+
+        sql.append(" ORDER BY id ASC LIMIT ? OFFSET ?");
+        params.add(pageSize);               // LIMIT
+        params.add((page - 1) * pageSize);  // OFFSET
+        try {
+            statement = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));   // setObject xử lý cả String lẫn Integer
+            }
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Account u = new Account();
+                u.setId(resultSet.getInt("id"));
+                u.setUsername(resultSet.getString("username"));
+                u.setEmail(resultSet.getString("email"));
+                u.setPhone(resultSet.getString("phone"));
+                u.setFullName(resultSet.getString("full_name"));
+                u.setGender(resultSet.getBoolean("gender"));
+
+                // Đã BỎ dòng u.setAvatar(...) để tránh lỗi Column not found!
+                u.setActive(resultSet.getBoolean("is_active"));
+                u.setRoleId(resultSet.getInt("role_id"));
+
+                list.add(u);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+
+        return list;
+    }
+
+    /**
+     * Vô hiệu hóa tài khoản theo ID trong bảng Account.
+     */
+    public boolean deactivateAccount(int userId) {
+
+        String sql = "UPDATE Account "
+                + "SET is_active = 0 "
+                + "WHERE id = ?";
+
+        try {
+
+            // Mỗi lần gọi dùng instance AccountDAO mới nên connection luôn mới
+            statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, userId);
+
+            int rows = statement.executeUpdate();
+
+            System.out.println(
+                    "Deactivate Account ID = "
+                    + userId
+                    + ", affected rows = "
+                    + rows);
+
+            return rows > 0;
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        } finally {
+
+            closeResources();
+        }
+
+        return false;
+    }
+
+    // Đếm tổng số record theo bộ lọc — cùng filter với searchAccounts, chỉ khác câu SELECT
+    public int countAccounts(String keyword, String roleId, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Account WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);  // không có LIMIT
+
+        try {
+            statement = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+    public boolean updateBasicInfo(int accountId, String fullName, String phone, boolean gender) {
+    String sql = "UPDATE account SET full_name = ?, phone = ?, gender = ? WHERE id = ?";
+    try {
+        statement = connection.prepareStatement(sql);
+        statement.setString(1, fullName);
+        statement.setString(2, phone);
+        statement.setBoolean(3, gender);
+        statement.setInt(4, accountId);
+        int rowsUpdated = statement.executeUpdate();
+        return rowsUpdated > 0;
+    } catch (SQLException ex) {
+        Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+    } finally {
+        closeResources();
+    }
+    return false;
+}
+
+    // Takes the already-hashed password -- ProfileController hashes with
+    // PasswordUtil.md5() before calling this, same as RegisterController
+    // does on sign-up. This method just writes whatever string it's given.
+    public boolean updatePassword(int accountId, String hashedPassword) {
+        String sql = "UPDATE account SET password = ? WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, hashedPassword);
+            statement.setInt(2, accountId);
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+// Lấy 1 account theo id (đổ vào modal khi Edit)
+    public Account getAccountById(int id) {
+        String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "
+                + "FROM Account WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Account u = new Account();
+                u.setId(resultSet.getInt("id"));
+                u.setUsername(resultSet.getString("username"));
+                u.setEmail(resultSet.getString("email"));
+                u.setPhone(resultSet.getString("phone"));
+                u.setFullName(resultSet.getString("full_name"));
+                u.setGender(resultSet.getBoolean("gender"));
+                u.setActive(resultSet.getBoolean("is_active"));
+                u.setRoleId(resultSet.getInt("role_id"));
+                return u;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
+// Cập nhật account (không đụng username/password)
+    public boolean updateAccount(Account a) {
+        String sql = "UPDATE Account SET email=?, phone=?, full_name=?, gender=?, is_active=?, role_id=? WHERE id=?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, a.getEmail());
+            statement.setString(2, a.getPhone());
+            statement.setString(3, a.getFullName());
+            statement.setBoolean(4, a.isGender());
+            statement.setBoolean(5, a.isActive());
+            statement.setInt(6, a.getRoleId());
+            statement.setInt(7, a.getId());
+            return statement.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return false;
     }
 }

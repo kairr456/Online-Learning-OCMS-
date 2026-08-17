@@ -4,7 +4,6 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách tin tức & Bài viết - OCMS</title>
     <!-- Tái sử dụng CSS chung của dự án -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">

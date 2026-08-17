@@ -39,6 +39,7 @@ public class CourseHomeController extends HttpServlet {
             String[] categoryParams = request.getParameterValues("category");
             String[] ratingParams = request.getParameterValues("rating");
             String teacherName = request.getParameter("teacherName");
+            String courseName = request.getParameter("courseName");
             String sort = request.getParameter("sort");
             String pageParam = request.getParameter("page");
 
@@ -67,13 +68,24 @@ public class CourseHomeController extends HttpServlet {
 
             // 3. Query Database
             CourseDAO courseDAO = new CourseDAO();
-            List<Course> courses = courseDAO.findWithFilters(categoryIds, ratings, teacherName, sort, currentPage, pageSize);
-            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName);
+            List<Course> courses = courseDAO.findWithFilters(categoryIds, ratings, teacherName, courseName, sort, currentPage, pageSize);
+            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName, courseName);
             int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
             // 4. Load Author Names
             AccountDAO accountDAO = new AccountDAO();
             Map<Integer, String> authorNames = accountDAO.getAuthorNames();
+            
+            // 4.5. Load Enrolled Courses
+            java.util.List<Integer> enrolledCourseIds = new ArrayList<>();
+            com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+            if (account != null) {
+                com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                for (Course c : enrolledCourses) {
+                    enrolledCourseIds.add(c.getId());
+                }
+            }
             
             // 5. Set Attributes
             request.setAttribute("courses", courses);
@@ -81,11 +93,13 @@ public class CourseHomeController extends HttpServlet {
             request.setAttribute("totalRecords", totalRecords);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("currentPage", currentPage);
+            request.setAttribute("enrolledCourseIds", enrolledCourseIds);
             
             // Keep selected filter state in UI
             request.setAttribute("selectedCategories", categoryIds);
             request.setAttribute("selectedRatings", ratings);
             request.setAttribute("teacherName", teacherName);
+            request.setAttribute("courseName", courseName);
             request.setAttribute("sort", sort);
 
             // Forward to browse-course.jsp
