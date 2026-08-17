@@ -1,4 +1,4 @@
-package com.controller;
+package com.controller.courseCRUD;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -88,7 +88,7 @@ public class LessonController extends HttpServlet {
         try {
             // 1. Course Details
             String courseIdStr = request.getParameter("courseId");
-            boolean isUpdate = (courseIdStr != null && !courseIdStr.isEmpty());
+            boolean isUpdate = (courseIdStr != null && !courseIdStr.trim().isEmpty());
             int courseId = isUpdate ? Integer.parseInt(courseIdStr) : 0;
             
             String courseName = request.getParameter("courseName");
@@ -116,7 +116,6 @@ public class LessonController extends HttpServlet {
             course.setPrice(coursePrice);
             course.setCategoryId(categoryId);
             course.setCreatedBy(account.getId());
-            course.setStatus("active");
             course.setModifiedDate(java.time.LocalDateTime.now());
             
             if (!thumbnailRelPath.isEmpty()) {
@@ -128,9 +127,15 @@ public class LessonController extends HttpServlet {
             if (isUpdate) {
                 courseDAO.update(course);
             } else {
+                course.setStatus("pending");
                 course.setRating(0);
                 course.setCreatedDate(java.time.LocalDateTime.now());
                 courseId = courseDAO.insert(course);
+                
+                if (courseId > 0) {
+                    new com.DAO.CourseApprovalDAO().insertLog(courseId, "SUBMIT", "draft", "pending",
+                            account.getId(), "", request.getRemoteAddr());
+                }
             }
 
             if (courseId > 0) {
@@ -236,6 +241,27 @@ public class LessonController extends HttpServlet {
                                                            .append("<img src='").append(imgUrl).append("' style='max-width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>")
                                                            .append("</div>");
                                             }
+                                        } else if ("video".equals(bType)) {
+                                            String yt = request.getParameter("blockVideo_" + s + "_" + l + "_" + b);
+                                            if (yt != null && !yt.trim().isEmpty()) {
+                                                String videoId = yt;
+                                                if (yt.contains("v=")) {
+                                                    videoId = yt.substring(yt.indexOf("v=") + 2);
+                                                    if (videoId.contains("&")) {
+                                                        videoId = videoId.substring(0, videoId.indexOf("&"));
+                                                    }
+                                                } else if (yt.contains("youtu.be/")) {
+                                                    videoId = yt.substring(yt.indexOf("youtu.be/") + 9);
+                                                    if (videoId.contains("?")) {
+                                                        videoId = videoId.substring(0, videoId.indexOf("?"));
+                                                    }
+                                                }
+                                                htmlContent.append("<div class='lesson-video-block' style='margin-bottom: 20px; text-align: center;'>")
+                                                           .append("<iframe width='100%' height='500' style='max-width: 800px; border-radius: 8px;' src='https://www.youtube.com/embed/")
+                                                           .append(videoId)
+                                                           .append("' frameborder='0' allowfullscreen></iframe>")
+                                                           .append("</div>");
+                                            }
                                         }
                                     }
                                     
@@ -268,7 +294,7 @@ public class LessonController extends HttpServlet {
                 
                 session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course created successfully!");
                 session.setAttribute("messageType", "success");
-                response.sendRedirect(request.getContextPath() + "/course-dashboard");
+                response.sendRedirect(request.getContextPath() + (isUpdate ? "/course-dashboard" : "/courses"));
             } else {
                 throw new Exception("Failed to save course.");
             }
