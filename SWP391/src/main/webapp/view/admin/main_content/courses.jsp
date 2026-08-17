@@ -160,55 +160,58 @@
     </c:if>
 
     <!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
+         Chỉ hiển thị ở view Course Approval (status=pending).
          Hiển thị các thay đổi gần nhất (SUBMIT/APPROVE/REJECT), mới nhất trên cùng. -->
-    <div class="change-log-section">
-        <div class="dashboard-title">Course Change Log</div>
-        <div class="table-responsive">
-            <table class="account-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Course</th>
-                        <th>Action</th>
-                        <th>Change</th>
-                        <th>Actor</th>
-                        <th>Note</th>
-                        <th>IP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="log" items="${courseApprovalLogs}">
+    <c:if test="${param.status == 'pending'}">
+        <div class="change-log-section">
+            <div class="dashboard-title">Course Change Log</div>
+            <div class="table-responsive">
+                <table class="account-table">
+                    <thead>
                         <tr>
-                            <td>${log.createdDate}</td>
-                            <td>${log.courseName}</td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${log.action == 'APPROVE'}">
-                                        <span class="badge approve">APPROVE</span>
-                                    </c:when>
-                                    <c:when test="${log.action == 'REJECT'}">
-                                        <span class="badge reject">REJECT</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="badge submit">SUBMIT</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                            <td>${log.oldStatus} <i class="fa-solid fa-arrow-right" style="color:#9CA3AF;"></i> ${log.newStatus}</td>
-                            <td>${log.actorName}</td>
-                            <td>${log.note}</td>
-                            <td>${log.ipAddress}</td>
+                            <th>Time</th>
+                            <th>Course</th>
+                            <th>Action</th>
+                            <th>Change</th>
+                            <th>Actor</th>
+                            <th>Note</th>
+                            <th>IP</th>
                         </tr>
-                    </c:forEach>
-                    <c:if test="${empty courseApprovalLogs}">
-                        <tr>
-                            <td colspan="7" style="text-align:center;">No changes yet.</td>
-                        </tr>
-                    </c:if>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="log" items="${courseApprovalLogs}">
+                            <tr>
+                                <td>${log.createdDate}</td>
+                                <td>${log.courseName}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${log.action == 'APPROVE'}">
+                                            <span class="badge approve">APPROVE</span>
+                                        </c:when>
+                                        <c:when test="${log.action == 'REJECT'}">
+                                            <span class="badge reject">REJECT</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge submit">SUBMIT</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>${log.oldStatus} <i class="fa-solid fa-arrow-right" style="color:#9CA3AF;"></i> ${log.newStatus}</td>
+                                <td>${log.actorName}</td>
+                                <td>${log.note}</td>
+                                <td>${log.ipAddress}</td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty courseApprovalLogs}">
+                            <tr>
+                                <td colspan="7" style="text-align:center;">No changes yet.</td>
+                            </tr>
+                        </c:if>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </c:if>
 
 </div>
 
