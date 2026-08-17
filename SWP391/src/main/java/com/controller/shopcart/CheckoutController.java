@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import com.ocms.config.GlobalConfig;
+import com.validator.checkoutValidator;
 import com.DAO.CartDAO;
 import com.DAO.CartItemDAO;
 import com.DAO.CheckoutDAO;
@@ -78,6 +79,8 @@ public class CheckoutController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
         if (account == null) {
@@ -101,12 +104,46 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
+        String fullName = request.getParameter("fullName");
+        String email = request.getParameter("email");
+        String address = request.getParameter("address");
+        String country = request.getParameter("country");
         String paymentMethod = request.getParameter("paymentMethod");
+        String cardNumber = request.getParameter("cardNumber");
+        String expiry = request.getParameter("expiry");
+        String cvc = request.getParameter("cvc");
+        String cardName = request.getParameter("cardName");
+
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             paymentMethod = "Card";
         }
 
-        String email = request.getParameter("email");
+        // Validate dữ liệu thanh toán qua checkoutValidator
+        String validationError = checkoutValidator.validate(fullName, email, address, country,
+                paymentMethod, cardNumber, expiry, cvc, cardName);
+
+        if (validationError != null) {
+            request.setAttribute("error", validationError);
+            request.setAttribute("paramFullName", fullName);
+            request.setAttribute("paramEmail", email);
+            request.setAttribute("paramAddress", address);
+            request.setAttribute("paramCountry", country);
+            request.setAttribute("paramPaymentMethod", paymentMethod);
+            request.setAttribute("paramCardNumber", cardNumber);
+            request.setAttribute("paramExpiry", expiry);
+            request.setAttribute("paramCvc", cvc);
+            request.setAttribute("paramCardName", cardName);
+
+            BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
+            request.setAttribute("cart", cart);
+            request.setAttribute("cartItems", cartItems);
+            request.setAttribute("cartTotal", cartTotal);
+            request.setAttribute("itemCount", cartItems.size());
+            request.setAttribute("courseDAO", courseDAO);
+            request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
+            return;
+        }
+
         if (email == null || email.trim().isEmpty()) {
             email = account.getEmail();
         }
@@ -114,7 +151,7 @@ public class CheckoutController extends HttpServlet {
         // Khi người dùng bấm Pay / Xác nhận thanh toán (Card hoặc QR) -> Lưu vào bảng registration với status 'Approved' để mua ngay & vào học ngay
         String status = "Approved";
 
-        boolean success = checkoutDAO.checkout(account.getId(), email, cart.getId(), cartItems, paymentMethod, status);
+        boolean success = checkoutDAO.checkout(account.getId(), email.trim(), cart.getId(), cartItems, paymentMethod, status);
         if (success) {
             if ("QR_CODE".equalsIgnoreCase(paymentMethod)) {
                 session.setAttribute("message", "Xác nhận thanh toán mã QR thành công! Các khóa học đã được kích hoạt.");

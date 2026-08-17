@@ -533,37 +533,40 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Quốc gia / Khu vực</label>
+                            <label class="form-label">Quốc gia / Khu vực <span class="text-danger">*</span></label>
                             <select class="form-select" name="country" id="country">
-                                <option value="Vietnam" selected>🇻🇳 Vietnam</option>
-                                <option value="United States">🇺🇸 United States</option>
-                                <option value="Japan">🇯🇵 Japan</option>
-                                <option value="Singapore">🇸🇬 Singapore</option>
-                                <option value="Australia">🇦🇺 Australia</option>
+                                <option value="Vietnam" ${paramCountry == 'Vietnam' || empty paramCountry ? 'selected' : ''}>🇻🇳 Vietnam</option>
+                                <option value="United States" ${paramCountry == 'United States' ? 'selected' : ''}>🇺🇸 United States</option>
+                                <option value="Japan" ${paramCountry == 'Japan' ? 'selected' : ''}>🇯🇵 Japan</option>
+                                <option value="Singapore" ${paramCountry == 'Singapore' ? 'selected' : ''}>🇸🇬 Singapore</option>
+                                <option value="Australia" ${paramCountry == 'Australia' ? 'selected' : ''}>🇦🇺 Australia</option>
                             </select>
+                            <div class="field-error" id="countryError"></div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Họ và tên</label>
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="fullName" id="fullName" 
-                                       value="${sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'Học viên'}" 
-                                       placeholder="VD: Nguyễn Văn A" required>
-                                <div class="field-error" id="fullNameError">Vui lòng nhập họ và tên.</div>
+                                       value="${not empty paramFullName ? paramFullName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : '')}" 
+                                       placeholder="VD: Nguyễn Văn A">
+                                <div class="field-error" id="fullNameError"></div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Email liên hệ</label>
+                                <label class="form-label">Email liên hệ <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" name="email" id="email" 
-                                       value="${sessionScope.account != null ? sessionScope.account.email : 'student@ocms.com'}" 
-                                       placeholder="email@example.com" required>
-                                <div class="field-error" id="emailError">Vui lòng nhập email hợp lệ.</div>
+                                       value="${not empty paramEmail ? paramEmail : (sessionScope.account != null ? sessionScope.account.email : '')}" 
+                                       placeholder="email@example.com">
+                                <div class="field-error" id="emailError"></div>
                             </div>
                         </div>
 
                         <div class="mt-3">
-                            <label class="form-label">Địa chỉ</label>
+                            <label class="form-label">Địa chỉ <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="address" id="address" 
-                                    placeholder="Số nhà, tên đường, quận/huyện..." value="Hồ Chí Minh, Việt Nam">
+                                    placeholder="Số nhà, tên đường, quận/huyện..." 
+                                    value="${not empty paramAddress ? paramAddress : 'Hồ Chí Minh, Việt Nam'}">
+                            <div class="field-error" id="addressError"></div>
                         </div>
                     </div>
 
@@ -595,7 +598,7 @@
                             <!-- CARD FORM BODY -->
                             <div class="payment-option-body" id="cardBody">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <label class="form-label mb-0">Số thẻ (Card Number)</label>
+                                    <label class="form-label mb-0">Số thẻ (Card Number) <span class="text-danger">*</span></label>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 12px;" onclick="fillTestCard()">
                                         <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Điền thẻ test
                                     </button>
@@ -603,32 +606,36 @@
                                 <div class="mb-3">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
-                                               placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" value="4242 4242 4242 4242">
+                                               placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" 
+                                               value="${not empty paramCardNumber ? paramCardNumber : '4242 4242 4242 4242'}">
                                         <span class="input-group-text bg-white"><i class="fa-regular fa-credit-card"></i></span>
                                     </div>
-                                    <div class="field-error" id="cardNumberError">Số thẻ phải gồm 16 chữ số hợp lệ.</div>
+                                    <div class="field-error" id="cardNumberError"></div>
                                 </div>
 
                                 <div class="row g-3 mb-3">
                                     <div class="col-6">
-                                        <label class="form-label">Ngày hết hạn (MM/YY)</label>
+                                        <label class="form-label">Ngày hết hạn (MM/YY) <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="expiry" name="expiry" 
-                                               placeholder="12/28" maxlength="5" inputmode="numeric" value="12/28">
-                                        <div class="field-error" id="expiryError">Định dạng MM/YY không hợp lệ.</div>
+                                               placeholder="12/28" maxlength="5" inputmode="numeric" 
+                                               value="${not empty paramExpiry ? paramExpiry : '12/28'}">
+                                        <div class="field-error" id="expiryError"></div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label">Mã CVC / CVV</label>
+                                        <label class="form-label">Mã CVC / CVV <span class="text-danger">*</span></label>
                                         <input type="password" class="form-control" id="cvc" name="cvc" 
-                                               placeholder="123" maxlength="4" inputmode="numeric" value="123">
-                                        <div class="field-error" id="cvcError">CVC gồm 3-4 chữ số.</div>
+                                               placeholder="123" maxlength="4" inputmode="numeric" 
+                                               value="${not empty paramCvc ? paramCvc : '123'}">
+                                        <div class="field-error" id="cvcError"></div>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Tên in trên thẻ (Name on Card)</label>
+                                    <label class="form-label">Tên in trên thẻ (Name on Card) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
-                                           placeholder="NGUYEN VAN A" value="${sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A'}">
-                                    <div class="field-error" id="cardNameError">Vui lòng nhập tên trên thẻ.</div>
+                                           placeholder="NGUYEN VAN A" 
+                                           value="${not empty paramCardName ? paramCardName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A')}">
+                                    <div class="field-error" id="cardNameError"></div>
                                 </div>
 
                                 <div class="form-check mb-3">
@@ -867,58 +874,129 @@
             this.value = this.value.replace(/\D/g, '').substring(0, 4);
         });
 
-        // Form Validation & Instant Auto-Fill on Submit
+        // Form Validation on Submit
         document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
-            const method = document.getElementById('selectedPaymentMethodInput').value;
+            const method = document.getElementById('selectedPaymentMethodInput').value || 'Card';
             let isValid = true;
 
             // Clear previous errors
-            document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.field-error').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+            document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('input-error'));
 
-            // Full Name validation (auto fill if empty)
-            let fullNameEl = document.getElementById('fullName');
-            if (!fullNameEl.value.trim()) {
-                fullNameEl.value = 'Học viên OCMS';
+            function showError(inputId, errorId, message) {
+                const inputEl = document.getElementById(inputId);
+                const errorEl = document.getElementById(errorId);
+                if (inputEl) inputEl.classList.add('input-error');
+                if (errorEl) {
+                    errorEl.textContent = message;
+                    errorEl.style.display = 'block';
+                }
+                isValid = false;
             }
 
-            // Email validation (auto fill if empty)
-            let emailEl = document.getElementById('email');
-            if (!emailEl.value.trim() || !emailEl.value.includes('@')) {
-                emailEl.value = 'student@ocms.com';
+            // 1. Quốc gia / Khu vực
+            const countryEl = document.getElementById('country');
+            if (!countryEl || !countryEl.value.trim()) {
+                showError('country', 'countryError', 'Thiếu trường chưa điền: Vui lòng chọn Quốc gia / Khu vực.');
             }
 
-            // If Card payment is chosen, ensure card fields have values (auto-fill if left blank)
+            // 2. Họ và tên
+            const fullNameEl = document.getElementById('fullName');
+            const fullNameVal = fullNameEl ? fullNameEl.value.trim() : '';
+            if (!fullNameVal) {
+                showError('fullName', 'fullNameError', 'Thiếu trường chưa điền: Vui lòng nhập Họ và tên.');
+            } else if (/\d/.test(fullNameVal)) {
+                showError('fullName', 'fullNameError', 'Họ và tên chỉ được chứa chữ cái, không được chứa số.');
+            } else if (!/^[\p{L}\s'-]+$/u.test(fullNameVal)) {
+                showError('fullName', 'fullNameError', 'Họ và tên không hợp lệ (chỉ được chứa chữ cái và khoảng trắng).');
+            }
+
+            // 3. Email
+            const emailEl = document.getElementById('email');
+            const emailVal = emailEl ? emailEl.value.trim() : '';
+            const emailRegex = /^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$/;
+            if (!emailVal) {
+                showError('email', 'emailError', 'Thiếu trường chưa điền: Vui lòng nhập Email liên hệ.');
+            } else if (!emailRegex.test(emailVal)) {
+                showError('email', 'emailError', 'Email liên hệ không đúng định dạng.');
+            }
+
+            // 4. Địa chỉ
+            const addressEl = document.getElementById('address');
+            const addressVal = addressEl ? addressEl.value.trim() : '';
+            if (!addressVal) {
+                showError('address', 'addressError', 'Thiếu trường chưa điền: Vui lòng nhập Địa chỉ.');
+            }
+
+            // 5. Nếu phương thức thanh toán là Thẻ tín dụng/Ghi nợ (Card)
             if (method === 'Card') {
-                let cardNumEl = document.getElementById('cardNumber');
-                let expiryEl = document.getElementById('expiry');
-                let cvcEl = document.getElementById('cvc');
-                let cardNameEl = document.getElementById('cardName');
-
-                let cardNum = (cardNumEl.value || '').replace(/\s/g, '');
-                if (!cardNum || cardNum.length < 16) {
-                    cardNumEl.value = '4242 4242 4242 4242';
+                // Số thẻ: 16 chữ số
+                const cardNumEl = document.getElementById('cardNumber');
+                const cardNumRaw = cardNumEl ? cardNumEl.value.trim() : '';
+                const cardNumClean = cardNumRaw.replace(/\s+/g, '');
+                if (!cardNumRaw) {
+                    showError('cardNumber', 'cardNumberError', 'Thiếu trường chưa điền: Vui lòng nhập Số thẻ.');
+                } else if (!/^\d+$/.test(cardNumClean)) {
+                    showError('cardNumber', 'cardNumberError', 'Số thẻ chỉ được chứa chữ số.');
+                } else if (cardNumClean.length !== 16) {
+                    showError('cardNumber', 'cardNumberError', 'Số thẻ phải gồm đúng 16 chữ số.');
                 }
 
-                let expiry = (expiryEl.value || '').trim();
-                if (!expiry || !/^\d{2}\/\d{2}$/.test(expiry)) {
-                    expiryEl.value = '12/28';
+                // Ngày hết hạn: MM/YY
+                const expiryEl = document.getElementById('expiry');
+                const expiryVal = expiryEl ? expiryEl.value.trim() : '';
+                const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+                if (!expiryVal) {
+                    showError('expiry', 'expiryError', 'Thiếu trường chưa điền: Vui lòng nhập Ngày hết hạn thẻ.');
+                } else if (!expiryRegex.test(expiryVal)) {
+                    showError('expiry', 'expiryError', 'Định dạng ngày hết hạn không hợp lệ (MM/YY, ví dụ: 12/28).');
                 }
 
-                let cvc = (cvcEl.value || '').trim();
-                if (!cvc || cvc.length < 3) {
-                    cvcEl.value = '123';
+                // CVC/CVV: 3-4 chữ số
+                const cvcEl = document.getElementById('cvc');
+                const cvcVal = cvcEl ? cvcEl.value.trim() : '';
+                if (!cvcVal) {
+                    showError('cvc', 'cvcError', 'Thiếu trường chưa điền: Vui lòng nhập Mã CVC / CVV.');
+                } else if (!/^\d{3,4}$/.test(cvcVal)) {
+                    showError('cvc', 'cvcError', 'Mã CVC / CVV phải gồm 3 hoặc 4 chữ số.');
                 }
 
-                let cardName = (cardNameEl.value || '').trim();
-                if (!cardName) {
-                    cardNameEl.value = (fullNameEl.value || 'CARD HOLDER').toUpperCase();
+                // Tên in trên thẻ: là chữ, không được chứa số
+                const cardNameEl = document.getElementById('cardName');
+                const cardNameVal = cardNameEl ? cardNameEl.value.trim() : '';
+                if (!cardNameVal) {
+                    showError('cardName', 'cardNameError', 'Thiếu trường chưa điền: Vui lòng nhập Tên in trên thẻ.');
+                } else if (/\d/.test(cardNameVal)) {
+                    showError('cardName', 'cardNameError', 'Tên in trên thẻ chỉ được chứa chữ cái, không được chứa số.');
+                } else if (!/^[\p{L}\s'-]+$/u.test(cardNameVal)) {
+                    showError('cardName', 'cardNameError', 'Tên in trên thẻ chỉ được chứa chữ cái và khoảng trắng.');
                 }
             }
 
-            // If everything is valid, allow form submission to proceed and show processing toast
+            // Nếu có lỗi, chặn submit và hiển thị thông báo
+            if (!isValid) {
+                e.preventDefault();
+                const firstErrorEl = document.querySelector('.input-error');
+                if (firstErrorEl) {
+                    firstErrorEl.focus();
+                    firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                Toastify({
+                    text: "Vui lòng điền đầy đủ và chính xác thông tin thanh toán!",
+                    duration: 3500,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#dc2626"
+                }).showToast();
+                return false;
+            }
+
+            // Nếu dữ liệu hợp lệ, cho phép gửi form và hiển thị thông báo
             Toastify({
-                text: "Đang xử lý đơn hàng và kích hoạt khóa học...",
+                text: "Đang xử lý thanh toán và kích hoạt khóa học...",
                 duration: 2500,
                 gravity: "top",
                 position: "right",
