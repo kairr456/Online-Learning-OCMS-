@@ -1,14 +1,10 @@
-package com.controller.home;
+package com.controller;
 
-import com.DAO.CourseRegistrationDAO;
 import com.DAO.UserLearningListDAO;
 import com.entity.Account;
-import com.entity.Course;
-import com.entity.UserLearningList;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,37 +12,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "MyLearningController", urlPatterns = {"/my-learning"})
-public class MyLearningController extends HttpServlet {
+@WebServlet(name = "UserLearningListController", urlPatterns = {"/user-learning-list"})
+public class UserLearningListController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        HttpSession session = request.getSession();
-        Account account = (Account) session.getAttribute("account");
-
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
-            return;
-        }
-
-        CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
-        List<Course> myCourses = registrationDAO.getCoursesByAccountId(account.getId());
-
-        UserLearningListDAO listDAO = new UserLearningListDAO();
-        List<UserLearningList> myLists = listDAO.getListsByAccountId(account.getId());
-
-        request.setAttribute("myCourses", myCourses);
-        request.setAttribute("myLists", myLists);
-
-        request.getRequestDispatcher("/view/course_learning/course_learning.jsp").forward(request, response);
+        // Tự động chuyển hướng về trang My Learning nếu người dùng truy cập trực tiếp bằng phương thức GET
+        response.sendRedirect(request.getContextPath() + "/my-learning");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        // Thiết lập cấu hình Encoding tiếng Việt và định dạng phản hồi JSON
         request.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -55,9 +35,10 @@ public class MyLearningController extends HttpServlet {
         Account account = (Account) session.getAttribute("account");
         PrintWriter out = response.getWriter();
 
-        // Kiểm tra đăng nhập
+        // 1. Kiểm tra trạng thái đăng nhập của người dùng
         if (account == null) {
-            out.print("{\"status\":\"error\", \"message\":\"Unauthorized\"}");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.print("{\"status\":\"error\", \"message\":\"Unauthorized: Please log in first.\"}");
             return;
         }
 
@@ -66,6 +47,7 @@ public class MyLearningController extends HttpServlet {
         boolean isSuccess = false;
 
         try {
+            // 2. Phân loại và xử lý các hành động AJAX từ Front-end
             if ("create".equals(action)) {
                 String title = request.getParameter("title");
                 String description = request.getParameter("description");
@@ -99,14 +81,15 @@ public class MyLearningController extends HttpServlet {
                 isSuccess = listDAO.removeCourseFromList(listId, courseId);
             }
 
+            // 3. Trả về kết quả JSON cho AJAX client
             if (isSuccess) {
                 out.print("{\"status\":\"success\"}");
             } else {
-                out.print("{\"status\":\"error\", \"message\":\"Operation failed\"}");
+                out.print("{\"status\":\"error\", \"message\":\"Operation failed in database.\"}");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            out.print("{\"status\":\"error\", \"message\":\"" + e.getMessage() + "\"}");
+            out.print("{\"status\":\"error\", \"message\":\"" + e.getMessage().replace("\"", "\\\"") + "\"}");
         }
     }
 }
