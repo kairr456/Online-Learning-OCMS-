@@ -139,4 +139,9 @@ public class registerValidator {
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
+
+    /** Public wrapper around EMAIL_PATTERN so other code (e.g. the email-change OTP flow) can reuse the same check. */
+    public static boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email.trim()).matches();
+    }
 }

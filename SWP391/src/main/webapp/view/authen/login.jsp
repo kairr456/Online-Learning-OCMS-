@@ -143,7 +143,7 @@
 
                 <a
                     class="login-forgot"
-                    href="forgot-password"
+                    href="${pageContext.request.contextPath}/view/authen/forgot-password.jsp"
                 >
                     Forgot password?
                 </a>
