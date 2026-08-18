@@ -66,7 +66,7 @@
                         </td>
                         <td>${reg.courseName != null ? reg.courseName : 'N/A'}</td>
                         <td>${reg.packages != null ? reg.packages : '-'}</td>
-                        <td>$<fmt:formatNumber value="${reg.totalCost}" minFractionDigits="0" maxFractionDigits="2"/></td>
+                        <td><fmt:formatNumber value="${reg.totalCost}" minFractionDigits="0" maxFractionDigits="2"/>₫</td>
                         <!-- Badge màu theo trạng thái: xanh lá (ok) / vàng (chờ) / đỏ (lỗi) -->
                         <td>
                             <c:choose>

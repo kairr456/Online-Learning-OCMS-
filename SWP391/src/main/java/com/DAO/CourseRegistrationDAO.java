@@ -5,7 +5,9 @@ import com.entity.Course;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CourseRegistrationDAO extends DBContext implements I_DAO<Registration> {
     // Chèn hàm này vào bên trong class RegistrationDAO
@@ -401,6 +403,139 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
             e.printStackTrace();
         }
         return false;
+    }
+
+    // ============================================================
+    // Hỗ trợ hiển thị GIAO DỊCH (Student & Teacher)
+    // ------------------------------------------------------------
+    // Student: /my-purchases + dropdown header -> lịch sử mua khóa.
+    // Teacher: /teacher-transactions + dropdown header -> số lượt khóa được mua.
+    // Tất cả truy vấn trên bảng registration cũ (JOIN course), KHÔNG cần bảng mới.
+    // ============================================================
+
+    /**
+     * Lấy danh sách giao dịch mua khóa của học viên (kèm tên khóa học).
+     *
+     * @param accountId id tài khoản học viên
+     * @param limit     số bản ghi tối đa (dropdown dùng 3); truyền 0 hoặc âm để lấy hết
+     * @return List<Registration> mới nhất trước, có courseName
+     */
+    public List<Registration> getPurchasesByAccountId(int accountId, int limit) {
+        List<Registration> purchases = new ArrayList<>();
+        String sql = "SELECT r.*, c.name AS course_name " +
+                     "FROM registration r " +
+                     "JOIN course c ON r.course_id = c.id " +
+                     "WHERE r.account_id = ? " +
+                     "ORDER BY r.registration_time DESC" +
+                     (limit > 0 ? " LIMIT ?" : "");
+
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            if (limit > 0) {
+                ps.setInt(2, limit);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Registration reg = getFromResultSet(rs);
+                    reg.setCourseName(rs.getString("course_name"));
+                    purchases.add(reg);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching purchases by account: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+
+    /**
+     * Tóm tắt mua hàng của học viên: tổng số khóa + tổng tiền đã chi.
+     */
+    public Map<String, Object> getPurchaseSummary(int accountId) {
+        Map<String, Object> summary = new HashMap<>();
+        String sql = "SELECT COUNT(*) AS total_count, COALESCE(SUM(total_cost), 0) AS total_spent " +
+                     "FROM registration WHERE account_id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    summary.put("totalCount", rs.getInt("total_count"));
+                    summary.put("totalSpent", rs.getBigDecimal("total_spent"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching purchase summary: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return summary;
+    }
+
+    /**
+     * Thống kê doanh thu bán khóa của giáo viên (theo từng khóa).
+     * Chỉ đếm giao dịch thành công (Active/Approved/Success); LEFT JOIN để
+     * khóa chưa bán vẫn xuất hiện với count = 0.
+     *
+     * @param teacherId id giáo viên (course.created_by)
+     * @return List<Map> mỗi phần tử: courseName, totalSales, totalRevenue
+     */
+    public List<Map<String, Object>> countSalesByTeacher(int teacherId) {
+        List<Map<String, Object>> sales = new ArrayList<>();
+        String sql = "SELECT c.name AS course_name, " +
+                     "COUNT(r.id) AS total_sales, " +
+                     "COALESCE(SUM(r.total_cost), 0) AS total_revenue " +
+                     "FROM course c " +
+                     "LEFT JOIN registration r ON r.course_id = c.id " +
+                     " AND r.status IN ('Active', 'Approved', 'Success') " +
+                     "WHERE c.created_by = ? " +
+                     "GROUP BY c.id, c.name " +
+                     "ORDER BY total_sales DESC, c.name";
+
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, teacherId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("courseName", rs.getString("course_name"));
+                    row.put("totalSales", rs.getInt("total_sales"));
+                    row.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                    sales.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error counting sales by teacher: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
+    /**
+     * Tóm tắt doanh thu của giáo viên: tổng lượt mua + tổng doanh thu.
+     */
+    public Map<String, Object> getSalesSummary(int teacherId) {
+        Map<String, Object> summary = new HashMap<>();
+        String sql = "SELECT COUNT(r.id) AS total_sales_count, " +
+                     "COALESCE(SUM(r.total_cost), 0) AS total_revenue " +
+                     "FROM course c " +
+                     "LEFT JOIN registration r ON r.course_id = c.id " +
+                     " AND r.status IN ('Active', 'Approved', 'Success') " +
+                     "WHERE c.created_by = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, teacherId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    summary.put("totalSalesCount", rs.getInt("total_sales_count"));
+                    summary.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching sales summary: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return summary;
     }
 
     // ============================================================
