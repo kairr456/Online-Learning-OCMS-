@@ -358,4 +358,63 @@ public class LessonDAO extends DBContext {
             insertLessonText(lessonId, content);
         }
     }
+
+    public void cleanupRemovedSectionsAndLessons(int courseId, java.util.List<Integer> keptSectionIds, java.util.List<Integer> keptLessonIds) {
+        try {
+            connection = new DBContext().connection;
+            
+            // 1. Find all lessons belonging to this course
+            String getLessonsSql = "SELECT l.id FROM lesson l JOIN section s ON l.section_id = s.id WHERE s.course_id = ?";
+            java.util.List<Integer> allCourseLessonIds = new java.util.ArrayList<>();
+            statement = connection.prepareStatement(getLessonsSql);
+            statement.setInt(1, courseId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                allCourseLessonIds.add(resultSet.getInt("id"));
+            }
+            
+            // 2. Delete lessons that are NOT in keptLessonIds
+            for (int lid : allCourseLessonIds) {
+                if (!keptLessonIds.contains(lid)) {
+                    // Manual cascade deletes
+                    try (java.sql.PreparedStatement ps = connection.prepareStatement("DELETE FROM lesson_text WHERE lesson_id = ?")) {
+                        ps.setInt(1, lid); ps.executeUpdate();
+                    }
+                    try (java.sql.PreparedStatement ps = connection.prepareStatement("DELETE FROM lesson_video WHERE lesson_id = ?")) {
+                        ps.setInt(1, lid); ps.executeUpdate();
+                    }
+                    try (java.sql.PreparedStatement ps = connection.prepareStatement("DELETE FROM lesson_quiz WHERE lesson_id = ?")) {
+                        ps.setInt(1, lid); ps.executeUpdate();
+                    }
+                    try (java.sql.PreparedStatement ps = connection.prepareStatement("DELETE FROM lesson WHERE id = ?")) {
+                        ps.setInt(1, lid); ps.executeUpdate();
+                    }
+                }
+            }
+            
+            // 3. Find all sections belonging to this course
+            String getSectionsSql = "SELECT id FROM section WHERE course_id = ?";
+            java.util.List<Integer> allCourseSectionIds = new java.util.ArrayList<>();
+            statement = connection.prepareStatement(getSectionsSql);
+            statement.setInt(1, courseId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                allCourseSectionIds.add(resultSet.getInt("id"));
+            }
+            
+            // 4. Delete sections that are NOT in keptSectionIds
+            for (int sid : allCourseSectionIds) {
+                if (!keptSectionIds.contains(sid)) {
+                    try (java.sql.PreparedStatement ps = connection.prepareStatement("DELETE FROM section WHERE id = ?")) {
+                        ps.setInt(1, sid); ps.executeUpdate();
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+    }
 }

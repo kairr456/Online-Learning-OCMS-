@@ -46,23 +46,7 @@
             <div class="section-card">
                 <div class="section-title"><i class="fas fa-cog me-2"></i> 1. General Settings</div>
                 
-                <!-- Hidden Course & Section -->
-                <div class="row mb-3" style="display: none;">
-                    <div class="col-md-6">
-                        <label class="form-label">Course</label>
-                        <select class="form-select" id="courseSelect" name="courseId">
-                            <c:forEach var="course" items="${courses}">
-                                <option value="${course.id}">${course.name}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Section</label>
-                        <select class="form-select" id="sectionSelect" name="sectionId">
-                            <!-- Populated by JS -->
-                        </select>
-                    </div>
-                </div>
+                <!-- Hidden Course & Section removed for Quiz Bank mode -->
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Quiz Title <span class="text-danger">*</span></label>
@@ -149,25 +133,8 @@
         let questionCounter = 0;
         
         // Populate sections based on course (auto-trigger for hidden selects)
-        document.getElementById('courseSelect').addEventListener('change', function() {
-            const courseId = this.value;
-            const sectionSelect = document.getElementById('sectionSelect');
-            sectionSelect.innerHTML = '';
-            
-            if (courseId && courseSections[courseId]) {
-                courseSections[courseId].forEach(section => {
-                    const option = document.createElement('option');
-                    option.value = section.id;
-                    option.textContent = section.title;
-                    sectionSelect.appendChild(option);
-                });
-            }
-        });
-        
-        // Trigger change initially to populate the hidden section dropdown with the first course
-        if(document.getElementById('courseSelect').options.length > 0) {
-            document.getElementById('courseSelect').dispatchEvent(new Event('change'));
-        }
+        // Initial calculations
+        updateSummary();
         
         function addQuestion() {
             questionCounter++;

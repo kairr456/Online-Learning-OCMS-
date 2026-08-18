@@ -145,6 +145,9 @@ public class LessonController extends HttpServlet {
                     sectionCount = Integer.parseInt(request.getParameter("sectionCount"));
                 } catch (Exception e) {}
 
+                java.util.List<Integer> keptSectionIds = new java.util.ArrayList<>();
+                java.util.List<Integer> keptLessonIds = new java.util.ArrayList<>();
+
                 // 2. Sections
                 for (int s = 0; s < sectionCount; s++) {
                     String secTitle = request.getParameter("sectionTitle_" + s);
@@ -169,6 +172,7 @@ public class LessonController extends HttpServlet {
                     }
 
                     if (sectionId > 0) {
+                        keptSectionIds.add(sectionId);
                         int lessonCount = 0;
                         try {
                             lessonCount = Integer.parseInt(request.getParameter("lessonCount_" + s));
@@ -202,6 +206,7 @@ public class LessonController extends HttpServlet {
                             }
 
                             if (lessonId > 0) {
+                                keptLessonIds.add(lessonId);
                                 // Handle specific lesson types
                                 if ("script".equals(type) || "text".equals(type) || "text_image".equals(type)) {
                                     StringBuilder htmlContent = new StringBuilder();
@@ -290,6 +295,10 @@ public class LessonController extends HttpServlet {
                             }
                         }
                     }
+                }
+                
+                if (isUpdate) {
+                    lessonDAO.cleanupRemovedSectionsAndLessons(courseId, keptSectionIds, keptLessonIds);
                 }
                 
                 session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course created successfully!");
