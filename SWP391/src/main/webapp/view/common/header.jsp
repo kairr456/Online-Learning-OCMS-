@@ -73,6 +73,7 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
                     <div class="nav-dropdown-menu">
+                        <a href="<%= ctx %>/course-dashboard">Trang tổng quan khóa học</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                     </div>
@@ -106,10 +107,15 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <% if (headerAccount.getRoleId() == 2) { %>
-                            <a href="<%= ctx %>/lesson">Create Course</a>
+                        <% if (headerAccount.getRoleId() == 3) { %>
+                            <a href="<%= ctx %>/my-purchases">My Purchases</a>
+                        <% } else if (headerAccount.getRoleId() == 2) { %>
+                            <a href="<%= ctx %>/teacher-transactions">Sales Report</a>
                         <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
+                        <% if (headerAccount.getRoleId() == 2) { %>
+                        <a href="<%= ctx %>/wallet"><i class="fa-solid fa-wallet me-1" style="color: #f59e0b;"></i> My Wallet</a>
+                        <% } %>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
                 </div>

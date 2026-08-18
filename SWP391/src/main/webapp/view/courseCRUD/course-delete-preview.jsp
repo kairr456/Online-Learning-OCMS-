@@ -34,8 +34,8 @@
                     </div>
                     
                     <div class="course-meta">
-                        <span><i class="fas fa-star rating-icon"></i> Rating: ${course.rating}</span>
-                        <span><i class="fas fa-dollar-sign price-icon"></i> Price: $${course.price}</span>
+                        <span><i class="fas fa-star" style="color: #ffc107;"></i> Rating: ${course.rating}</span>
+                        <span><i class="fas fa-dollar-sign" style="color: #28a745;"></i> Price: ${course.price}₫</span>
                     </div>
                 </div>
             </div>

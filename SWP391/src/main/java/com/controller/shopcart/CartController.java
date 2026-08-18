@@ -14,6 +14,7 @@ import com.DAO.CartDAO;
 import com.DAO.CartItemDAO;
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
+import com.DAO.WalletDAO;
 import com.entity.Cart;
 import com.entity.CartItem;
 import com.entity.Course;
@@ -34,6 +35,7 @@ public class CartController extends HttpServlet {
     private CartItemDAO cartItemDAO;
     private CourseDAO courseDAO;
     private CourseRegistrationDAO registrationDAO;
+    private WalletDAO walletDAO;
 
     private static final String CART_JSP = "/view/shopcart/cart.jsp";
     private static final String CHECKOUT_JSP = "/view/shopcart/checkout.jsp";
@@ -44,6 +46,7 @@ public class CartController extends HttpServlet {
         cartItemDAO = new CartItemDAO();
         courseDAO = new CourseDAO();
         registrationDAO = new CourseRegistrationDAO();
+        walletDAO = new WalletDAO();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -529,6 +532,13 @@ public class CartController extends HttpServlet {
                 if (registrationId <= 0) {
                     allSuccess = false;
                     break;
+                } else {
+                    // Tự động cộng 70% doanh thu khóa học vào ví giảng viên
+                    try {
+                        walletDAO.creditTeacherForCourseSale(registrationId, item.getCourseId(), item.getPrice());
+                    } catch (Exception ex) {
+                        System.err.println("Lỗi cộng hoa hồng cho giảng viên: " + ex.getMessage());
+                    }
                 }
             }
         } catch (Exception e) {

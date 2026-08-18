@@ -5,7 +5,9 @@ import com.entity.Course;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CourseRegistrationDAO extends DBContext implements I_DAO<Registration> {
     // Chèn hàm này vào bên trong class RegistrationDAO
@@ -403,42 +405,192 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         return false;
     }
 
-    // Backward compatibility methods
+    // ============================================================
+    // Hỗ trợ hiển thị GIAO DỊCH (Student & Teacher)
+    // ------------------------------------------------------------
+    // Student: /my-purchases + dropdown header -> lịch sử mua khóa.
+    // Teacher: /teacher-transactions + dropdown header -> số lượt khóa được mua.
+    // Tất cả truy vấn trên bảng registration cũ (JOIN course), KHÔNG cần bảng mới.
+    // ============================================================
 
     /**
-     * Get registrations by filter without student ID (used by admin/teacher interfaces)
+     * Lấy danh sách giao dịch mua khóa của học viên (kèm tên khóa học).
+     *
+     * @param accountId id tài khoản học viên
+     * @param limit     số bản ghi tối đa (dropdown dùng 3); truyền 0 hoặc âm để lấy hết
+     * @return List<Registration> mới nhất trước, có courseName
      */
-    public List<Registration> getRegistrationsByFilter(String search, String category, 
+    public List<Registration> getPurchasesByAccountId(int accountId, int limit) {
+        List<Registration> purchases = new ArrayList<>();
+        String sql = "SELECT r.*, c.name AS course_name " +
+                     "FROM registration r " +
+                     "JOIN course c ON r.course_id = c.id " +
+                     "WHERE r.account_id = ? " +
+                     "ORDER BY r.registration_time DESC" +
+                     (limit > 0 ? " LIMIT ?" : "");
+
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            if (limit > 0) {
+                ps.setInt(2, limit);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Registration reg = getFromResultSet(rs);
+                    reg.setCourseName(rs.getString("course_name"));
+                    purchases.add(reg);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching purchases by account: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+
+    /**
+     * Tóm tắt mua hàng của học viên: tổng số khóa + tổng tiền đã chi.
+     */
+    public Map<String, Object> getPurchaseSummary(int accountId) {
+        Map<String, Object> summary = new HashMap<>();
+        String sql = "SELECT COUNT(*) AS total_count, COALESCE(SUM(total_cost), 0) AS total_spent " +
+                     "FROM registration WHERE account_id = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    summary.put("totalCount", rs.getInt("total_count"));
+                    summary.put("totalSpent", rs.getBigDecimal("total_spent"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching purchase summary: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return summary;
+    }
+
+    /**
+     * Thống kê doanh thu bán khóa của giáo viên (theo từng khóa).
+     * Chỉ đếm giao dịch thành công (Active/Approved/Success); LEFT JOIN để
+     * khóa chưa bán vẫn xuất hiện với count = 0.
+     *
+     * @param teacherId id giáo viên (course.created_by)
+     * @return List<Map> mỗi phần tử: courseName, totalSales, totalRevenue
+     */
+    public List<Map<String, Object>> countSalesByTeacher(int teacherId) {
+        List<Map<String, Object>> sales = new ArrayList<>();
+        String sql = "SELECT c.name AS course_name, " +
+                     "COUNT(r.id) AS total_sales, " +
+                     "COALESCE(SUM(r.total_cost), 0) AS total_revenue " +
+                     "FROM course c " +
+                     "LEFT JOIN registration r ON r.course_id = c.id " +
+                     " AND r.status IN ('Active', 'Approved', 'Success') " +
+                     "WHERE c.created_by = ? " +
+                     "GROUP BY c.id, c.name " +
+                     "ORDER BY total_sales DESC, c.name";
+
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, teacherId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("courseName", rs.getString("course_name"));
+                    row.put("totalSales", rs.getInt("total_sales"));
+                    row.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                    sales.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error counting sales by teacher: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
+    /**
+     * Tóm tắt doanh thu của giáo viên: tổng lượt mua + tổng doanh thu.
+     */
+    public Map<String, Object> getSalesSummary(int teacherId) {
+        Map<String, Object> summary = new HashMap<>();
+        String sql = "SELECT COUNT(r.id) AS total_sales_count, " +
+                     "COALESCE(SUM(r.total_cost), 0) AS total_revenue " +
+                     "FROM course c " +
+                     "LEFT JOIN registration r ON r.course_id = c.id " +
+                     " AND r.status IN ('Active', 'Approved', 'Success') " +
+                     "WHERE c.created_by = ?";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, teacherId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    summary.put("totalSalesCount", rs.getInt("total_sales_count"));
+                    summary.put("totalRevenue", rs.getBigDecimal("total_revenue"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching sales summary: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return summary;
+    }
+
+    // ============================================================
+    // Backward compatibility methods — dùng cho ADMIN
+    // (trang "Quản lý đăng ký khóa học" /admin/registrations).
+    // Lấy tất cả registration (không lọc theo studentId), kèm tên học viên
+    // (account.full_name) và tên khóa học (course.name). Các method này
+    // KHÔNG được controller phía student sử dụng nên an toàn khi sửa.
+    // ============================================================
+
+    /**
+     * Lấy danh sách đăng ký cho admin với tìm kiếm / lọc / phân trang.
+     *
+     * @param search   từ khóa tìm theo tên học viên, email hoặc tên khóa học
+     * @param category id khóa học (lọc theo khóa) — truyền null để bỏ qua
+     * @param status   trạng thái đăng ký (Approved/Active/Pending/...) — null để lấy hết
+     * @param fromDate lọc valid_from >= ngày bắt đầu (yyyy-MM-dd) — null để bỏ qua
+     * @param toDate   lọc valid_to <= ngày kết thúc (yyyy-MM-dd) — null để bỏ qua
+     * @param page     trang hiện tại (bắt đầu từ 1)
+     * @param pageSize số bản ghi mỗi trang
+     * @return danh sách Registration (đã kèm studentName & courseName), mới nhất lên đầu
+     */
+    public List<Registration> getRegistrationsByFilter(String search, String category,
             String status, String fromDate, String toDate, int page, int pageSize) {
-        // Use the new method with -1 as studentId to get all registrations
         StringBuilder sql = new StringBuilder(
-            "SELECT r.* FROM registration r " +
+            "SELECT r.*, a.full_name AS student_name, c.name AS course_name " +
+            "FROM registration r " +
             "LEFT JOIN account a ON r.account_id = a.id " +
+            "LEFT JOIN course c ON r.course_id = c.id " +
             "WHERE 1=1"
         );
-        
+
         List<Object> parameters = new ArrayList<>();
 
-        // Add search condition
+        // Tìm kiếm theo tên học viên / email / tên khóa học
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ?)");
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR c.name LIKE ?)");
+            parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
         }
 
-        // Add category condition
+        // Lọc theo khóa học (course_id)
         if (category != null && !category.trim().isEmpty()) {
             sql.append(" AND r.course_id = ?");
             parameters.add(Integer.parseInt(category));
         }
 
-        // Add status condition
+        // Lọc theo trạng thái đăng ký
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND r.status = ?");
             parameters.add(status);
         }
 
-        // Add date range conditions
+        // Lọc theo khoảng ngày hiệu lực
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append(" AND r.valid_from >= ?");
             parameters.add(fromDate + " 00:00:00");
@@ -448,7 +600,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
             parameters.add(toDate + " 23:59:59");
         }
 
-        // Add pagination
+        // Phân trang: mới nhất lên đầu
         sql.append(" ORDER BY r.registration_time DESC LIMIT ? OFFSET ?");
         parameters.add(pageSize);
         parameters.add((page - 1) * pageSize);
@@ -456,7 +608,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         List<Registration> registrations = new ArrayList<>();
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            
+
             // Set parameters
             for (int i = 0; i < parameters.size(); i++) {
                 ps.setObject(i + 1, parameters.get(i));
@@ -464,7 +616,12 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    registrations.add(getFromResultSet(rs));
+                    Registration reg = getFromResultSet(rs);
+                    // Map thêm 2 cột JOIN (không nằm trong getFromResultSet để
+                    // các query SELECT * khác không bị lỗi thiếu cột)
+                    reg.setStudentName(rs.getString("student_name"));
+                    reg.setCourseName(rs.getString("course_name"));
+                    registrations.add(reg);
                 }
             }
         } catch (SQLException e) {
@@ -473,40 +630,43 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         }
         return registrations;
     }
-    
+
     /**
-     * Get total registrations by filter without student ID (used by admin/teacher interfaces)
+     * Đếm tổng số đăng ký khớp filter (dùng để tính tổng số trang cho admin).
+     * JOIN course để count đúng khi search theo tên khóa học.
      */
     public int getTotalRegistrationsByFilter(String search, String category, String status, String fromDate,
             String toDate) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) FROM registration r " +
             "LEFT JOIN account a ON r.account_id = a.id " +
+            "LEFT JOIN course c ON r.course_id = c.id " +
             "WHERE 1=1"
         );
-        
+
         List<Object> parameters = new ArrayList<>();
 
-        // Add search condition
+        // Tìm kiếm theo tên học viên / email / tên khóa học
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ?)");
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR c.name LIKE ?)");
+            parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
         }
 
-        // Add category condition
+        // Lọc theo khóa học (course_id)
         if (category != null && !category.trim().isEmpty()) {
             sql.append(" AND r.course_id = ?");
             parameters.add(Integer.parseInt(category));
         }
 
-        // Add status condition
+        // Lọc theo trạng thái đăng ký
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND r.status = ?");
             parameters.add(status);
         }
 
-        // Add date range conditions
+        // Lọc theo khoảng ngày hiệu lực
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append(" AND r.valid_from >= ?");
             parameters.add(fromDate + " 00:00:00");
@@ -518,7 +678,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
 
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            
+
             // Set parameters
             for (int i = 0; i < parameters.size(); i++) {
                 ps.setObject(i + 1, parameters.get(i));

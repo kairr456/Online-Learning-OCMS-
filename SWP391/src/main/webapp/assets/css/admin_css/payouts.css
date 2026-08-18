@@ -1,0 +1,137 @@
+/* ==========================================================================
+   Admin Payout Management Stylesheet (payouts.css)
+   ========================================================================== */
+
+/* Quick Stats Grid */
+.payout-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.payout-stat-box {
+    background: #fff;
+    border: 1px solid #E7E7E7;
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.payout-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.payout-stat-box .stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.5px;
+}
+
+.payout-stat-box .stat-val {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: #161439;
+}
+
+.payout-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.payout-stat-icon.pending {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.payout-stat-icon.success {
+    background: #E7F6EC;
+    color: #1B8F4A;
+}
+
+.payout-stat-icon.total {
+    background: #EEF2FF;
+    color: #5751E1;
+}
+
+/* VietQR Modal Wrapper */
+.vietqr-wrapper {
+    text-align: center;
+    background: #F8FAFC;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    margin-bottom: 16px;
+}
+
+.vietqr-wrapper img {
+    max-height: 220px;
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+.payout-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 13.5px;
+}
+
+.payout-detail-row:last-child {
+    border-bottom: none;
+}
+
+.payout-detail-row .label {
+    color: #64748b;
+}
+
+.payout-detail-row .val {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.payout-amount-highlight {
+    background: #FEF2F2;
+    color: #DC2626;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.btn-qr-action {
+    background: #5751E1;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-qr-action:hover {
+    background: #463FC0;
+}

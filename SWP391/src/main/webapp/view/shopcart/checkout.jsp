@@ -212,7 +212,7 @@
 
                                 <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit btn-pay-submit--card">
                                     <i class="fa-solid fa-lock me-2"></i>
-                                    <span>Thanh toán ngay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
+                                    <span>Thanh toán ngay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
                                 </button>
                             </div>
                         </div>
@@ -264,8 +264,8 @@
                                         </div>
                                         <div class="bank-info-row">
                                             <span class="bank-info-label">Số tiền:</span>
-                                            <span class="bank-info-value text-danger bank-info-value-lg">
-                                                ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>
+                                            <span class="bank-info-value text-danger" style="font-size:16px;">
+                                                <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫
                                             </span>
                                         </div>
                                         <div class="bank-info-row">
@@ -317,7 +317,7 @@
                                          class="course-thumb-mini" alt="${not empty cObj.name ? cObj.name : 'Course'}">
                                     <div class="course-info-mini">
                                         <div class="course-name-mini" title="${not empty cObj.name ? cObj.name : 'Khóa học'}"><c:out value="${not empty cObj.name ? cObj.name : ('Khóa học #' + item.courseId)}" /></div>
-                                        <div class="course-price-mini">₫<fmt:formatNumber value="${item.price}" pattern="#,##0.00"/></div>
+                                        <div class="course-price-mini"><fmt:formatNumber value="${item.price}" pattern="#,##0.00"/>₫</div>
                                     </div>
                                 </div>
                             </c:forEach>
@@ -327,8 +327,8 @@
                     <!-- Total Row -->
                     <div class="summary-calc-total summary-calc-total--summary">
                         <span>Total (${itemCount} course<c:if test="${itemCount > 1}">s</c:if>):</span>
-                        <span class="total-amount-display total-amount-display--lg">
-                            ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>
+                        <span class="total-amount-display" style="font-size: 24px; font-weight: 800; color: #1e293b;">
+                            <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫
                         </span>
                     </div>
 
@@ -339,7 +339,7 @@
                     <!-- Pay Submit Button (Main) -->
                     <button type="submit" form="checkoutForm" class="btn-pay-submit btn-pay-submit--main" id="btnSubmitPayment">
                         <i class="fa-solid fa-lock me-2"></i>
-                        <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
+                        <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
                     </button>
                 </div>
             </div>
@@ -372,7 +372,7 @@
                 qrBox.classList.remove('active');
                 radioCard.checked = true;
                 btnSubmit.style.background = '#6f2bd9';
-                btnSubmit.innerHTML = '<i class="fa-solid fa-lock me-2"></i> <span>Pay ₫<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>';
+                btnSubmit.innerHTML = '<i class="fa-solid fa-lock me-2"></i> <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>';
             } else if (method === 'QR_CODE') {
                 qrBox.classList.add('active');
                 cardBox.classList.remove('active');

@@ -577,7 +577,7 @@
                                     <div class="courses__cost-wrap">
                                         <span>This Course Fee:</span>
                                         <h2 class="title">
-                                            $${course.price}
+                                            ${course.price}₫
                                         </h2>
                                     </div>
                                 </c:otherwise>
