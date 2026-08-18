@@ -84,6 +84,17 @@ public class CheckoutDAO extends DBContext {
 
             // Commit transaction
             conn.commit();
+
+            // 3. Tự động cộng 70% doanh thu khóa học vào ví giảng viên tạo khóa học
+            try {
+                WalletDAO walletDAO = new WalletDAO();
+                for (CartItem item : cartItems) {
+                    walletDAO.creditTeacherForCourseSale(item.getCourseId(), item.getPrice());
+                }
+            } catch (Exception ex) {
+                System.err.println("Lỗi tự động cộng hoa hồng cho giáo viên khi checkout: " + ex.getMessage());
+            }
+
             return true;
 
         } catch (SQLException e) {

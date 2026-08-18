@@ -340,7 +340,7 @@
                                 <span class="fw-bold text-success me-2" style="font-size: 0.9rem;">
                                     <c:choose>
                                         <c:when test="${course.price == 0}">Free</c:when>
-                                        <c:otherwise>$${course.price}</c:otherwise>
+                                        <c:otherwise>${course.price}₫</c:otherwise>
                                     </c:choose>
                                 </span>
                                 <span class="badge ${course.status == 'active' ? 'bg-success' : 'bg-secondary'} ms-auto">

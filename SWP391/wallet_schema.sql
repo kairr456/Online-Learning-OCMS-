@@ -1,0 +1,1 @@
+-- File da duoc chay truc tiep trong MySQL va khong con su dung.

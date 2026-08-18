@@ -33,9 +33,9 @@
             <div class="kpi-info">
                 <div class="kpi-title">Revenue</div>
                 <div class="kpi-value">
-                    $<fmt:formatNumber 
+                    <fmt:formatNumber 
                         value="${totalRevenue}" 
-                        groupingUsed="true"/>
+                        groupingUsed="true"/>₫
                 </div>
             </div>
         </div>

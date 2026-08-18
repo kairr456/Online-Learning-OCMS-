@@ -443,7 +443,7 @@
                                                     data-course-id="${course.id}"
                                                     data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
                                                     onclick="submitAddToCart(this);">ENROLL NOW</button>
-                                            <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>$</span>
+                                            <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>₫</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
