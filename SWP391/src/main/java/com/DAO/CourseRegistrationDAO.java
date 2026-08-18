@@ -403,42 +403,59 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         return false;
     }
 
-    // Backward compatibility methods
+    // ============================================================
+    // Backward compatibility methods — dùng cho ADMIN
+    // (trang "Quản lý đăng ký khóa học" /admin/registrations).
+    // Lấy tất cả registration (không lọc theo studentId), kèm tên học viên
+    // (account.full_name) và tên khóa học (course.name). Các method này
+    // KHÔNG được controller phía student sử dụng nên an toàn khi sửa.
+    // ============================================================
 
     /**
-     * Get registrations by filter without student ID (used by admin/teacher interfaces)
+     * Lấy danh sách đăng ký cho admin với tìm kiếm / lọc / phân trang.
+     *
+     * @param search   từ khóa tìm theo tên học viên, email hoặc tên khóa học
+     * @param category id khóa học (lọc theo khóa) — truyền null để bỏ qua
+     * @param status   trạng thái đăng ký (Approved/Active/Pending/...) — null để lấy hết
+     * @param fromDate lọc valid_from >= ngày bắt đầu (yyyy-MM-dd) — null để bỏ qua
+     * @param toDate   lọc valid_to <= ngày kết thúc (yyyy-MM-dd) — null để bỏ qua
+     * @param page     trang hiện tại (bắt đầu từ 1)
+     * @param pageSize số bản ghi mỗi trang
+     * @return danh sách Registration (đã kèm studentName & courseName), mới nhất lên đầu
      */
-    public List<Registration> getRegistrationsByFilter(String search, String category, 
+    public List<Registration> getRegistrationsByFilter(String search, String category,
             String status, String fromDate, String toDate, int page, int pageSize) {
-        // Use the new method with -1 as studentId to get all registrations
         StringBuilder sql = new StringBuilder(
-            "SELECT r.* FROM registration r " +
+            "SELECT r.*, a.full_name AS student_name, c.name AS course_name " +
+            "FROM registration r " +
             "LEFT JOIN account a ON r.account_id = a.id " +
+            "LEFT JOIN course c ON r.course_id = c.id " +
             "WHERE 1=1"
         );
-        
+
         List<Object> parameters = new ArrayList<>();
 
-        // Add search condition
+        // Tìm kiếm theo tên học viên / email / tên khóa học
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ?)");
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR c.name LIKE ?)");
+            parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
         }
 
-        // Add category condition
+        // Lọc theo khóa học (course_id)
         if (category != null && !category.trim().isEmpty()) {
             sql.append(" AND r.course_id = ?");
             parameters.add(Integer.parseInt(category));
         }
 
-        // Add status condition
+        // Lọc theo trạng thái đăng ký
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND r.status = ?");
             parameters.add(status);
         }
 
-        // Add date range conditions
+        // Lọc theo khoảng ngày hiệu lực
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append(" AND r.valid_from >= ?");
             parameters.add(fromDate + " 00:00:00");
@@ -448,7 +465,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
             parameters.add(toDate + " 23:59:59");
         }
 
-        // Add pagination
+        // Phân trang: mới nhất lên đầu
         sql.append(" ORDER BY r.registration_time DESC LIMIT ? OFFSET ?");
         parameters.add(pageSize);
         parameters.add((page - 1) * pageSize);
@@ -456,7 +473,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         List<Registration> registrations = new ArrayList<>();
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            
+
             // Set parameters
             for (int i = 0; i < parameters.size(); i++) {
                 ps.setObject(i + 1, parameters.get(i));
@@ -464,7 +481,12 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    registrations.add(getFromResultSet(rs));
+                    Registration reg = getFromResultSet(rs);
+                    // Map thêm 2 cột JOIN (không nằm trong getFromResultSet để
+                    // các query SELECT * khác không bị lỗi thiếu cột)
+                    reg.setStudentName(rs.getString("student_name"));
+                    reg.setCourseName(rs.getString("course_name"));
+                    registrations.add(reg);
                 }
             }
         } catch (SQLException e) {
@@ -473,40 +495,43 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
         }
         return registrations;
     }
-    
+
     /**
-     * Get total registrations by filter without student ID (used by admin/teacher interfaces)
+     * Đếm tổng số đăng ký khớp filter (dùng để tính tổng số trang cho admin).
+     * JOIN course để count đúng khi search theo tên khóa học.
      */
     public int getTotalRegistrationsByFilter(String search, String category, String status, String fromDate,
             String toDate) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) FROM registration r " +
             "LEFT JOIN account a ON r.account_id = a.id " +
+            "LEFT JOIN course c ON r.course_id = c.id " +
             "WHERE 1=1"
         );
-        
+
         List<Object> parameters = new ArrayList<>();
 
-        // Add search condition
+        // Tìm kiếm theo tên học viên / email / tên khóa học
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ?)");
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR c.name LIKE ?)");
+            parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
             parameters.add("%" + search + "%");
         }
 
-        // Add category condition
+        // Lọc theo khóa học (course_id)
         if (category != null && !category.trim().isEmpty()) {
             sql.append(" AND r.course_id = ?");
             parameters.add(Integer.parseInt(category));
         }
 
-        // Add status condition
+        // Lọc theo trạng thái đăng ký
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND r.status = ?");
             parameters.add(status);
         }
 
-        // Add date range conditions
+        // Lọc theo khoảng ngày hiệu lực
         if (fromDate != null && !fromDate.trim().isEmpty()) {
             sql.append(" AND r.valid_from >= ?");
             parameters.add(fromDate + " 00:00:00");
@@ -518,7 +543,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
 
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            
+
             // Set parameters
             for (int i = 0; i < parameters.size(); i++) {
                 ps.setObject(i + 1, parameters.get(i));
