@@ -80,10 +80,9 @@ public class forgotPasswordController extends HttpServlet {
         }
 
         String otp = OTPService.generateOtp();
-        String referenceCode = OTPService.generateReferenceCode();
 
         try {
-            OTPService.sendOtpEmail(email, otp, referenceCode);
+            OTPService.sendOtpEmail(email, otp);
         } catch (MessagingException e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "Could not send the verification email. Please try again.");
@@ -93,11 +92,12 @@ public class forgotPasswordController extends HttpServlet {
 
         session.setAttribute("fpOtp", otp);
         session.setAttribute("fpOtpEmail", email);
-        session.setAttribute("fpReference", referenceCode);
         session.setAttribute("fpOtpExpiresAt", System.currentTimeMillis() + OTPService.OTP_VALID_MILLIS);
         session.removeAttribute("fpOtpVerified"); // starting a new code invalidates any prior verified state
 
-        request.setAttribute("successMessage", "OTP sent to " + email + ".");
+        // No successMessage here -- forgot-password.jsp's step-2 view already
+        // shows a persistent "Code sent to X" note, so a banner saying the
+        // same thing was just confusing duplicate text.
         request.getRequestDispatcher(FORGOT_PAGE).forward(request, response);
     }
 
@@ -187,7 +187,6 @@ public class forgotPasswordController extends HttpServlet {
     private void clearForgotPasswordSession(HttpSession session) {
         session.removeAttribute("fpOtp");
         session.removeAttribute("fpOtpEmail");
-        session.removeAttribute("fpReference");
         session.removeAttribute("fpOtpExpiresAt");
         session.removeAttribute("fpOtpVerified");
     }
