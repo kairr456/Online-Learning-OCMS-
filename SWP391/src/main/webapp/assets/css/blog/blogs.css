@@ -548,3 +548,48 @@ body {
         align-items: stretch;
     }
 }
+
+/* ==========================================================================
+   Inline styles moved from view/common/home/blogs.jsp
+   ========================================================================== */
+.blog-filter-form {
+    display: none;
+}
+.blog-toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.btn-create-blog--link {
+    background: var(--primary-navy);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(15, 30, 51, 0.15);
+}
+.blog-thumb-fallback {
+    width: 100%;
+    height: 100%;
+    background: #16273F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D8A24A;
+    font-size: 16px;
+}
+
+/* ==========================================================================
+   Inline styles moved from view/common/blog-list.jsp
+   ========================================================================== */
+.blog-list-thumb {
+    height: 200px;
+    object-fit: cover;
+}

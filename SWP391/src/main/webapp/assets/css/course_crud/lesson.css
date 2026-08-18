@@ -1,0 +1,24 @@
+:root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
+body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; }
+.dashboard-container { max-width: 900px; margin: 40px auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+h1, h2, h3, h4 { color: var(--primary-dark); font-weight: 700; }
+.section-header { border-bottom: 2px solid var(--accent-yellow); padding-bottom: 10px; margin-bottom: 30px; }
+.form-label { font-weight: 600; color: var(--primary-dark); }
+.btn-primary, .btn-warning { background-color: var(--accent-yellow); color: var(--primary-dark); font-weight: bold; border: none; }
+.btn-primary:hover, .btn-warning:hover { background-color: #e0a800; color: var(--primary-dark); }
+
+/* Inline helpers (moved from inline styles) */
+.thumbnail-preview {
+    height: 100px;
+    border-radius: 5px;
+}
+.raw-html-field {
+    display: none;
+}
+.block-close {
+    width: 10px;
+    height: 10px;
+}
+.block-card {
+    background-color: #f8f9fa;
+}

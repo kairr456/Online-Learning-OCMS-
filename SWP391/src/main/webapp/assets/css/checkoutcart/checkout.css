@@ -437,3 +437,85 @@ body {
 .input-error {
     border-color: #dc2626 !important;
 }
+
+/* ==========================================================================
+   Inline styles moved from view/shopcart/checkout.jsp
+   ========================================================================== */
+.pay-radio-label {
+    cursor: pointer;
+}
+.fill-test-btn {
+    font-size: 12px;
+}
+.save-card-label {
+    font-size: 13px;
+}
+.btn-pay-submit--card {
+    background: #6f2bd9;
+    font-size: 16px;
+    margin-top: 10px;
+}
+.btn-pay-submit--qr {
+    background: #16a34a;
+    font-size: 16px;
+    margin-top: 12px;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+.btn-pay-submit--qr:hover {
+    background: #128a3f;
+}
+.bank-info-value-lg {
+    font-size: 16px;
+}
+.summary-title--lg {
+    font-size: 26px;
+    color: #1e293b;
+    margin-bottom: 20px;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.summary-items-scroll {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+.summary-calc-total--summary {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.total-amount-display--lg {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+}
+.terms-note {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+}
+.terms-link {
+    color: #6f2bd9;
+    text-decoration: none;
+}
+.btn-pay-submit--main {
+    background: #6f2bd9;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    box-shadow: none;
+}
+.btn-pay-submit--main:hover {
+    box-shadow: none;
+}

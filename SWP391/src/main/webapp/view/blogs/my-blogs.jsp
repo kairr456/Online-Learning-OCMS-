@@ -192,13 +192,13 @@
                     <table class="blog-table" id="myBlogTable">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">STT</th>
+                                <th class="col-stt">STT</th>
                                 <th>Bài Viết</th>
                                 <th>Danh Mục</th>
                                 <th>Trạng Thái</th>
                                 <th>Ngày Tạo</th>
                                 <th>Cập Nhật</th>
-                                <th style="text-align: center; width: 140px;">Thao Tác</th>
+                                <th class="col-action-head">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -209,7 +209,7 @@
                                 boolean isActive = "Active".equalsIgnoreCase(b.getStatus());
                             %>
                             <tr data-title="<%= b.getTitle().toLowerCase() %>" data-cat="<%= catName %>" data-status="<%= b.getStatus() %>">
-                                <td style="color: var(--text-muted); font-weight: 600;"><%= index++ %></td>
+                                <td class="td-index"><%= index++ %></td>
                                 <td>
                                     <div class="post-cell">
                                         <% if (b.getThumbnail() != null && !b.getThumbnail().trim().isEmpty()) { %>
@@ -243,10 +243,10 @@
                                         </span>
                                     <% } %>
                                 </td>
-                                <td style="color: var(--text-muted); font-size: 13px;"><%= createdStr %></td>
-                                <td style="color: var(--text-muted); font-size: 13px;"><%= updatedStr %></td>
-                                <td style="text-align: center;">
-                                    <div class="action-btns" style="justify-content: center;">
+                                <td class="td-date"><%= createdStr %></td>
+                                <td class="td-date"><%= updatedStr %></td>
+                                <td class="td-center">
+                                    <div class="action-btns action-btns--center">
                                         <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= b.getId() %>" target="_blank" class="btn-action btn-action--view" title="Xem chi tiết">
                                             <i class="fa-regular fa-eye"></i>
                                         </a>
@@ -275,7 +275,7 @@
                 <i class="fa-solid fa-trash-can"></i>
             </div>
             <h3>Xác nhận xóa bài viết?</h3>
-            <p>Bạn có chắc chắn muốn xóa bài viết <strong id="deleteBlogTitle" style="color:var(--text-dark);"></strong>? Hành động này sẽ xóa vĩnh viễn bài viết khỏi hệ thống và không thể hoàn tác.</p>
+            <p>Bạn có chắc chắn muốn xóa bài viết <strong id="deleteBlogTitle" class="delete-blog-title"></strong>? Hành động này sẽ xóa vĩnh viễn bài viết khỏi hệ thống và không thể hoàn tác.</p>
             <div class="modal-actions">
                 <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Hủy bỏ</button>
                 <a id="btnConfirmDelete" href="#" class="btn-modal-confirm">

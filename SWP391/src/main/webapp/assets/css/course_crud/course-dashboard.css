@@ -1,10 +1,6 @@
-/* ==========================================================================
-   OCMS - Browse Course Styles (browse-course.css)
-   ========================================================================== */
-
 :root {
-    --primary-dark: #1a1a2e; /* Dark Blue */
-    --accent-yellow: #ffc107; /* Yellow */
+    --primary-dark: #1a1a2e;
+    --accent-yellow: #ffc107;
     --bg-color: #f4f6f9;
     --white: #ffffff;
     --text-main: #333333;
@@ -19,124 +15,85 @@ body {
     padding: 0;
 }
 
-.browse-container {
-    max-width: 1200px;
+.dashboard-container {
+    max-width: 1300px;
     margin: 40px auto;
-    display: flex;
-    gap: 30px;
     padding: 0 20px;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 260px;
-    flex-shrink: 0;
-}
-.filter-group {
+.filter-bar {
     background: var(--white);
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0,0,0,0.03);
-}
-.filter-group h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin-bottom: 18px;
-    margin-top: 0;
-    position: relative;
-    padding-bottom: 10px;
-}
-.filter-group h3::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 40px;
-    height: 3px;
-    background-color: var(--accent-yellow);
-    border-radius: 2px;
-}
-.filter-item {
+    padding: 20px 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-    font-size: 15px;
-    color: var(--text-main);
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-.filter-item:hover {
-    color: var(--primary-dark);
-    font-weight: 500;
-}
-.filter-item input[type="checkbox"] {
-    margin-right: 12px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-dark);
-}
-.star-rating i {
-    color: var(--accent-yellow); 
-    font-size: 14px;
-    margin-right: 2px;
-}
-.star-rating .fa-star.empty {
-    color: #e4e5e9;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.search-teacher-box {
-    margin-top: 24px;
-}
-.search-teacher-box label {
-    display: block;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin-bottom: 12px;
-}
-.search-input-wrapper {
+.search-wrapper {
+    flex: 1;
+    min-width: 300px;
     position: relative;
     display: flex;
     align-items: center;
 }
-.search-input-wrapper input {
+
+.search-wrapper input {
     width: 100%;
-    padding: 10px 35px 10px 15px;
+    padding: 12px 40px 12px 20px;
     border: 1px solid var(--border-light);
-    border-radius: 25px;
+    border-radius: 30px;
     outline: none;
     font-size: 14px;
     transition: all 0.3s ease;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
 }
-.search-input-wrapper input:focus {
+
+.search-wrapper input:focus {
     border-color: var(--primary-dark);
     box-shadow: 0 0 0 3px rgba(26, 26, 46, 0.1);
 }
-.search-input-wrapper i {
+
+.search-wrapper i {
     position: absolute;
-    right: 15px;
+    right: 20px;
     color: var(--text-muted);
     font-size: 14px;
+    cursor: pointer;
 }
 
-/* Main Content */
-.main-content {
-    flex-grow: 1;
+.filter-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
 }
-.top-bar {
+
+.filter-select {
+    padding: 10px 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    outline: none;
+    background: var(--bg-color);
+    color: var(--primary-dark);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.filter-select:focus {
+    border-color: var(--primary-dark);
+}
+
+.results-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    background: var(--white);
-    padding: 15px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 20px;
 }
 .results-count {
     color: var(--text-main);
@@ -166,11 +123,11 @@ body {
     border-color: var(--primary-dark);
 }
 
-/* Course Grid */
+/* Course Grid - 4x2 */
 .course-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
 }
 .course-card {
     background: var(--white);
@@ -185,12 +142,12 @@ body {
 .course-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border-color: rgba(255, 193, 7, 0.3); /* Subtle yellow glow */
+    border-color: rgba(255, 193, 7, 0.3);
 }
 
 .course-image {
     width: 100%;
-    height: 180px;
+    height: 140px;
     object-fit: cover;
     border-bottom: 1px solid var(--border-light);
 }
@@ -199,23 +156,14 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    padding: 20px;
+    padding: 15px;
 }
 .course-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    font-size: 13px;
-}
-.course-teacher a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-.course-teacher a:hover {
-    color: var(--primary-dark);
+    margin-bottom: 10px;
+    font-size: 12px;
 }
 .course-rating {
     color: var(--text-muted);
@@ -228,10 +176,10 @@ body {
     margin-right: 4px;
 }
 .course-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--primary-dark);
-    margin: 0 0 15px 0;
+    margin: 0 0 12px 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -241,7 +189,7 @@ body {
     transition: color 0.2s ease;
 }
 .course-title:hover {
-    color: #2a2a4e; /* Slightly lighter dark blue */
+    color: #2a2a4e;
 }
 
 .course-footer {
@@ -249,31 +197,36 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-top: auto;
-    padding-top: 15px;
+    padding-top: 12px;
     border-top: 1px dashed var(--border-light);
+    gap: 10px;
 }
-.enroll-btn {
-    background-color: var(--accent-yellow);
-    color: var(--primary-dark);
+.action-btn {
     border: none;
-    padding: 8px 20px;
-    font-size: 14px;
+    padding: 6px 12px;
+    font-size: 12px;
     font-weight: 700;
-    border-radius: 20px;
+    border-radius: 15px;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    flex: 1;
+    text-align: center;
 }
-.enroll-btn:hover {
-    background-color: #e0a800; /* Darker yellow */
-    transform: translateY(-2px);
+.btn-edit {
+    background-color: #e0f2fe;
+    color: #0284c7;
 }
-.course-price {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--primary-dark);
+.btn-edit:hover {
+    background-color: #bae6fd;
+}
+.btn-delete {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+.btn-delete:hover {
+    background-color: #fecaca;
 }
 
 /* Pagination */
@@ -281,9 +234,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 50px;
+    margin-top: 40px;
     gap: 10px;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
 }
 .page-link {
     display: flex;
@@ -312,32 +265,18 @@ body {
     box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
 
-/* ==========================================================================
-   Inline styles moved from view/common/home/browse-course.jsp
-   ========================================================================== */
-.search-submit-icon {
-    cursor: pointer;
-}
-.no-courses-msg {
+/* Dashboard helpers (moved from inline styles) */
+.dashboard-empty-state {
     text-align: center;
     padding: 40px;
 }
-.enroll-btn--learn-now {
-    text-decoration: none;
-    text-align: center;
-    display: block;
-    width: 100%;
-    background-color: #28a745;
-    color: white;
+.price-label {
+    font-size: 0.9rem;
 }
-.enroll-btn--learn-now:hover {
-    background-color: #218838;
-    color: white;
-}
-.enroll-btn--plain {
-    border: none;
-    cursor: pointer;
-}
-.hidden-form {
-    display: none;
+.course-desc-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 40px;
 }

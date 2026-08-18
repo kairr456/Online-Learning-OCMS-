@@ -238,3 +238,10 @@ textarea.form-control {
         padding: 22px;
     }
 }
+
+/* ==========================================================================
+   Inline styles moved from view/blogs/blog-form.jsp
+   ========================================================================== */
+.blog-form-error-icon {
+    color: #D64545;
+}

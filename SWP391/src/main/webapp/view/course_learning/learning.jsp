@@ -9,116 +9,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
-    <style>
-        body { margin: 0; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-
-        /* Top bar */
-        .learn-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #1f1f1f;
-            color: #fff;
-            padding: 0 20px;
-            height: 56px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-        .learn-topbar a { color: #fff; text-decoration: none; font-size: 14px; }
-        .learn-topbar a:hover { color: #a435f0; }
-        .learn-topbar .tb-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
-        .learn-topbar .tb-nav { display: flex; gap: 16px; align-items: center; }
-
-        /* Layout */
-        .learn-wrap { display: flex; margin-top: 56px; min-height: calc(100vh - 56px); }
-
-        /* Sidebar */
-        .learn-sidebar {
-            width: 340px;
-            flex-shrink: 0;
-            border-right: 1px solid #d1d7dc;
-            background: #fff;
-            overflow-y: auto;
-            max-height: calc(100vh - 56px);
-            position: sticky;
-            top: 56px;
-        }
-        .learn-sidebar .sb-title { padding: 16px; font-weight: 700; font-size: 15px; border-bottom: 1px solid #eee; }
-        .section-item { border-bottom: 1px solid #f0f0f0; }
-        .section-header {
-            width: 100%;
-            background: none;
-            border: none;
-            text-align: left;
-            padding: 14px 16px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #1c1d1f;
-        }
-        .section-header:hover { background: #f7f9fa; }
-        .section-lessons { list-style: none; margin: 0; padding: 0 0 8px 0; }
-        .section-lessons li a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 16px 8px 34px;
-            font-size: 13.5px;
-            color: #2d2f31;
-            text-decoration: none;
-        }
-        .section-lessons li a:hover { background: #f7f9fa; }
-        .section-lessons li a.active { background: #f5efff; color: #401b9c; border-left: 3px solid #5624d0; }
-        .section-lessons li a .les-icon { color: #6a6f73; width: 16px; text-align: center; flex-shrink: 0; }
-        .section-lessons li a.active .les-icon { color: #5624d0; }
-        .section-lessons li a .les-check { margin-left: auto; flex-shrink: 0; }
-        .section-lessons li a .les-duration { margin-left: auto; color: #6a6f73; font-size: 12px; flex-shrink: 0; }
-
-        /* Main content */
-        .learn-main { flex: 1; padding: 32px 40px 60px; }
-        .learn-main .learn-content-box { max-width: 860px; margin: 0 auto; }
-        .lesson-title { font-size: 26px; font-weight: 700; color: #1c1d1f; margin-bottom: 24px; }
-        .lesson-content { font-size: 16px; line-height: 1.7; color: #333; }
-        .lesson-content img { max-width: 100%; border-radius: 8px; }
-        .lesson-content p { margin-bottom: 14px; }
-
-        .video-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
-        .video-wrap iframe, .video-wrap video { width: 100%; height: 100%; border: 0; }
-
-        .resource-box { background: #f7f9fa; border: 1px solid #d1d7dc; border-radius: 8px; padding: 20px; }
-        .doc-preview { width: 100%; height: 640px; border: 1px solid #d1d7dc; border-radius: 8px; margin-top: 16px; }
-
-        /* Quiz */
-        .quiz-question { margin-bottom: 24px; }
-        .quiz-question-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
-        .quiz-answer {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border: 1px solid #d1d7dc;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .quiz-answer:hover { background: #f5efff; border-color: #5624d0; }
-        .quiz-answer input { accent-color: #5624d0; }
-        .quiz-result { margin-top: 16px; padding: 14px; border-radius: 8px; font-weight: 600; }
-        .quiz-result.pass { background: #e6f4ea; color: #1e7e34; border: 1px solid #1e7e34; }
-        .quiz-result.fail { background: #fdecea; color: #b3261e; border: 1px solid #b3261e; }
-
-        .btn-purple { background-color: #a435f0; color: #fff; font-weight: 700; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-        .btn-purple:hover { background-color: #8710d8; }
-        .btn-outline { border: 1px solid #1c1d1f; background: transparent; color: #1c1d1f; font-weight: 700; padding: 10px 20px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-outline:hover { background: #f7f9fa; }
-    </style>
 </head>
 <body>
 
@@ -165,7 +55,7 @@
                                         </span>
                                         <span>${lesson.title}</span>
                                         <c:if test="${completedLessons.contains(lesson.id)}">
-                                            <span class="les-check"><i class="fa-solid fa-circle-check" style="color:#1e7e34;"></i></span>
+                                            <span class="les-check"><i class="fa-solid fa-circle-check les-check-icon"></i></span>
                                         </c:if>
                                         <c:if test="${lesson.durationMinutes != null and lesson.durationMinutes > 0 and not completedLessons.contains(lesson.id)}">
                                             <span class="les-duration">${lesson.durationMinutes} min</span>

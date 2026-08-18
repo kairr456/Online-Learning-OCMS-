@@ -14,56 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
-    <!-- Inherit common styles -->
-    <style>
-        .lesson-container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        }
-        .lesson-title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .lesson-content img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin: 20px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .lesson-content iframe {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            margin: 20px 0;
-            width: 100%;
-        }
-        .lesson-content p {
-            font-size: 17px;
-            line-height: 1.8;
-            color: #444;
-            margin-bottom: 15px;
-        }
-        .back-to-course {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #666;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .back-to-course:hover {
-            color: #ffc107;
-        }
-        .lesson-content {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_crud/lesson-details.css">
 </head>
 
 <body>
@@ -71,7 +22,7 @@
     <jsp:include page="/view/common/header.jsp" />
     <!-- header-area-end -->
 
-    <main class="main-area" style="background-color: #f8f9fa; min-height: 80vh; padding: 20px 0;">
+    <main class="main-area lesson-main">
         <div class="container">
             <div class="lesson-container">
                 <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-outline-secondary mb-4 rounded-pill px-4">
@@ -102,7 +53,7 @@
                                     <c:set var="displayVideoUrl" value="${pageContext.request.contextPath}${fn:substringAfter(videoUrl, '/SWP391')}" />
                                 </c:if>
                                 
-                                <div class="ratio ratio-16x9 mb-4" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                                <div class="ratio ratio-16x9 mb-4 lesson-video-wrap">
                                     <c:choose>
                                         <c:when test="${fn:startsWith(fn:trim(displayVideoUrl), '<iframe')}">
                                             <c:out value="${displayVideoUrl}" escapeXml="false" />
@@ -119,10 +70,10 @@
                                                     <c:set var="embedUrl" value="https://www.youtube.com/embed/${displayVideoUrl}" />
                                                 </c:otherwise>
                                             </c:choose>
-                                            <iframe src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width: 100%; height: 500px;"></iframe>
+                                            <iframe src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="lesson-video-iframe"></iframe>
                                         </c:when>
                                         <c:otherwise>
-                                            <video controls style="width: 100%; max-height: 500px; background: #000;">
+                                            <video controls class="lesson-video-tag">
                                                 <source src="${displayVideoUrl}" type="video/mp4">
                                                 Your browser does not support the video tag.
                                             </video>
@@ -145,13 +96,10 @@
                                         <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
                                             <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
                                         </button>
-                                        <p class="text-danger mt-3 mb-2">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
-                                        <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-outline-primary mt-2 rounded-pill px-4">
-                                            <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
-                                        </a>
+                                        <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
                                     </c:when>
                                     <c:otherwise>
-                                        <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm" style="background-color: #5624d0; border-color: #5624d0; transition: transform 0.2s;">
+                                        <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm quiz-start-btn">
                                             <i class="fas fa-play-circle me-2"></i> Bắt đầu làm bài
                                             <c:if test="${maxRetakes != null && maxRetakes != -1}">
                                                 <br><small class="fw-normal">(Còn ${maxRetakes - userAttempts} lượt)</small>

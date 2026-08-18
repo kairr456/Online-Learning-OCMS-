@@ -197,3 +197,35 @@
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
+
+/* ==========================================================================
+   Inline styles moved from view/shopcart/cart.jsp
+   ========================================================================== */
+.cart-main {
+    min-height: 70vh;
+    padding: 48px 0;
+}
+.cart-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 32px;
+}
+.empty-cart-compact {
+    padding: 40px 0;
+}
+.empty-cart-icon {
+    font-size: 48px;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+.btn-continue-shopping {
+    display: inline-block;
+    margin-right: 10px;
+}
+.btn-checkout-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    text-decoration: none;
+}
