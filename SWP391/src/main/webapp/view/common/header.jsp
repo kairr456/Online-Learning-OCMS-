@@ -146,6 +146,13 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
+                        <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #5d3fd3; border-bottom: 1px solid #eee;">
+                            <% if (headerAccount.getRoleId() == 2) { %>
+                                Role: Teacher
+                            <% } else if (headerAccount.getRoleId() == 3) { %>
+                                Role: Student
+                            <% }%>
+                        </div>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>

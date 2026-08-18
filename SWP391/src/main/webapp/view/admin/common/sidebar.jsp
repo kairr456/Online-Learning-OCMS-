@@ -8,5 +8,6 @@
         <a href="${pageContext.request.contextPath}/admin/enrollment">Enrollment Management</a>
         <a href="${pageContext.request.contextPath}/admin/student">Student Management</a>
         <a href="${pageContext.request.contextPath}/admin/settings">System Administration</a>
+        <a href="${pageContext.request.contextPath}/view/admin/contact-help/faqManager.jsp">FAQ Management</a>
     </nav>
 </aside>
