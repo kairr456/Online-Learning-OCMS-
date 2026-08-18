@@ -68,7 +68,16 @@
             <% } %>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
-            <a href="${pageContext.request.contextPath}/my-learning?tab=all-courses">My Learning</a>
+            <div class="site-header__menu" id="learningMenu">
+                <a href="<%= ctx %>/all-courses" aria-haspopup="true" aria-expanded="false">My Learning</a>
+                <div class="site-header__dropdown" id="learningDropdown">
+                    <a href="<%= ctx %>/all-courses">All Courses</a>
+                    <a href="<%= ctx %>/my-list">My List</a>
+                    <a href="<%= ctx %>/wishlist">Wishlist</a>
+                    <a href="<%= ctx %>/archived">Archived</a>
+                    <a href="<%= ctx %>/learning-tools">Learning Tools</a>
+                </div>
+            </div>
             <% } %>
         </nav>
 
@@ -153,29 +162,35 @@
 <script>
 (function () {
     // Self-contained so this fragment works even on pages that don't load app.js.
-    var toggle = document.getElementById('headerProfileToggle');
-    var dropdown = document.getElementById('headerDropdown');
-    var wrap = document.getElementById('headerProfile');
-    if (!toggle || !dropdown || !wrap) return;
+    function bindDropdown(triggerId, wrapId, dropdownId) {
+        var toggle = document.getElementById(triggerId);
+        var dropdown = document.getElementById(dropdownId);
+        var wrap = document.getElementById(wrapId);
+        if (!toggle || !dropdown || !wrap) return;
 
-    function close() {
-        dropdown.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+        function close() {
+            dropdown.classList.remove('is-open');
+            wrap.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var willOpen = !dropdown.classList.contains('is-open');
+            dropdown.classList.toggle('is-open', willOpen);
+            wrap.classList.toggle('is-open', willOpen);
+            toggle.setAttribute('aria-expanded', String(willOpen));
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!wrap.contains(e.target)) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
     }
 
-    toggle.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var willOpen = !dropdown.classList.contains('is-open');
-        dropdown.classList.toggle('is-open', willOpen);
-        toggle.setAttribute('aria-expanded', String(willOpen));
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!wrap.contains(e.target)) close();
-    });
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') close();
-    });
+    bindDropdown('headerProfileToggle', 'headerProfile', 'headerDropdown');
 })();
 </script>

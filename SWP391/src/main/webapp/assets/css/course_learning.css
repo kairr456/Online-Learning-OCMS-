@@ -420,3 +420,328 @@ body {
     background-color: #2e7d32;
     width: 40%;
 }
+
+/* ==========================================================================
+   Styles migrated from the old course_learning.jsp inline <style> block
+   ========================================================================== */
+
+body {
+    background-color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Banner & Tabs Header */
+.my-learning-header {
+    background-color: #2d2f31;
+    color: #ffffff;
+    padding-top: 32px;
+    padding-bottom: 0;
+}
+
+.my-learning-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+}
+
+.my-learning-tabs {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 24px;
+}
+
+.my-learning-tabs .nav-link {
+    background: none;
+    border: none;
+    color: #d1d7dc;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 12px 0;
+    cursor: pointer;
+    border-bottom: 4px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.my-learning-tabs .nav-link:hover {
+    color: #ffffff;
+}
+
+.my-learning-tabs .nav-link.active {
+    color: #ffffff;
+    border-bottom-color: #ffffff;
+}
+
+/* Standard Empty State Styling */
+.empty-state-box {
+    background-color: #f7f9fa;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 50px 20px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.empty-state-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1c1d1f;
+    margin-bottom: 8px;
+}
+
+.empty-state-desc {
+    font-size: 14px;
+    color: #6a6f73;
+    margin-bottom: 24px;
+}
+
+/* Standard Purple Buttons */
+.btn-purple {
+    background-color: #a435f0;
+    color: #ffffff !important;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-purple:hover {
+    background-color: #8710d8;
+}
+
+.btn-purple-sm {
+    background-color: #a435f0;
+    color: #ffffff !important;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-purple-sm:hover {
+    background-color: #8710d8;
+}
+
+/* Filter Controls */
+.learning-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.filter-select {
+    padding: 10px 14px;
+    border: 1px solid #1c1d1f;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: #ffffff;
+    margin-right: 8px;
+}
+
+.learning-search input {
+    padding: 10px 16px;
+    border: 1px solid #1c1d1f;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 260px;
+}
+
+/* Cards Grid */
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.course-card {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.course-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.course-card-body {
+    padding: 14px;
+}
+
+.course-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1c1d1f;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+/* Course Progress Bar */
+.course-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.course-progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: #e8e9eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.course-progress-bar span {
+    display: block;
+    height: 100%;
+    background-color: #5624d0;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.course-progress-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6a6f73;
+    min-width: 34px;
+    text-align: right;
+}
+
+.btn-action-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* List Cards Custom UI */
+.list-card {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    transition: box-shadow 0.2s ease;
+}
+
+.list-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.list-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-card-body {
+    padding: 20px;
+}
+
+.list-card-actions .btn-icon {
+    background: transparent;
+    border: none;
+    color: #6a6f73;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.list-card-actions .btn-icon:hover {
+    background: #f7f9fa;
+    color: #1c1d1f;
+}
+
+.list-card-actions .btn-icon-danger:hover {
+    background: #fff0f0;
+    color: #d92550;
+}
+
+.course-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f7f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Pop-up Modal Styling */
+.custom-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.55);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal-backdrop.show {
+    display: flex;
+}
+
+.custom-modal-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.custom-modal-header {
+    padding: 16px 20px;
+    background: #f7f9fa;
+    border-bottom: 1px solid #d1d5db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-body {
+    padding: 20px;
+}
+
+.custom-modal-footer {
+    padding: 14px 20px;
+    background: #f7f9fa;
+    border-top: 1px solid #d1d5db;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.tool-card {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 24px;
+    background: #ffffff;
+    margin-bottom: 20px;
+}

@@ -1,6 +1,7 @@
 package com.controller.home;
 
 import com.DAO.CourseRegistrationDAO;
+import com.DAO.LearningDAO;
 import com.DAO.UserLearningListDAO;
 import com.entity.Account;
 import com.entity.Course;
@@ -9,6 +10,7 @@ import com.entity.UserLearningList;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "MyLearningController", urlPatterns = {"/my-learning"})
+@WebServlet(name = "MyLearningController", urlPatterns = {"/all-courses", "/my-list", "/wishlist", "/archived", "/learning-tools", "/my-learning"})
 public class MyLearningController extends HttpServlet {
 
     @Override
@@ -50,13 +52,41 @@ public class MyLearningController extends HttpServlet {
             }
         }
 
+        Map<Integer, Integer> courseProgress = new LearningDAO().getCourseProgressMap(account.getId());
+        for (Course c : myCourses) {
+            Integer p = courseProgress.get(c.getId());
+            c.setProgress(p != null ? p : 0);
+        }
+
         UserLearningListDAO listDAO = new UserLearningListDAO();
         List<UserLearningList> myLists = listDAO.getListsByAccountId(account.getId());
 
         request.setAttribute("myCourses", myCourses);
         request.setAttribute("myLists", myLists);
 
-        request.getRequestDispatcher("/view/course_learning/course_learning.jsp").forward(request, response);
+        // /my-learning is kept as an alias for /all-courses so old links still work.
+        String view;
+        switch (request.getServletPath()) {
+            case "/my-list":
+                view = "/view/course_learning/my_list.jsp";
+                break;
+            case "/wishlist":
+                view = "/view/course_learning/wishlist.jsp";
+                break;
+            case "/archived":
+                view = "/view/course_learning/archived.jsp";
+                break;
+            case "/learning-tools":
+                view = "/view/course_learning/learning_tools.jsp";
+                break;
+            case "/all-courses":
+            case "/my-learning":
+            default:
+                view = "/view/course_learning/all_courses.jsp";
+                break;
+        }
+
+        request.getRequestDispatcher(view).forward(request, response);
     }
 
     @Override
