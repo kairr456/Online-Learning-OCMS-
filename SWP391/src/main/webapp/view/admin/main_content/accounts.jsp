@@ -127,7 +127,7 @@
                 <!-- Empty -->
                 <c:if test="${empty userList}">
                     <tr>
-                        <td colspan="9" style="text-align:center;">No accounts found.</td>
+                        <td colspan="9" class="td-empty">No accounts found.</td>
                     </tr>
                 </c:if>
             </tbody>
@@ -152,7 +152,7 @@
 </div>
 
 <!-- ===== Modal Add/Edit ===== -->
-<div id="accountModal" class="modal" style="display:none;">
+<div id="accountModal" class="modal modal-hidden">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
         <h3 id="modalTitle">Add Account</h3>
@@ -196,7 +196,7 @@
                 <option value="0">Inactive</option>
             </select>
 
-            <p id="modalError" style="color:#dc3545;"></p>
+            <p id="modalError" class="modal-error"></p>
             <button type="submit">Save</button>
             <button type="button" onclick="closeModal()">Cancel</button>
         </form>

@@ -68,7 +68,7 @@
                     <tr>
                         <td>${course.id}</td>
                         <td>${course.name}</td>
-                        <td>${course.rating} <i class="fa-solid fa-star" style="color:#F59E0B;"></i></td>
+                        <td>${course.rating} <i class="fa-solid fa-star admin-star-icon"></i></td>
                         <td>$<fmt:formatNumber value="${course.price}" minFractionDigits="0" maxFractionDigits="2"/></td>
 
                         <!-- Badge trạng thái: active xanh / inactive đỏ / draft xám -->
@@ -116,7 +116,7 @@
                 <!-- Trường hợp không có khóa học nào -->
                 <c:if test="${empty courseList}">
                     <tr>
-                        <td colspan="9" style="text-align:center;">No courses found.</td>
+                        <td colspan="9" class="td-empty">No courses found.</td>
                     </tr>
                 </c:if>
             </tbody>
@@ -139,12 +139,69 @@
         </div>
     </c:if>
 
+<<<<<<< Updated upstream
+=======
+    <!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
+         Chỉ hiển thị ở view Course Approval (status=pending).
+         Hiển thị các thay đổi gần nhất (SUBMIT/APPROVE/REJECT), mới nhất trên cùng. -->
+    <c:if test="${param.status == 'pending'}">
+        <div class="change-log-section">
+            <div class="dashboard-title">Course Change Log</div>
+            <div class="table-responsive">
+                <table class="account-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Course</th>
+                            <th>Action</th>
+                            <th>Change</th>
+                            <th>Actor</th>
+                            <th>Note</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="log" items="${courseApprovalLogs}">
+                            <tr>
+                                <td>${log.createdDate}</td>
+                                <td>${log.courseName}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${log.action == 'APPROVE'}">
+                                            <span class="badge approve">APPROVE</span>
+                                        </c:when>
+                                        <c:when test="${log.action == 'REJECT'}">
+                                            <span class="badge reject">REJECT</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge submit">SUBMIT</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>${log.oldStatus} <i class="fa-solid fa-arrow-right admin-status-arrow"></i> ${log.newStatus}</td>
+                                <td>${log.actorName}</td>
+                                <td>${log.note}</td>
+                                <td>${log.ipAddress}</td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty courseApprovalLogs}">
+                            <tr>
+                                <td colspan="7" class="td-empty">No changes yet.</td>
+                            </tr>
+                        </c:if>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </c:if>
+
+>>>>>>> Stashed changes
 </div>
 
 <!-- ===== Modal Edit khóa học =====
      - openEdit() : đổ dữ liệu từ data-* của nút Edit vào form, action='edit'.
      - Submit qua fetch POST -> /admin/courses, trả JSON {success, error}. -->
-<div id="courseModal" class="modal" style="display:none;">
+<div id="courseModal" class="modal modal-hidden">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
         <h3 id="modalTitle">Edit Course</h3>
@@ -182,13 +239,32 @@
                 </c:forEach>
             </select>
 
-            <p id="modalError" style="color:#dc3545;"></p>
+            <p id="modalError" class="modal-error"></p>
             <button type="submit">Save</button>
             <button type="button" onclick="closeModal()">Cancel</button>
         </form>
     </div>
 </div>
 
+<<<<<<< Updated upstream
+=======
+<!-- ===== Modal Từ chối khóa học ===== -->
+<div id="rejectModal" class="modal modal-hidden">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeReject()">&times;</span>
+        <h3>Reject Course</h3>
+        <form id="rejectForm">
+            <input type="hidden" id="rejectId" name="id">
+            <label>Reason (required)</label>
+            <textarea id="rejectNote" name="note" rows="3" required></textarea>
+            <p id="rejectError" class="modal-error"></p>
+            <button type="submit">Reject</button>
+            <button type="button" onclick="closeReject()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+>>>>>>> Stashed changes
 <script>
     const CONTEXT_PATH = '${pageContext.request.contextPath}';
     const modal = document.getElementById('courseModal');

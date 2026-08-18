@@ -745,7 +745,11 @@
     <div class="blog-container">
 
         <!-- Form quản lý tìm kiếm, lọc, sắp xếp, phân trang -->
+<<<<<<< Updated upstream
         <form id="blogFilterForm" action="<%= ctx %>/view/common/home/blogs.jsp" method="get" style="display:none;">
+=======
+        <form id="blogFilterForm" action="<%= ctx %>/blogs" method="get" class="blog-filter-form">
+>>>>>>> Stashed changes
             <input type="hidden" name="search" id="formSearch" value="<%= searchKeyword != null ? searchKeyword.replace("\"", "&quot;") : "" %>">
             <input type="hidden" name="category" id="formCategory" value="<%= categoryFilter > 0 ? categoryFilter : "" %>">
             <input type="hidden" name="sort" id="formSort" value="<%= sortParam %>">
@@ -759,9 +763,15 @@
                 <div class="blog-toolbar__count">
                     Hiển thị <strong><%= totalBlogs %></strong> bài viết <%= categoryFilter > 0 ? "trong danh mục này" : "" %>
                 </div>
+<<<<<<< Updated upstream
                 <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
                     <a href="<%= ctx %>/blogs-new" class="btn-create-blog" style="background:var(--primary-navy); color:#ffffff; padding:7px 14px; border-radius:8px; font-size:13.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;">
                         <i class="fa-solid fa-plus"></i> Viết bài mới
+=======
+                <div class="blog-toolbar-row">
+                    <a href="<%= ctx %>/my-blogs" class="btn-create-blog btn-create-blog--link">
+                        <i class="fa-solid fa-feather-pointed"></i> Bài viết của tôi
+>>>>>>> Stashed changes
                     </a>
                     <div class="blog-toolbar__sort">
                         <label for="sortSelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sắp xếp:</label>
@@ -900,9 +910,9 @@
                     <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= rb.getId() %>" class="blog-recent-item">
                         <div class="blog-recent-item__thumb">
                             <% if (rb.getThumbnail() != null && !rb.getThumbnail().trim().isEmpty()) { %>
-                                <img src="<%= rb.getThumbnail() %>" alt="<%= rb.getTitle() %>" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#16273F;display:flex;align-items:center;justify-content:center;color:#D8A24A;font-size:16px;\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
+                                <img src="<%= rb.getThumbnail() %>" alt="<%= rb.getTitle() %>" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'blog-thumb-fallback\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
                             <% } else { %>
-                                <div style="width:100%;height:100%;background:#16273F;display:flex;align-items:center;justify-content:center;color:#D8A24A;font-size:16px;">
+                                <div class="blog-thumb-fallback">
                                     <i class="fa-regular fa-newspaper"></i>
                                 </div>
                             <% } %>

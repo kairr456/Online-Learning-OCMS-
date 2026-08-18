@@ -45,9 +45,9 @@
             </div>
 
             <!-- Dynamic view selector (Used by '+' button from All Courses) -->
-            <div id="viewSelectList" class="custom-modal-body" style="display: none;">
+            <div id="viewSelectList" class="custom-modal-body modal-body-hidden">
                 <p class="text-muted small mb-3">Select a list to add this course to:</p>
-                <div id="existingListsContainer" style="max-height: 240px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <div id="existingListsContainer" class="existing-lists-container"></div>
                 <button type="button" class="btn btn-outline-primary w-100 fw-bold" onclick="showCreateListFormView()">
                     + Create New List
                 </button>
@@ -88,7 +88,7 @@
             <div class="custom-modal-body">
                 <input type="hidden" id="targetListIdForCourse">
                 <p class="text-muted small mb-3">Select a course from your enrolled courses:</p>
-                <div id="availableCoursesContainer" style="max-height: 280px; overflow-y: auto;">
+                <div id="availableCoursesContainer" class="available-courses-container">
                     <!-- Dynamically rendered -->
                 </div>
             </div>

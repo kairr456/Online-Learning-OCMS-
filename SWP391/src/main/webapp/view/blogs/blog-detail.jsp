@@ -535,9 +535,15 @@
     <div class="detail-breadcrumb-bar">
         <div class="detail-breadcrumb">
             <a href="<%= ctx %>/"><i class="fa-solid fa-house me-1"></i> Trang chủ</a>
+<<<<<<< Updated upstream
             <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
             <a href="<%= ctx %>/view/common/home/blogs.jsp">Danh sách bài viết</a>
             <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
+=======
+            <i class="fa-solid fa-chevron-right chevron-sm"></i>
+            <a href="<%= ctx %>/blogs">Danh sách bài viết</a>
+            <i class="fa-solid fa-chevron-right chevron-sm"></i>
+>>>>>>> Stashed changes
             <span class="current"><%= blog != null ? blog.getTitle() : "Bài viết" %></span>
         </div>
     </div>
@@ -549,8 +555,13 @@
             <div class="detail-main notfound-box">
                 <i class="fa-regular fa-file-circle-question"></i>
                 <h2>Không tìm thấy bài viết</h2>
+<<<<<<< Updated upstream
                 <p style="color:var(--text-muted); margin-bottom: 24px;">Bài viết bạn đang tìm kiếm có thể đã bị xóa hoặc không tồn tại.</p>
                 <a href="<%= ctx %>/view/common/home/blogs.jsp" class="btn-back-blogs">
+=======
+                <p class="blog-empty-msg">Bài viết bạn đang tìm kiếm có thể đã bị xóa hoặc không tồn tại.</p>
+                <a href="<%= ctx %>/blogs" class="btn-back-blogs">
+>>>>>>> Stashed changes
                     <i class="fa-solid fa-arrow-left"></i> Quay lại trang danh sách Blog
                 </a>
             </div>
@@ -596,16 +607,29 @@
                     <a href="<%= ctx %>/view/common/home/blogs.jsp" class="btn-back-blogs">
                         <i class="fa-solid fa-arrow-left"></i> Xem tất cả bài viết khác
                     </a>
+<<<<<<< Updated upstream
                     <a href="<%= ctx %>/blogs-new" class="btn-back-blogs" style="background:var(--primary-navy); color:#fff;">
                         <i class="fa-solid fa-pen-nib"></i> Viết bài mới
                     </a>
+=======
+                    <div class="article-footer-actions">
+                        <% if (detailUser != null && (detailUser.getId() == blog.getAuthor() || detailUser.getRoleId() == 1)) { %>
+                            <a href="<%= ctx %>/blogs-edit?id=<%= blog.getId() %>" class="btn-back-blogs btn-back-blogs--edit">
+                                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa bài này
+                            </a>
+                        <% } %>
+                        <a href="<%= ctx %>/my-blogs" class="btn-back-blogs btn-back-blogs--list">
+                            <i class="fa-solid fa-feather-pointed"></i> Quản lý bài viết của tôi
+                        </a>
+                    </div>
+>>>>>>> Stashed changes
                 </div>
 
                 <!-- Bài viết liên quan -->
                 <% if (!relatedBlogs.isEmpty()) { %>
                     <div class="related-section">
                         <h3 class="related-section__title">
-                            <i class="fa-solid fa-layer-group" style="color:var(--accent-amber);"></i> Bài viết cùng chủ đề
+                            <i class="fa-solid fa-layer-group related-section__icon"></i> Bài viết cùng chủ đề
                         </h3>
                         <div class="related-grid">
                             <% for (Blog rel : relatedBlogs) { 
@@ -616,7 +640,7 @@
                                     <% if (rel.getThumbnail() != null && !rel.getThumbnail().trim().isEmpty()) { %>
                                         <img src="<%= rel.getThumbnail() %>" alt="<%= rel.getTitle() %>" onerror="this.onerror=null; this.src='<%= ctx %>/assets/img/blog-default.jpg';">
                                     <% } else { %>
-                                        <div style="width:100%;height:100%;background:#16273F;display:flex;align-items:center;justify-content:center;color:#D8A24A;font-size:20px;">
+                                        <div class="blog-thumb-fallback blog-thumb-fallback--lg">
                                             <i class="fa-regular fa-newspaper"></i>
                                         </div>
                                     <% } %>
@@ -646,9 +670,9 @@
                     <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= rb.getId() %>" class="detail-recent-item">
                         <div class="detail-recent-item__thumb">
                             <% if (rb.getThumbnail() != null && !rb.getThumbnail().trim().isEmpty()) { %>
-                                <img src="<%= rb.getThumbnail() %>" alt="<%= rb.getTitle() %>" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#16273F;display:flex;align-items:center;justify-content:center;color:#D8A24A;font-size:16px;\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
+                                <img src="<%= rb.getThumbnail() %>" alt="<%= rb.getTitle() %>" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'blog-thumb-fallback\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
                             <% } else { %>
-                                <div style="width:100%;height:100%;background:#16273F;display:flex;align-items:center;justify-content:center;color:#D8A24A;font-size:16px;">
+                                <div class="blog-thumb-fallback">
                                     <i class="fa-regular fa-newspaper"></i>
                                 </div>
                             <% } %>

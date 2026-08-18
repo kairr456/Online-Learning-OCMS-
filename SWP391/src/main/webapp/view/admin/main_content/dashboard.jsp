@@ -80,7 +80,7 @@
                     <div class="chart-row">
                         <span>${entry.key}</span>
                         <div class="bar-container">
-                            <div class="bar" style="width:${maxCount > 0 ? (entry.value * 100 / maxCount) : 0}%"></div>
+                            <div class="bar" style="--bar-width:${maxCount > 0 ? (entry.value * 100 / maxCount) : 0}%;"></div>
                         </div>
                     </div>
                 </c:forEach>

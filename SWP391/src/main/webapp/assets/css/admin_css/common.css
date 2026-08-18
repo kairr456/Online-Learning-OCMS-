@@ -13,3 +13,22 @@ a {
     text-decoration: none;
     color: #111;
 }
+
+/* ==========================================================================
+   Inline styles moved from view/admin/main_content/{accounts,courses}.jsp
+   ========================================================================== */
+.td-empty {
+    text-align: center;
+}
+.modal-hidden {
+    display: none;
+}
+.modal-error {
+    color: #dc3545;
+}
+.admin-star-icon {
+    color: #F59E0B;
+}
+.admin-status-arrow {
+    color: #9CA3AF;
+}
