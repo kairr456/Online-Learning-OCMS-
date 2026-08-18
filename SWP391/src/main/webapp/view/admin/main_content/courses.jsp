@@ -30,6 +30,8 @@
                 <option value="">All Status</option>
                 <option value="active" ${param.status == 'active' ? 'selected' : ''}>Active</option>
                 <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Inactive</option>
+                <option value="pending" ${param.status == 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="cancelled" ${param.status == 'cancelled' ? 'selected' : ''}>Cancelled</option>
                 <option value="draft" ${param.status == 'draft' ? 'selected' : ''}>Draft</option>
             </select>
 
@@ -80,6 +82,12 @@
                                 <c:when test="${course.status == 'inactive'}">
                                     <span class="badge inactive">Inactive</span>
                                 </c:when>
+                                <c:when test="${course.status == 'pending'}">
+                                    <span class="badge pending">Pending</span>
+                                </c:when>
+                                <c:when test="${course.status == 'cancelled'}">
+                                    <span class="badge cancelled">Cancelled</span>
+                                </c:when>
                                 <c:otherwise>
                                     <span class="badge draft">Draft</span>
                                 </c:otherwise>
@@ -91,6 +99,18 @@
                         <td>${course.createdDate}</td>
 
                         <td class="action-cell">
+                            <c:if test="${course.status == 'pending'}">
+                                <a href="${pageContext.request.contextPath}/admin/courses?action=approve&id=${course.id}"
+                                   class="btn-action approve"
+                                   onclick="return confirm('Approve this course? It will be published to students.')"
+                                   title="Approve">
+                                    <i class="fa-solid fa-check"></i>
+                                </a>
+                                <button type="button" class="btn-action reject" title="Reject"
+                                        onclick="openReject(${course.id}, '${fn:escapeXml(course.name)}')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </c:if>
                             <button type="button" class="btn-action edit" title="Edit"
                                     onclick="openEdit(this)"
                                     data-id="${course.id}"
@@ -139,6 +159,60 @@
         </div>
     </c:if>
 
+    <!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
+         Chỉ hiển thị ở view Course Approval (status=pending).
+         Hiển thị các thay đổi gần nhất (SUBMIT/APPROVE/REJECT), mới nhất trên cùng. -->
+    <c:if test="${param.status == 'pending'}">
+        <div class="change-log-section">
+            <div class="dashboard-title">Course Change Log</div>
+            <div class="table-responsive">
+                <table class="account-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Course</th>
+                            <th>Action</th>
+                            <th>Change</th>
+                            <th>Actor</th>
+                            <th>Note</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="log" items="${courseApprovalLogs}">
+                            <tr>
+                                <td>${log.createdDate}</td>
+                                <td>${log.courseName}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${log.action == 'APPROVE'}">
+                                            <span class="badge approve">APPROVE</span>
+                                        </c:when>
+                                        <c:when test="${log.action == 'REJECT'}">
+                                            <span class="badge reject">REJECT</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge submit">SUBMIT</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>${log.oldStatus} <i class="fa-solid fa-arrow-right" style="color:#9CA3AF;"></i> ${log.newStatus}</td>
+                                <td>${log.actorName}</td>
+                                <td>${log.note}</td>
+                                <td>${log.ipAddress}</td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty courseApprovalLogs}">
+                            <tr>
+                                <td colspan="7" style="text-align:center;">No changes yet.</td>
+                            </tr>
+                        </c:if>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </c:if>
+
 </div>
 
 <!-- ===== Modal Edit khóa học =====
@@ -173,6 +247,8 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="draft">Draft</option>
+                <option value="pending">Pending</option>
+                <option value="cancelled">Cancelled</option>
             </select>
 
             <label>Category</label>
@@ -185,6 +261,22 @@
             <p id="modalError" style="color:#dc3545;"></p>
             <button type="submit">Save</button>
             <button type="button" onclick="closeModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Modal Từ chối khóa học ===== -->
+<div id="rejectModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeReject()">&times;</span>
+        <h3>Reject Course</h3>
+        <form id="rejectForm">
+            <input type="hidden" id="rejectId" name="id">
+            <label>Reason (required)</label>
+            <textarea id="rejectNote" name="note" rows="3" required></textarea>
+            <p id="rejectError" style="color:#dc3545;"></p>
+            <button type="submit">Reject</button>
+            <button type="button" onclick="closeReject()">Cancel</button>
         </form>
     </div>
 </div>
@@ -246,4 +338,36 @@
         document.getElementById('pageInput').value = page;
         document.getElementById('filterForm').submit();
     }
+
+    // ===== Approve / Reject =====
+    function openReject(id, name) {
+        document.getElementById('rejectForm').reset();
+        document.getElementById('rejectId').value = id;
+        document.getElementById('rejectError').textContent = '';
+        document.getElementById('rejectModal').style.display = 'flex';
+    }
+    function closeReject() {
+        document.getElementById('rejectModal').style.display = 'none';
+    }
+    document.getElementById('rejectForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetch(CONTEXT_PATH + '/admin/courses', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'action=reject&id=' + encodeURIComponent(document.getElementById('rejectId').value)
+                + '&note=' + encodeURIComponent(document.getElementById('rejectNote').value)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                closeReject();
+                location.reload();
+            } else {
+                document.getElementById('rejectError').textContent = data.error || 'Something went wrong.';
+            }
+        })
+        .catch(() => {
+            document.getElementById('rejectError').textContent = 'Network error.';
+        });
+    });
 </script>

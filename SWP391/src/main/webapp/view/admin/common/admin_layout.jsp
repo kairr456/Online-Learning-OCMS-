@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Common CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css?v=2">
+    <!-- Common Header CSS (site-header*, dùng cho header admin) -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=2">
     <!-- Layout CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=2">
     <!-- Page CSS -->
