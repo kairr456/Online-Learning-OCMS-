@@ -19,7 +19,7 @@
         <p class="text-muted mb-4">Create dynamic, interactive quizzes to evaluate your students.</p>
 
         <form id="quizForm" action="quiz-builder" method="POST">
-            <input type="hidden" name="quizId" value="${quizInfo != null ? quizInfo.id : ''}">
+            <input type="hidden" name="quizId" value="${quizInfo != null ? quizInfo['id'] : ''}">
             
             <!-- Part 1: General Settings -->
             <div class="section-card">
@@ -44,12 +44,12 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Max Retakes</label>
-                        <input type="number" class="form-control" name="maxRetakes" min="-1" value="${quizInfo != null ? quizInfo.max_retakes : '-1'}" placeholder="-1 for unlimited" required>
+                        <input type="number" class="form-control" name="maxRetakes" min="-1" value="${quizInfo != null ? quizInfo['max_retakes'] : '-1'}" placeholder="-1 for unlimited" required>
                         <small class="text-muted helper-note">Set to -1 for unlimited.</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Passing Score (%)</label>
-                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="${quizInfo != null ? quizInfo.passing_score : '80'}" required>
+                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="${quizInfo != null ? quizInfo['passing_score'] : '80'}" required>
                     </div>
                 </div>
             </div>

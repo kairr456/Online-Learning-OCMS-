@@ -126,7 +126,7 @@
     <script>
         const quizBankList = [
             <c:forEach var="q" items="${quizBank}" varStatus="loop">
-                { id: "${q.quiz_id}", title: "${fn:escapeXml(q.lesson_title)}" }${!loop.last ? ',' : ''}
+                { id: "${q['quiz_id']}", title: "${fn:escapeXml(q['lesson_title'])}" }${!loop.last ? ',' : ''}
             </c:forEach>
         ];
 

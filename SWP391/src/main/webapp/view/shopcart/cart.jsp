@@ -104,7 +104,7 @@
                                         <c:forEach items="${cartItems}" var="item" varStatus="status">
                                             <div class="cart-item">
                                                 <div class="row align-items-center">
-                                                    <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
+                                                    <c:set var="course" value="${courseMap[item.courseId]}" />
                                                     <div class="col-md-2">
                                                         <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
                                                     </div>
