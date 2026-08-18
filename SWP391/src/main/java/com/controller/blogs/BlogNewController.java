@@ -21,12 +21,19 @@ public class BlogNewController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        HttpSession session = request.getSession();
+        Account account = (Account) session.getAttribute("account");
+        if (account == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         // Lấy danh mục blog đổ ra dropdown select
         BlogDAO blogDAO = new BlogDAO();
         Map<Integer, String> categories = blogDAO.getBlogCategories();
         request.setAttribute("categories", categories);
 
-        request.getRequestDispatcher("/view/blogs/blogs-new.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/blogs/blog-form.jsp").forward(request, response);
     }
 
     @Override
@@ -34,6 +41,13 @@ public class BlogNewController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession();
+        Account account = (Account) session.getAttribute("account");
+        if (account == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String title = request.getParameter("title");
         String thumbnail = request.getParameter("thumbnail");
@@ -60,7 +74,7 @@ public class BlogNewController extends HttpServlet {
 
             BlogDAO blogDAO = new BlogDAO();
             request.setAttribute("categories", blogDAO.getBlogCategories());
-            request.getRequestDispatcher("/view/blogs/blogs-new.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/blogs/blog-form.jsp").forward(request, response);
             return;
         }
 
@@ -71,10 +85,7 @@ public class BlogNewController extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
-        // Lấy thông tin tác giả đăng nhập hiện tại từ Session (nếu chưa đăng nhập thì gán tác giả mặc định = 1)
-        HttpSession session = request.getSession();
-        Account account = (Account) session.getAttribute("account");
-        int authorId = (account != null) ? account.getId() : 1;
+        int authorId = account.getId();
 
         if (status == null || status.trim().isEmpty()) {
             status = "Active";
@@ -93,13 +104,13 @@ public class BlogNewController extends HttpServlet {
         boolean success = blogDAO.insertBlog(newBlog);
 
         if (success) {
-            // Chuyển hướng về trang danh sách blogs
-            response.sendRedirect(request.getContextPath() + "/view/common/home/blogs.jsp");
+            // Chuyển hướng về trang bài viết cá nhân
+            response.sendRedirect(request.getContextPath() + "/my-blogs?message=created");
         } else {
             request.setAttribute("error", "Đã xảy ra lỗi khi lưu bài viết vào cơ sở dữ liệu. Vui lòng thử lại!");
             request.setAttribute("draft", newBlog);
             request.setAttribute("categories", blogDAO.getBlogCategories());
-            request.getRequestDispatcher("/view/blogs/blogs-new.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/blogs/blog-form.jsp").forward(request, response);
         }
     }
 }
