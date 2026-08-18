@@ -629,15 +629,12 @@
             </div>
         </section>
         <!-- courses-details-area-end -->
-<<<<<<< Updated upstream
-=======
-        
+
         <div class="container text-center back-to-top-wrap">
             <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn-primary back-to-top-btn">
                 <i class="fas fa-arrow-up me-2"></i> Back to Top
             </button>
         </div>
->>>>>>> Stashed changes
 
     </main>
     <!-- main-area-end -->

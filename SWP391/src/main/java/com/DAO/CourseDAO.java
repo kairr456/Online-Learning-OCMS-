@@ -96,15 +96,39 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     @Override
     public boolean delete(Course course) {
-        String sql = "DELETE FROM course WHERE id = ?";
         try {
             connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, course.getId());
-
-            int affectedRows = statement.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException ex) {
+            int courseId = course.getId();
+            
+            // 1. Clean up lessons and sections
+            LessonDAO lessonDAO = new LessonDAO();
+            lessonDAO.cleanupRemovedSectionsAndLessons(courseId, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+            
+            // Re-establish connection since cleanup closes it
+            connection = new DBContext().connection;
+            
+            // 2. Delete course approval logs
+            String sqlApp = "DELETE FROM course_approval_log WHERE course_id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlApp)) {
+                ps.setInt(1, courseId);
+                ps.executeUpdate();
+            }
+            
+            // 3. Delete user learning list associations
+            String sqlList = "DELETE FROM user_learning_list_course WHERE course_id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlList)) {
+                ps.setInt(1, courseId);
+                ps.executeUpdate();
+            }
+            
+            // 4. Finally, delete the course itself
+            String sql = "DELETE FROM course WHERE id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, courseId);
+                int affectedRows = ps.executeUpdate();
+                return affectedRows > 0;
+            }
+        } catch (Exception ex) {
             System.out.println("Error deleting course: " + ex.getMessage());
             return false;
         } finally {
@@ -281,7 +305,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             String teacherName, String courseName, String sort, int pageNumber, int pageSize) {
         List<Course> courses = new ArrayList<>();
         // Join with account table to search by teacher name
-        StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT c.* FROM course c JOIN account a ON c.created_by = a.id WHERE c.status = 'active'");
         List<Object> params = new ArrayList<>();
         String orderBy = "c.id"; // default
 
@@ -365,7 +389,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
     public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName, String courseName) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course c JOIN account a ON c.created_by = a.id WHERE c.status = 'active'");
         List<Object> params = new ArrayList<>();
 
         // Add filters similar to findWithFilters method
@@ -439,6 +463,129 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             closeResources();
         }
         return null;
+    }
+
+    public List<Course> findCreatorCoursesWithFilters(int creatorId, List<Integer> categoryIds, List<Integer> ratings,
+            String courseName, String sort, int pageNumber, int pageSize) {
+        List<Course> courses = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM course WHERE created_by = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(creatorId);
+        String orderBy = "id"; // default
+
+        if (sort != null) {
+            switch (sort) {
+                case "Average Rating (High To Low)":
+                    orderBy = "rating DESC";
+                    break;
+                case "Average Rating (Low To High)":
+                    orderBy = "rating ASC";
+                    break;
+                case "Latest":
+                    orderBy = "created_date DESC";
+                    break;
+                case "Earliest":
+                    orderBy = "created_date ASC";
+                    break;
+                default:
+                    orderBy = "id";
+                    break;
+            }
+        }
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sql.append(" AND category_id IN (")
+                    .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
+                    .append(")");
+            params.addAll(categoryIds);
+        }
+
+        if (ratings != null && !ratings.isEmpty()) {
+            sql.append(" AND rating IN (")
+                    .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
+                    .append(")");
+            params.addAll(ratings);
+        }
+
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND name LIKE ?");
+            params.add("%" + courseName + "%");
+        }
+
+        sql.append(" ORDER BY ").append(orderBy).append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add((pageNumber - 1) * pageSize);
+
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                if (params.get(i) instanceof Integer) {
+                    statement.setInt(i + 1, (Integer) params.get(i));
+                } else {
+                    statement.setString(i + 1, (String) params.get(i));
+                }
+            }
+
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                courses.add(getFromResultSet(resultSet));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error in creator filtered search: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return courses;
+    }
+
+    public int getTotalCreatorFilteredRecords(int creatorId, List<Integer> categoryIds, List<Integer> ratings, String courseName) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM course WHERE created_by = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(creatorId);
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            sql.append(" AND category_id IN (")
+                    .append(String.join(",", Collections.nCopies(categoryIds.size(), "?")))
+                    .append(")");
+            params.addAll(categoryIds);
+        }
+
+        if (ratings != null && !ratings.isEmpty()) {
+            sql.append(" AND rating IN (")
+                    .append(String.join(",", Collections.nCopies(ratings.size(), "?")))
+                    .append(")");
+            params.addAll(ratings);
+        }
+
+        if (courseName != null && !courseName.trim().isEmpty()) {
+            sql.append(" AND name LIKE ?");
+            params.add("%" + courseName + "%");
+        }
+
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                if (params.get(i) instanceof Integer) {
+                    statement.setInt(i + 1, (Integer) params.get(i));
+                } else {
+                    statement.setString(i + 1, (String) params.get(i));
+                }
+            }
+
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("total");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting total creator filtered records: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
     }
 
     public static void main(String[] args) {

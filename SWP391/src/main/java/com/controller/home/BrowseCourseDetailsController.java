@@ -60,12 +60,16 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     boolean isEnrolled = false;
                     com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
                     if (account != null) {
-                        com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
-                        java.util.List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
-                        for (Course c : enrolledCourses) {
-                            if (c.getId() == courseId) {
-                                isEnrolled = true;
-                                break;
+                        if (course.getCreatedBy() == account.getId()) {
+                            isEnrolled = true;
+                        } else {
+                            com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
+                            java.util.List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
+                            for (Course c : enrolledCourses) {
+                                if (c.getId() == courseId) {
+                                    isEnrolled = true;
+                                    break;
+                                }
                             }
                         }
                     }

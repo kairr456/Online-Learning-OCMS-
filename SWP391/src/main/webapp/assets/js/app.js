@@ -3,17 +3,19 @@
 document.addEventListener('DOMContentLoaded', function () {
 
   // --- Login page: toggle password visibility, if the control exists ---
-  var toggle = document.querySelector('[data-toggle-password]');
-  var passwordField = document.getElementById('password');
+  document.querySelectorAll('.login-eye').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var targetId = button.getAttribute('data-password-target');
+      var input = targetId ? document.getElementById(targetId) : null;
 
-  if (toggle && passwordField) {
-    toggle.addEventListener('click', function () {
-      var isHidden = passwordField.type === 'password';
-      passwordField.type = isHidden ? 'text' : 'password';
-      toggle.setAttribute('aria-pressed', String(isHidden));
-      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      if (!input) return;
+
+      var isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      button.innerHTML = isHidden ? '&#128064;' : '&#128065;';
+      button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
     });
-  }
+  });
 
   // --- Login page: focus the first empty field on load ---
   var loginForm = document.getElementById('loginForm');

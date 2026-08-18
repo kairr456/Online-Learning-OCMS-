@@ -223,4 +223,23 @@
     border-top: none;
     padding-top: 0;
   }
+  .profile-static-value {
+  margin: 0;
+  font-size: 14px;
+  color: #fff;
+}
+ 
+.profile-otp-form {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+ 
+.profile-otp-hint {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 14px;
+}
+ 
+
 }

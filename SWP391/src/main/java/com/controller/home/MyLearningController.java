@@ -35,6 +35,22 @@ public class MyLearningController extends HttpServlet {
 
         CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
         List<Course> myCourses = registrationDAO.getCoursesByAccountId(account.getId());
+        
+        // Also add courses that the user created
+        com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
+        List<Course> createdCourses = courseDAO.findByCreator(account.getId());
+        for (Course c : createdCourses) {
+            boolean exists = false;
+            for (Course m : myCourses) {
+                if (m.getId() == c.getId()) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                myCourses.add(c);
+            }
+        }
 
         Map<Integer, Integer> courseProgress = new LearningDAO().getCourseProgressMap(account.getId());
         for (Course c : myCourses) {

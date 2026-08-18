@@ -20,7 +20,9 @@ import java.io.IOException;
 // This is also where the Info-tab update logic that used to live directly
 // inside profile.jsp (as a self-posting <% if ("POST"...) %> block) now
 // lives -- profile.jsp is back to being just a view.
-@WebServlet(name = "ProfileController", urlPatterns = {"/profile/info", "/profile/password"})
+@WebServlet(name = "ProfileController", urlPatterns = {
+    "/profile/info", "/profile/password", "/profile/email"
+})
 public class ProfileController extends HttpServlet {
 
     private static final String PROFILE_PAGE = "/view/common/profile.jsp";
@@ -53,6 +55,8 @@ public class ProfileController extends HttpServlet {
 
         if ("/profile/password".equals(path)) {
             handlePasswordUpdate(request, response, session, account);
+        } else if ("/profile/email".equals(path)) {
+            handleEmailUpdate(request, response, session, account);
         } else {
             handleInfoUpdate(request, response, session, account);
         }
@@ -124,15 +128,49 @@ public class ProfileController extends HttpServlet {
         // so the stored value matches what login() will compare against.
         String hashedPassword = PasswordUtil.md5(newPassword);
         boolean updated = new AccountDAO().updatePassword(account.getId(), hashedPassword);
+    }
+    // =========================================================
+    // "/profile/email" -- direct update, no OTP step
+    // =========================================================
+    private void handleEmailUpdate(HttpServletRequest request, HttpServletResponse response,
+                                    HttpSession session, Account account)
+            throws ServletException, IOException {
+
+        String newEmail = request.getParameter("newEmail");
+
+        if (newEmail == null || newEmail.trim().isEmpty()
+                || !registerValidator.isValidEmail(newEmail)) {
+            request.setAttribute("errorMessage", "Please enter a valid email address.");
+            request.setAttribute("activeTab", "email");
+            request.getRequestDispatcher(PROFILE_PAGE).forward(request, response);
+            return;
+        }
+
+        newEmail = newEmail.trim().toLowerCase();
+
+        if (newEmail.equalsIgnoreCase(account.getEmail())) {
+            request.setAttribute("errorMessage", "That's already your current email.");
+            request.setAttribute("activeTab", "email");
+            request.getRequestDispatcher(PROFILE_PAGE).forward(request, response);
+            return;
+        }
+
+        if (new AccountDAO().isEmailExists(newEmail)) {
+            request.setAttribute("errorMessage", "That email is already in use by another account.");
+            request.setAttribute("activeTab", "email");
+            request.getRequestDispatcher(PROFILE_PAGE).forward(request, response);
+            return;
+        }
+
+        boolean updated = new AccountDAO().updateEmail(account.getId(), newEmail);
 
         if (updated) {
-            // Note: we deliberately don't store the new password anywhere in
-            // the session -- only the hash goes to the DB, nothing sensitive
-            // needs to live in session state for this action.
-            response.sendRedirect(request.getContextPath() + PROFILE_PAGE + "?updated=password");
+            account.setEmail(newEmail);
+            session.setAttribute("account", account);
+            response.sendRedirect(request.getContextPath() + PROFILE_PAGE + "?updated=email");
         } else {
-            request.setAttribute("errorMessage", "Could not update your password. Please try again.");
-            request.setAttribute("activeTab", "password");
+            request.setAttribute("errorMessage", "Could not update your email. Please try again.");
+            request.setAttribute("activeTab", "email");
             request.getRequestDispatcher(PROFILE_PAGE).forward(request, response);
         }
     }

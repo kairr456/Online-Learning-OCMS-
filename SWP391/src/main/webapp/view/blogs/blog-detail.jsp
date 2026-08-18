@@ -535,15 +535,9 @@
     <div class="detail-breadcrumb-bar">
         <div class="detail-breadcrumb">
             <a href="<%= ctx %>/"><i class="fa-solid fa-house me-1"></i> Trang chủ</a>
-<<<<<<< Updated upstream
-            <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
-            <a href="<%= ctx %>/view/common/home/blogs.jsp">Danh sách bài viết</a>
-            <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
-=======
             <i class="fa-solid fa-chevron-right chevron-sm"></i>
             <a href="<%= ctx %>/blogs">Danh sách bài viết</a>
             <i class="fa-solid fa-chevron-right chevron-sm"></i>
->>>>>>> Stashed changes
             <span class="current"><%= blog != null ? blog.getTitle() : "Bài viết" %></span>
         </div>
     </div>
@@ -555,13 +549,8 @@
             <div class="detail-main notfound-box">
                 <i class="fa-regular fa-file-circle-question"></i>
                 <h2>Không tìm thấy bài viết</h2>
-<<<<<<< Updated upstream
-                <p style="color:var(--text-muted); margin-bottom: 24px;">Bài viết bạn đang tìm kiếm có thể đã bị xóa hoặc không tồn tại.</p>
-                <a href="<%= ctx %>/view/common/home/blogs.jsp" class="btn-back-blogs">
-=======
                 <p class="blog-empty-msg">Bài viết bạn đang tìm kiếm có thể đã bị xóa hoặc không tồn tại.</p>
                 <a href="<%= ctx %>/blogs" class="btn-back-blogs">
->>>>>>> Stashed changes
                     <i class="fa-solid fa-arrow-left"></i> Quay lại trang danh sách Blog
                 </a>
             </div>
@@ -604,14 +593,9 @@
 
                 <!-- Điều hướng cuối bài -->
                 <div class="article-footer-nav">
-                    <a href="<%= ctx %>/view/common/home/blogs.jsp" class="btn-back-blogs">
+                    <a href="<%= ctx %>/blogs" class="btn-back-blogs">
                         <i class="fa-solid fa-arrow-left"></i> Xem tất cả bài viết khác
                     </a>
-<<<<<<< Updated upstream
-                    <a href="<%= ctx %>/blogs-new" class="btn-back-blogs" style="background:var(--primary-navy); color:#fff;">
-                        <i class="fa-solid fa-pen-nib"></i> Viết bài mới
-                    </a>
-=======
                     <div class="article-footer-actions">
                         <% if (detailUser != null && (detailUser.getId() == blog.getAuthor() || detailUser.getRoleId() == 1)) { %>
                             <a href="<%= ctx %>/blogs-edit?id=<%= blog.getId() %>" class="btn-back-blogs btn-back-blogs--edit">
@@ -622,7 +606,6 @@
                             <i class="fa-solid fa-feather-pointed"></i> Quản lý bài viết của tôi
                         </a>
                     </div>
->>>>>>> Stashed changes
                 </div>
 
                 <!-- Bài viết liên quan -->

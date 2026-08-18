@@ -139,9 +139,7 @@
         </div>
     </c:if>
 
-<<<<<<< Updated upstream
-=======
-    <!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
+<!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
          Chỉ hiển thị ở view Course Approval (status=pending).
          Hiển thị các thay đổi gần nhất (SUBMIT/APPROVE/REJECT), mới nhất trên cùng. -->
     <c:if test="${param.status == 'pending'}">
@@ -195,7 +193,6 @@
         </div>
     </c:if>
 
->>>>>>> Stashed changes
 </div>
 
 <!-- ===== Modal Edit khóa học =====
@@ -246,8 +243,6 @@
     </div>
 </div>
 
-<<<<<<< Updated upstream
-=======
 <!-- ===== Modal Từ chối khóa học ===== -->
 <div id="rejectModal" class="modal modal-hidden">
     <div class="modal-content">
@@ -264,7 +259,6 @@
     </div>
 </div>
 
->>>>>>> Stashed changes
 <script>
     const CONTEXT_PATH = '${pageContext.request.contextPath}';
     const modal = document.getElementById('courseModal');

@@ -85,6 +85,14 @@ public class CourseHomeController extends HttpServlet {
                 for (Course c : enrolledCourses) {
                     enrolledCourseIds.add(c.getId());
                 }
+                
+                // ALSO add courses created by the user (so they are free for the creator)
+                List<Course> createdCourses = courseDAO.findByCreator(account.getId());
+                for (Course c : createdCourses) {
+                    if (!enrolledCourseIds.contains(c.getId())) {
+                        enrolledCourseIds.add(c.getId());
+                    }
+                }
             }
             
             // 5. Set Attributes

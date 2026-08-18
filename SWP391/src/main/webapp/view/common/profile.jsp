@@ -31,6 +31,9 @@
         } else if ("info".equals(updated)) {
             activeTab = "info";
             successMessage = "Profile updated successfully.";
+        } else if ("email".equals(updated)) {
+            activeTab = "email";
+            successMessage = "Email updated successfully.";
         }
     }
 
@@ -114,16 +117,22 @@
                     </form>
                 </section>
 
-                <!-- ===================== Email tab (placeholder) ===================== -->
-                <section class="profile-panel" id="tab-email">
-                    <h1>Email</h1>
-                    <p class="profile-placeholder-note">
-                        Not wired up to the backend yet -- this tab is a placeholder for now.
-                    </p>
+                <!-- ===================== Email tab ===================== -->
+                <section class="profile-panel <%= "email".equals(activeTab) ? "is-active" : "" %>" id="tab-email">
+                    <h1>Update Email</h1>
+
                     <div class="profile-field">
-                        <label>Current email</label>
-                        <input type="email" value="<%= profileAccount.getEmail() != null ? profileAccount.getEmail() : "" %>" disabled>
+                        <label>Current mail</label>
+                        <p class="profile-static-value"><%= profileAccount.getEmail() != null ? profileAccount.getEmail() : "" %></p>
                     </div>
+
+                    <form method="post" action="<%= ctx %>/profile/email">
+                        <div class="profile-field">
+                            <label for="newEmail">New Email</label>
+                            <input type="email" id="newEmail" name="newEmail" required>
+                        </div>
+                        <button type="submit" class="profile-submit">Update</button>
+                    </form>
                 </section>
 
                 <!-- ===================== Password tab ===================== -->
