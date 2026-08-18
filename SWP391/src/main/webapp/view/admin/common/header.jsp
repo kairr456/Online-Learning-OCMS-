@@ -39,32 +39,4 @@
     </div>
 </header>
 
-<script>
-(function () {
-    // Tự chứa (không phụ thuộc app.js) — copy từ header.jsp chung, đổi id tránh trùng.
-    var toggle = document.getElementById('adminHeaderProfileToggle');
-    var dropdown = document.getElementById('adminHeaderDropdown');
-    var wrap = document.getElementById('adminHeaderProfile');
-    if (!toggle || !dropdown || !wrap) return;
-
-    function close() {
-        dropdown.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
-    }
-
-    toggle.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var willOpen = !dropdown.classList.contains('is-open');
-        dropdown.classList.toggle('is-open', willOpen);
-        toggle.setAttribute('aria-expanded', String(willOpen));
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!wrap.contains(e.target)) close();
-    });
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') close();
-    });
-})();
-</script>
+<script src="<%= adminCtx %>/assets/js/admin/admin-header.js"></script>

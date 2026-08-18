@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "LessonDetailsController", urlPatterns = {"/lesson-details"})
+@WebServlet(name = "LessonDetailsController", urlPatterns = { "/lesson-details" })
 public class LessonDetails extends HttpServlet {
 
     @Override
@@ -36,7 +36,7 @@ public class LessonDetails extends HttpServlet {
             }
 
             int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
-            
+
             boolean isEnrolled = false;
             com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
             if (account != null) {
@@ -55,16 +55,17 @@ public class LessonDetails extends HttpServlet {
                     }
                 }
             }
-            
+
             int firstLessonId = -1;
             java.util.List<com.entity.Section> sections = lessonDAO.getSectionsByCourseId(courseId);
             if (sections != null && !sections.isEmpty()) {
-                java.util.List<com.entity.Lesson> firstSectionLessons = lessonDAO.getLessonsBySectionId(sections.get(0).getId());
+                java.util.List<com.entity.Lesson> firstSectionLessons = lessonDAO
+                        .getLessonsBySectionId(sections.get(0).getId());
                 if (firstSectionLessons != null && !firstSectionLessons.isEmpty()) {
                     firstLessonId = firstSectionLessons.get(0).getId();
                 }
             }
-            
+
             if (!isEnrolled && lessonId != firstLessonId) {
                 // Not enrolled and not the free trial lesson
                 response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
@@ -73,7 +74,7 @@ public class LessonDetails extends HttpServlet {
 
             // Get the rich text block-built content
             String lessonContent = lessonDAO.getLessonText(lessonId);
-            
+
             if ("video".equals(lesson.getType())) {
                 String videoUrl = lessonDAO.getLessonYoutube(lessonId);
                 request.setAttribute("videoUrl", videoUrl);

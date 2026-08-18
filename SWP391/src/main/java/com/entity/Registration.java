@@ -18,6 +18,27 @@ public class Registration {
     private Timestamp validTo;
     private int lastUpdateByPerson;
 
+    // Tên học viên & tên khóa học (chỉ dùng khi query JOIN account/course
+    // ở trang admin — không lưu vào DB, không được populate bởi findAll()).
+    private String studentName;
+    private String courseName;
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
     public int getId() {
         return id;
     }

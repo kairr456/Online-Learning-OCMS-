@@ -146,6 +146,11 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
+                        <% if (headerAccount.getRoleId() == 3) { %>
+                            <a href="<%= ctx %>/my-purchases">My Purchases</a>
+                        <% } else if (headerAccount.getRoleId() == 2) { %>
+                            <a href="<%= ctx %>/teacher-transactions">Sales Report</a>
+                        <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>

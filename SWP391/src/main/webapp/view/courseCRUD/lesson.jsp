@@ -53,7 +53,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Price ($)</label>
+                        <label class="form-label">Price (₫)</label>
                         <input type="number" name="coursePrice" step="0.01" min="0" class="form-control" value="${course != null ? course.price : '0.00'}" required>
                     </div>
 

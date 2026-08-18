@@ -3,6 +3,9 @@ package com.controller.admin;
 import com.DAO.AccountDAO;
 import com.entity.Account;
 import com.utils.PasswordUtil;
+import com.validator.adminValidator;
+import com.validator.registerValidator;
+import com.validator.registrationValidator;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -34,20 +37,12 @@ public class AccountManagerController extends HttpServlet {
         }
 
         // Lấy thông tin filter & search
-        String keyword = request.getParameter("keyword");
+        String keyword = registrationValidator.keywordFor(request.getParameter("keyword"));
         String roleId = request.getParameter("roleId");
         String status = request.getParameter("status");
         
         //Phân trang
-        int page = 1;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.trim().isEmpty()){
-            try{
-                page = Integer.parseInt(pageParam);
-            }
-            catch (NumberFormatException ignored){
-            }
-        }
+        int page = registrationValidator.pageFor(request.getParameter("page"));
         
         // Đếm tổng số record TRƯỚC (instance riêng) → tính tổng số trang → clamp page
         int totalRecords = new AccountDAO().countAccounts(keyword, roleId, status);
@@ -99,13 +94,14 @@ public class AccountManagerController extends HttpServlet {
     }
 
     private void handleAdd(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String username = trim(request.getParameter("username"));
-        String email    = trim(request.getParameter("email"));
-        String phone    = trim(request.getParameter("phone"));
-        String fullName = trim(request.getParameter("fullName"));
+        String username = adminValidator.trim(request.getParameter("username"));
+        String email    = adminValidator.trim(request.getParameter("email"));
+        String phone    = adminValidator.trim(request.getParameter("phone"));
+        String fullName = adminValidator.trim(request.getParameter("fullName"));
 
         if (new AccountDAO().isUsernameExists(username)) { writeJson(response, false, "Username already exists."); return; }
-        if (new AccountDAO().isEmailExists(email))       { writeJson(response, false, "Email already exists.");   return; }
+        if (!registerValidator.isValidEmail(email))       { writeJson(response, false, "Invalid email address.");    return; }
+        if (new AccountDAO().isEmailExists(email))        { writeJson(response, false, "Email already exists.");    return; }
 
         Account account = new Account();
         account.setUsername(username);
@@ -113,10 +109,10 @@ public class AccountManagerController extends HttpServlet {
         account.setEmail(email);
         account.setPhone(phone);
         account.setFullName(fullName);
-        account.setGender("male".equalsIgnoreCase(request.getParameter("gender")));
+        account.setGender(registerValidator.genderValueFor(request.getParameter("gender")));
         account.setAvatar("");
         account.setActive(true);   // mặc định Active
-        account.setRoleId(Integer.parseInt(request.getParameter("roleId")));
+        account.setRoleId(adminValidator.parseInt(request.getParameter("roleId"), 3));
 
         // Register() ĐÃ INSERT đủ 9 cột → Add account dùng chung, không cần SQL mới
         boolean ok = new AccountDAO().register(account);
@@ -124,16 +120,17 @@ public class AccountManagerController extends HttpServlet {
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
+        int id = adminValidator.parseInt(request.getParameter("id"), -1);
+        if (id <= 0) { writeJson(response, false, "Invalid account id."); return; }
         Account account = new AccountDAO().getAccountById(id);
         if (account == null) { writeJson(response, false, "Account not found."); return; }
 
-        account.setEmail(trim(request.getParameter("email")));
-        account.setPhone(trim(request.getParameter("phone")));
-        account.setFullName(trim(request.getParameter("fullName")));
-        account.setGender("male".equalsIgnoreCase(request.getParameter("gender")));
-        account.setActive("1".equals(request.getParameter("isActive")));
-        account.setRoleId(Integer.parseInt(request.getParameter("roleId")));
+        account.setEmail(adminValidator.trim(request.getParameter("email")));
+        account.setPhone(adminValidator.trim(request.getParameter("phone")));
+        account.setFullName(adminValidator.trim(request.getParameter("fullName")));
+        account.setGender(registerValidator.genderValueFor(request.getParameter("gender")));
+        account.setActive(adminValidator.activeFlagFor(request.getParameter("isActive")));
+        account.setRoleId(adminValidator.parseInt(request.getParameter("roleId"), account.getRoleId()));
         // username + password giữ nguyên (password để trống = giữ mật khẩu cũ)
 
         boolean ok = new AccountDAO().updateAccount(account);
@@ -147,6 +144,4 @@ public class AccountManagerController extends HttpServlet {
         response.getWriter().print(
             "{\"success\": " + success + ", \"error\": \"" + (error == null ? "" : error) + "\"}");
     }
-
-    private String trim(String s) { return s == null ? null : s.trim(); }
 }
