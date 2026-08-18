@@ -29,7 +29,7 @@ public class CheckoutController extends HttpServlet {
     private CourseDAO courseDAO;
     private CheckoutDAO checkoutDAO;
 
-    private static final String CHECKOUT_JSP = "/view/common/home/checkout.jsp";
+    private static final String CHECKOUT_JSP = "/view/shopcart/checkout.jsp";
 
     @Override
     public void init() throws ServletException {
@@ -52,12 +52,12 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        Cart cart = cartDAO.findByAccountId(account.getId());
+        Cart cart = new CartDAO().findByAccountId(account.getId());
         if (cart == null) {
-            cart = cartDAO.getOrCreateCart(account.getId());
+            cart = new CartDAO().getOrCreateCart(account.getId());
         }
 
-        List<CartItem> cartItems = cartItemDAO.getCartItemsWithCourseDetails(cart.getId());
+        List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {
             session.setAttribute("message", "Giỏ hàng của bạn đang trống.");
             session.setAttribute("messageType", "warning");
@@ -65,13 +65,13 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
+        BigDecimal cartTotal = new CartItemDAO().getCartTotal(cart.getId());
 
         request.setAttribute("cart", cart);
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("cartTotal", cartTotal);
         request.setAttribute("itemCount", cartItems.size());
-        request.setAttribute("courseDAO", courseDAO);
+        request.setAttribute("courseDAO", new CourseDAO());
 
         request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
     }
@@ -91,12 +91,12 @@ public class CheckoutController extends HttpServlet {
             return;
         }
 
-        Cart cart = cartDAO.findByAccountId(account.getId());
+        Cart cart = new CartDAO().findByAccountId(account.getId());
         if (cart == null) {
-            cart = cartDAO.getOrCreateCart(account.getId());
+            cart = new CartDAO().getOrCreateCart(account.getId());
         }
 
-        List<CartItem> cartItems = cartItemDAO.getCartItemsWithCourseDetails(cart.getId());
+        List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {
             session.setAttribute("message", "Giỏ hàng của bạn đang trống.");
             session.setAttribute("messageType", "warning");
@@ -134,12 +134,12 @@ public class CheckoutController extends HttpServlet {
             request.setAttribute("paramCvc", cvc);
             request.setAttribute("paramCardName", cardName);
 
-            BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
+            BigDecimal cartTotal = new CartItemDAO().getCartTotal(cart.getId());
             request.setAttribute("cart", cart);
             request.setAttribute("cartItems", cartItems);
             request.setAttribute("cartTotal", cartTotal);
             request.setAttribute("itemCount", cartItems.size());
-            request.setAttribute("courseDAO", courseDAO);
+            request.setAttribute("courseDAO", new CourseDAO());
             request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
             return;
         }
@@ -151,24 +151,24 @@ public class CheckoutController extends HttpServlet {
         // Khi người dùng bấm Pay / Xác nhận thanh toán (Card hoặc QR) -> Lưu vào bảng registration với status 'Approved' để mua ngay & vào học ngay
         String status = "Approved";
 
-        boolean success = checkoutDAO.checkout(account.getId(), email.trim(), cart.getId(), cartItems, paymentMethod, status);
+        boolean success = new CheckoutDAO().checkout(account.getId(), email.trim(), cart.getId(), cartItems, paymentMethod, status);
         if (success) {
             if ("QR_CODE".equalsIgnoreCase(paymentMethod)) {
                 session.setAttribute("message", "Xác nhận thanh toán mã QR thành công! Các khóa học đã được kích hoạt.");
                 session.setAttribute("messageType", "success");
             } else {
-                session.setAttribute("message", "Thanh toán thẻ thành công! Bạn có thể bắt đầu học ngay.");
+                session.setAttribute("message", "Thanh toán thành công! Bạn có thể bắt đầu học ngay.");
                 session.setAttribute("messageType", "success");
             }
-            response.sendRedirect(request.getContextPath() + "/checkout?status=success");
+            response.sendRedirect(request.getContextPath() + "/my-learning");
         } else {
             request.setAttribute("error", "Thanh toán không thành công. Vui lòng thử lại.");
-            BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
+            BigDecimal cartTotal = new CartItemDAO().getCartTotal(cart.getId());
             request.setAttribute("cart", cart);
             request.setAttribute("cartItems", cartItems);
             request.setAttribute("cartTotal", cartTotal);
             request.setAttribute("itemCount", cartItems.size());
-            request.setAttribute("courseDAO", courseDAO);
+            request.setAttribute("courseDAO", new CourseDAO());
             request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
         }
     }

@@ -1,0 +1,439 @@
+/* ==========================================================================
+   OCMS - Checkout Styles (checkout.css)
+   ========================================================================== */
+
+:root {
+    --primary-purple: #6f2bd9;
+    --primary-purple-hover: #5b21b6;
+    --dark-text: #1a1a2e;
+    --muted-text: #6c757d;
+    --border-color: #e2e8f0;
+    --bg-light: #f8fafc;
+}
+
+body {
+    background-color: #fdfdfd;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.checkout-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 15px 60px;
+}
+
+.checkout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.checkout-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin: 0;
+}
+
+.back-to-cart {
+    color: var(--primary-purple);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+}
+
+.back-to-cart:hover {
+    color: var(--primary-purple-hover);
+    text-decoration: underline;
+}
+
+.section-box {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.section-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.secure-badge {
+    font-size: 13px;
+    font-weight: 500;
+    color: #16a34a;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.form-control, .form-select {
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(111, 43, 217, 0.15);
+}
+
+/* Payment Methods Accordion */
+.payment-option-card {
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.payment-option-card.active {
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 2px rgba(111, 43, 217, 0.12);
+}
+
+.payment-option-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    background: #fff;
+}
+
+.payment-option-card.active .payment-option-header {
+    background: #faf5ff;
+}
+
+.payment-radio-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.payment-radio-wrap input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-purple);
+    cursor: pointer;
+}
+
+.payment-logos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-logos img, .payment-logos .badge-card {
+    height: 24px;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.badge-card {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #334155;
+}
+
+.badge-qr {
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    padding: 3px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.payment-option-body {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: none;
+    background: #fff;
+}
+
+.payment-option-card.active .payment-option-body {
+    display: block;
+}
+
+/* QR Code Payment Box */
+.qr-payment-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.qr-image-wrapper {
+    background: #fff;
+    display: inline-block;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.qr-image-wrapper img {
+    width: 210px;
+    height: 210px;
+    object-fit: contain;
+    display: block;
+}
+
+.bank-info-grid {
+    text-align: left;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 480px;
+    margin: 0 auto 16px;
+}
+
+.bank-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+}
+
+.bank-info-row:last-child {
+    border-bottom: none;
+}
+
+.bank-info-label {
+    color: var(--muted-text);
+    font-weight: 500;
+}
+
+.bank-info-value {
+    font-weight: 700;
+    color: var(--dark-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-copy {
+    background: none;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 2px 6px;
+    color: var(--primary-purple);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-copy:hover {
+    background: var(--primary-purple);
+    color: #fff;
+}
+
+.qr-instruction-alert {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: #1e40af;
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* Order Summary Side */
+.order-summary-box {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 28px;
+    position: sticky;
+    top: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.summary-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.course-item-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.course-item-summary:last-child {
+    border-bottom: none;
+}
+
+.course-thumb-mini {
+    width: 60px;
+    height: 45px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #e2e8f0;
+}
+
+.course-info-mini {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.course-name-mini {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-text);
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.course-price-mini {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-purple);
+}
+
+.summary-calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 14px;
+    color: #475569;
+}
+
+.summary-calc-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0 10px;
+    border-top: 1.5px solid var(--border-color);
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-text);
+}
+
+.total-amount-display {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary-purple);
+}
+
+.btn-pay-submit {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary-purple);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(111, 43, 217, 0.35);
+}
+
+.btn-pay-submit:hover {
+    background: var(--primary-purple-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(111, 43, 217, 0.4);
+}
+
+.guarantee-card {
+    margin-top: 24px;
+    padding: 18px;
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.guarantee-icon {
+    font-size: 24px;
+    color: #9333ea;
+}
+
+.guarantee-text h5 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #581c87;
+}
+
+.guarantee-text p {
+    font-size: 12px;
+    color: #6b21a8;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.field-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.input-error {
+    border-color: #dc2626 !important;
+}
