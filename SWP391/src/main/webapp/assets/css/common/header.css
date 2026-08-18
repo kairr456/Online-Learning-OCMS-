@@ -72,6 +72,43 @@ html {
 
 .site-header__nav a:hover { color: #fff; }
 
+/* -- "My Learning" dropdown in the top nav -- */
+
+.site-header__menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.site-header__menu:hover .site-header__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.site-header__menu .site-header__dropdown {
+  left: 0;
+  right: auto;
+  min-width: 200px;
+}
+
+/* Invisible bridge so moving from the trigger down into the menu
+   doesn't lose :hover across the 10px gap. */
+.site-header__menu .site-header__dropdown::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+/* Keep every item in the menu's dropdown uniformly indented --
+   overrides any nav-link padding/border inherited via the cascade. */
+.site-header__nav .site-header__menu .site-header__dropdown a {
+  padding: 9px 12px;
+  border-left: none;
+}
+
 .site-header__search {
   display: flex;
   align-items: stretch;
@@ -297,6 +334,7 @@ html {
 
 @media (max-width: 680px) {
   .site-header__nav a:not(:first-child) { display: none; }
+  .site-header__nav .site-header__menu { display: none; }
   .site-header__inner { gap: 14px; }
 }
 

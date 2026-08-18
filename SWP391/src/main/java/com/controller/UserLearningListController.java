@@ -19,7 +19,7 @@ public class UserLearningListController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Tự động chuyển hướng về trang My Learning nếu người dùng truy cập trực tiếp bằng phương thức GET
-        response.sendRedirect(request.getContextPath() + "/my-learning");
+        response.sendRedirect(request.getContextPath() + "/all-courses");
     }
 
     @Override

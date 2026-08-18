@@ -41,7 +41,7 @@
             <h4>Explore</h4>
             <a href="<%= ctx %>/">Home</a>
             <a href="<%= ctx %>/courses">Browse Course</a>
-            <a href="<%= ctx %>/my-learning?tab=all-courses">My Learning</a>
+            <a href="<%= ctx %>/all-courses">My Learning</a>
         </div>
 
         <div class="site-footer__col">
