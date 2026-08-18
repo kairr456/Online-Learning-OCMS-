@@ -16,43 +16,6 @@
     // of being hardcoded -- new categories show up here automatically.
     List<Category> headerCategories = new CategoryDAO().findAll();
 %>
-<style>
-.site-header__nav-dropdown {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-}
-.site-header__nav-dropdown .nav-dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: #fff;
-    min-width: 180px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    border-radius: 8px;
-    z-index: 1000;
-    padding: 10px 0;
-    border: 1px solid #eaeaea;
-}
-.site-header__nav-dropdown:hover .nav-dropdown-menu {
-    display: block;
-}
-.site-header__nav-dropdown .nav-dropdown-menu a {
-    display: block;
-    padding: 10px 20px;
-    color: #333;
-    text-decoration: none;
-    white-space: nowrap;
-    font-size: 14px;
-    font-weight: 500;
-}
-.site-header__nav-dropdown .nav-dropdown-menu a:hover {
-    background-color: #f8f9fa;
-    color: #5d3fd3; /* primary color */
-}
-</style>
 <header class="site-header">
     <div class="site-header__inner">
 
@@ -63,9 +26,6 @@
 
         <nav class="site-header__nav">
             <a href="<%= ctx %>/">Home</a>
-            <% if (headerAccount != null && headerAccount.getRoleId() == 2) { %>
-                <!-- Moved Course Dashboard to right side -->
-            <% } %>
             <a href="<%= ctx %>/courses">Browse Course</a>
             <% if (headerAccount != null) { %>
             <div class="site-header__menu" id="learningMenu">
@@ -103,16 +63,17 @@
             </button>
         </form>
 
-        <div class="site-header__account d-flex align-items-center">
+        <div class="site-header__account">
             <% if (headerAccount != null) { %>
 
                 <% if (headerAccount.getRoleId() == 2) { %>
-                <div class="site-header__nav-dropdown" style="margin-right: 15px;">
-                    <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle" style="color: #fff; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
+                <div class="site-header__nav-dropdown">
+                    <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle">
                         Course Dashboard 
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
                     <div class="nav-dropdown-menu">
+                        <a href="<%= ctx %>/course-dashboard">Trang tổng quan khóa học</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                     </div>
@@ -146,12 +107,22 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
+                        <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #5d3fd3; border-bottom: 1px solid #eee;">
+                            <% if (headerAccount.getRoleId() == 2) { %>
+                                Role: Teacher
+                            <% } else if (headerAccount.getRoleId() == 3) { %>
+                                Role: Student
+                            <% }%>
+                        </div>
                         <% if (headerAccount.getRoleId() == 3) { %>
                             <a href="<%= ctx %>/my-purchases">My Purchases</a>
                         <% } else if (headerAccount.getRoleId() == 2) { %>
                             <a href="<%= ctx %>/teacher-transactions">Sales Report</a>
                         <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
+                        <% if (headerAccount.getRoleId() == 2) { %>
+                        <a href="<%= ctx %>/wallet"><i class="fa-solid fa-wallet me-1" style="color: #f59e0b;"></i> My Wallet</a>
+                        <% } %>
                         <a href="<%= ctx %>/logout">Logout</a>
                     </div>
                 </div>

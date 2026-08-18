@@ -46,9 +46,8 @@
 
         <div class="site-footer__col">
             <h4>Support</h4>
-            <a href="<%= ctx %>/view/common/help.jsp">Help Center</a>
-            <a href="<%= ctx %>/view/common/contact.jsp">Contact Us</a>
-            <a href="<%= ctx %>/view/common/faq.jsp">FAQs</a>
+            <a href="<%= ctx %>/view/contact-help/contact.jsp">Contact Us</a>
+            <a href="<%= ctx %>/view/contact-help/faq.jsp">FAQs</a>
         </div>
 
         <div class="site-footer__col">

@@ -311,3 +311,33 @@ body {
     color: var(--white);
     box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
+
+/* ==========================================================================
+   Inline styles moved from view/common/home/browse-course.jsp
+   ========================================================================== */
+.search-submit-icon {
+    cursor: pointer;
+}
+.no-courses-msg {
+    text-align: center;
+    padding: 40px;
+}
+.enroll-btn--learn-now {
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    width: 100%;
+    background-color: #28a745;
+    color: white;
+}
+.enroll-btn--learn-now:hover {
+    background-color: #218838;
+    color: white;
+}
+.enroll-btn--plain {
+    border: none;
+    cursor: pointer;
+}
+.hidden-form {
+    display: none;
+}

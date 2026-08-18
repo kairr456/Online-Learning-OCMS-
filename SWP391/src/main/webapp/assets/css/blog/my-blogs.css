@@ -577,3 +577,31 @@ body {
         max-width: 100%;
     }
 }
+
+/* ==========================================================================
+   Inline styles moved from view/blogs/my-blogs.jsp
+   ========================================================================== */
+.col-stt {
+    width: 50px;
+}
+.col-action-head {
+    text-align: center;
+    width: 140px;
+}
+.td-index {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.td-date {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.td-center {
+    text-align: center;
+}
+.action-btns--center {
+    justify-content: center;
+}
+.delete-blog-title {
+    color: var(--text-dark);
+}

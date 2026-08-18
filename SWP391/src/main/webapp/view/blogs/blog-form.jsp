@@ -235,7 +235,7 @@
             var placeholder = document.getElementById('previewPlaceholder');
             img.style.display = 'none';
             placeholder.style.display = 'flex';
-            placeholder.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#D64545;"></i> Không thể tải hình ảnh từ đường dẫn này';
+            placeholder.innerHTML = '<i class="fa-solid fa-triangle-exclamation blog-form-error-icon"></i> Không thể tải hình ảnh từ đường dẫn này';
         }
 
         document.addEventListener('DOMContentLoaded', function() {

@@ -18,11 +18,11 @@ public class DBContext {
 
             String password = "1234"; // Thay đổi mật khẩu MySQL của bạn ở đây
             String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
-            //String password = "1234"; //Mk Duy
-            //String password = ""; //Mk Luong
-            //String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
+            // String password = "1234"; //Mk Duy
+            // String password = ""; //Mk Luong
+            // String url =
+            // "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
 
-            
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException e) {

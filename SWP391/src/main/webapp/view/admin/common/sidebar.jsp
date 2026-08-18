@@ -13,5 +13,7 @@
         <a href="${pageContext.request.contextPath}/admin/payouts">Payout Management</a>
         <a href="${pageContext.request.contextPath}/admin/settings">System Administration</a>
 
+        <!-- <a href="${pageContext.request.contextPath}/view/admin/contact-help/faqManager.jsp">FAQ Management</a>
+        <a href="${pageContext.request.contextPath}/view/admin/contact-help/Contact-respond.jsp">Contact Response</a> -->
     </nav>
 </aside>
