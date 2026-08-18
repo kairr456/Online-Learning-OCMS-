@@ -16,6 +16,7 @@ public class Course {
     private int categoryId;
     private String teacherName;
     private String categoryName;
+    private int progress;
     
     public Course() {
     }
@@ -137,5 +138,13 @@ public class Course {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
     }
 }
