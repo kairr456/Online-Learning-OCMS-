@@ -145,7 +145,10 @@
                                         <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
                                             <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
                                         </button>
-                                        <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
+                                        <p class="text-danger mt-3 mb-2">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
+                                        <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-outline-primary mt-2 rounded-pill px-4">
+                                            <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
+                                        </a>
                                     </c:when>
                                     <c:otherwise>
                                         <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm" style="background-color: #5624d0; border-color: #5624d0; transition: transform 0.2s;">

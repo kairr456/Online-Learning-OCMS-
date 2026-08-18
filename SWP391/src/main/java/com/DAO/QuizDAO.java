@@ -515,4 +515,57 @@ public class QuizDAO extends DBContext {
             e.printStackTrace();
         }
     }
+    
+    public List<Map<String, Object>> getUserAttemptsForQuiz(int accountId, int quizId) {
+        List<Map<String, Object>> attempts = new ArrayList<>();
+        String sql = "SELECT id, score, passed, start_time, end_time " +
+                     "FROM quiz_attempt " +
+                     "WHERE account_id = ? AND quiz_id = ? " +
+                     "ORDER BY end_time ASC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ps.setInt(2, quizId);
+            try (ResultSet rs = ps.executeQuery()) {
+                int attemptNumber = 1;
+                while (rs.next()) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("id", rs.getInt("id"));
+                    a.put("attempt_number", attemptNumber++);
+                    a.put("score", rs.getFloat("score"));
+                    a.put("passed", rs.getInt("passed") == 1);
+                    a.put("start_time", rs.getTimestamp("start_time"));
+                    a.put("end_time", rs.getTimestamp("end_time"));
+                    attempts.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return attempts;
+    }
+
+    public Map<String, Object> getQuizAttemptById(int attemptId) {
+        String sql = "SELECT id, account_id, quiz_id, score, passed, start_time, end_time " +
+                     "FROM quiz_attempt " +
+                     "WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, attemptId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("id", rs.getInt("id"));
+                    a.put("account_id", rs.getInt("account_id"));
+                    a.put("quiz_id", rs.getInt("quiz_id"));
+                    a.put("score", rs.getFloat("score"));
+                    a.put("passed", rs.getInt("passed") == 1);
+                    a.put("start_time", rs.getTimestamp("start_time"));
+                    a.put("end_time", rs.getTimestamp("end_time"));
+                    return a;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
