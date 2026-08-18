@@ -6,6 +6,8 @@ import com.DAO.CourseApprovalDAO;
 import com.DAO.CourseDAO;
 import com.entity.Category;
 import com.entity.Course;
+import com.validator.adminValidator;
+import com.validator.registrationValidator;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -55,19 +57,13 @@ public class CourseManagerController extends HttpServlet {
         }
 
         // Lấy thông tin filter & search từ URL
-        String keyword = request.getParameter("keyword");
+        String keyword = registrationValidator.keywordFor(request.getParameter("keyword"));
         String status = request.getParameter("status");
-        Integer categoryId = parseInteger(request.getParameter("categoryId"));
+        Integer categoryId = adminValidator.parseInt(request.getParameter("categoryId"), -1);
+        if (categoryId != null && categoryId <= 0) categoryId = null;
 
         // Đọc tham số trang (mặc định 1, sai định dạng thì bỏ qua)
-        int page = 1;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.trim().isEmpty()) {
-            try {
-                page = Integer.parseInt(pageParam);
-            } catch (NumberFormatException ignored) {
-            }
-        }
+        int page = registrationValidator.pageFor(request.getParameter("page"));
 
         // Đếm tổng số record TRƯỚC (instance riêng) → tính tổng số trang → clamp page về trong khoảng hợp lệ
         int totalRecords = new CourseAdminDAO().countCourses(keyword, status, categoryId);
@@ -127,14 +123,12 @@ public class CourseManagerController extends HttpServlet {
     }
 
     private void handleReject(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        int id;
-        try {
-            id = Integer.parseInt(request.getParameter("id"));
-        } catch (NumberFormatException e) {
+        int id = adminValidator.parseInt(request.getParameter("id"), -1);
+        if (id <= 0) {
             writeJson(response, false, "Invalid course id.");
             return;
         }
-        String note = trim(request.getParameter("note"));
+        String note = adminValidator.trim(request.getParameter("note"));
         int adminId = getAdminId(request);
         boolean ok = new CourseApprovalDAO().rejectCourse(id, adminId, note, request.getRemoteAddr());
         writeJson(response, ok, ok ? null : "Reject failed.");
@@ -159,10 +153,8 @@ public class CourseManagerController extends HttpServlet {
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        int id;
-        try {
-            id = Integer.parseInt(request.getParameter("id"));
-        } catch (NumberFormatException e) {
+        int id = adminValidator.parseInt(request.getParameter("id"), -1);
+        if (id <= 0) {
             System.out.println("[CourseEdit] id invalid or missing: '" + request.getParameter("id") + "'");
             writeJson(response, false, "Invalid course id.");
             return;
@@ -214,35 +206,35 @@ public class CourseManagerController extends HttpServlet {
     /** Gom việc đọc dữ liệu khóa học từ form (dùng chung cho Add và Edit). */
     private Course readCourseFromRequest(HttpServletRequest request) {
         Course course = new Course();
-        course.setName(trim(request.getParameter("name")));
-        course.setDescription(trim(request.getParameter("description")));
+        course.setName(adminValidator.trim(request.getParameter("name")));
+        course.setDescription(adminValidator.trim(request.getParameter("description")));
 
-        Float price = parseFloat(request.getParameter("price"));
+        Float price = adminValidator.parseFloat(request.getParameter("price"), null);
         if (price == null && request.getParameter("price") != null
                 && !request.getParameter("price").trim().isEmpty()) {
             System.out.println("[Course] price invalid -> use default 0. raw='" + request.getParameter("price") + "'");
         }
         course.setPrice(price != null ? price : 0f);
 
-        course.setStatus(trim(request.getParameter("status")));
+        course.setStatus(adminValidator.courseStatusFor(request.getParameter("status")));
         if (course.getStatus() == null || course.getStatus().trim().isEmpty()) {
             System.out.println("[Course] status empty -> use default 'draft'");
             course.setStatus("draft");
         }
 
-        Integer cat = parseInteger(request.getParameter("categoryId"));
-        if (cat == null && request.getParameter("categoryId") != null
+        Integer cat = adminValidator.parseInt(request.getParameter("categoryId"), -1);
+        if (cat <= 0 && request.getParameter("categoryId") != null
                 && !request.getParameter("categoryId").trim().isEmpty()) {
             System.out.println("[Course] categoryId invalid -> use default 1. raw='" + request.getParameter("categoryId") + "'");
         }
-        course.setCategoryId(cat != null ? cat : 1);
+        course.setCategoryId(cat > 0 ? cat : 1);
 
-        Integer rating = parseInteger(request.getParameter("rating"));
-        if (rating == null && request.getParameter("rating") != null
+        Integer rating = adminValidator.parseInt(request.getParameter("rating"), -1);
+        if (rating < 0 && request.getParameter("rating") != null
                 && !request.getParameter("rating").trim().isEmpty()) {
             System.out.println("[Course] rating invalid -> use default 0. raw='" + request.getParameter("rating") + "'");
         }
-        course.setRating(rating != null ? rating : 0);
+        course.setRating(rating >= 0 ? rating : 0);
 
         if (course.getName() == null || course.getName().trim().isEmpty()) {
             System.out.println("[Course] name is empty!");
@@ -287,31 +279,5 @@ public class CourseManagerController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().print(
                 "{\"success\": " + success + ", \"error\": \"" + (error == null ? "" : error) + "\"}");
-    }
-
-    private Integer parseInteger(String s) {
-        if (s == null || s.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(s.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private Float parseFloat(String s) {
-        if (s == null || s.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Float.parseFloat(s.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private String trim(String s) {
-        return s == null ? null : s.trim();
     }
 }
