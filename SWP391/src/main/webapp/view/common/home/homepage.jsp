@@ -29,7 +29,7 @@
 
                 <div class="blog-section__head">
                     <h2>Blogs</h2>
-                    <a class="blog-section__more" href="<%= ctx %>/view/common/home/blogs.jsp">Look for more</a>
+                    <a class="blog-section__more" href="<%= ctx %>/blogs">Look for more</a>
                 </div>
 
                 <div class="blog-carousel">

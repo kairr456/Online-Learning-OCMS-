@@ -86,7 +86,25 @@
                 <p class="text-muted">${lesson.description}</p>
                 <div class="d-flex justify-content-center gap-4 mt-3">
                     <span class="badge bg-info p-2"><i class="fas fa-bullseye me-1"></i> Passing Score: ${lessonQuiz.passing_score}%</span>
-                    <span class="badge bg-secondary p-2"><i class="far fa-clock me-1"></i> Duration: ${lesson.durationMinutes} mins</span>
+                    <span class="badge bg-secondary p-2">
+                        <i class="far fa-clock me-1"></i> 
+                        <c:choose>
+                            <c:when test="${lesson.durationMinutes > 0}">
+                                Time Remaining: <span id="timerDisplay">${lesson.durationMinutes}:00</span>
+                            </c:when>
+                            <c:otherwise>
+                                Duration: No Limit
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
+                    <c:choose>
+                        <c:when test="${maxRetakes != null && maxRetakes != -1}">
+                            <span class="badge bg-warning text-dark p-2"><i class="fas fa-redo me-1"></i> Attempt: ${userAttempts + 1} / ${maxRetakes}</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge bg-success p-2"><i class="fas fa-redo me-1"></i> Unlimited Attempts</span>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
 
@@ -151,12 +169,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Timer Logic
+        const durationMinutes = parseInt('${lesson.durationMinutes}');
+        if (durationMinutes > 0) {
+            let timeRemaining = durationMinutes * 60;
+            const timerDisplay = document.getElementById('timerDisplay');
+            
+            const timerInterval = setInterval(function() {
+                timeRemaining--;
+                let m = Math.floor(timeRemaining / 60);
+                let s = timeRemaining % 60;
+                
+                if (m < 10) m = "0" + m;
+                if (s < 10) s = "0" + s;
+                
+                if (timerDisplay) timerDisplay.innerText = m + ":" + s;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
+                    const btn = document.getElementById('btnSubmitQuiz');
+                    if (btn) btn.disabled = true;
+                    // Trigger form submit
+                    document.getElementById('quizForm').dispatchEvent(new Event('submit'));
+                }
+            }, 1000);
+        }
+
         document.getElementById('quizForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const btn = document.getElementById('btnSubmitQuiz');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
-            btn.disabled = true;
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+                btn.disabled = true;
+            }
 
             const formData = new FormData(this);
             const params = new URLSearchParams(formData);
@@ -187,15 +234,19 @@
                     resultModal.show();
                 } else {
                     alert('Error submitting quiz: ' + data.message);
-                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
-                    btn.disabled = false;
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
+                        btn.disabled = false;
+                    }
                 }
             })
             .catch(err => {
                 console.error(err);
                 alert('An error occurred. Please try again.');
-                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
+                    btn.disabled = false;
+                }
             });
         });
     </script>

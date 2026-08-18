@@ -139,9 +139,23 @@
                             <div class="text-center p-5 bg-white rounded border shadow-sm">
                                 <h3 class="mb-3"><i class="fas fa-file-alt text-primary me-2"></i> Quiz: ${lesson.title}</h3>
                                 <p class="text-muted mb-4 fs-5">${lesson.description}</p>
-                                <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm" style="background-color: #5624d0; border-color: #5624d0; transition: transform 0.2s;">
-                                    <i class="fas fa-play-circle me-2"></i> Bắt đầu làm bài
-                                </a>
+                                
+                                <c:choose>
+                                    <c:when test="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}">
+                                        <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
+                                            <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
+                                        </button>
+                                        <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm" style="background-color: #5624d0; border-color: #5624d0; transition: transform 0.2s;">
+                                            <i class="fas fa-play-circle me-2"></i> Bắt đầu làm bài
+                                            <c:if test="${maxRetakes != null && maxRetakes != -1}">
+                                                <br><small class="fw-normal">(Còn ${maxRetakes - userAttempts} lượt)</small>
+                                            </c:if>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </c:when>
 

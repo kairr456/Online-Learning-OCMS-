@@ -368,4 +368,32 @@ public class AccountDAO extends DBContext {
         }
         return false;
     }
+
+    // Looks up an account by email -- used by the forgot-password flow,
+    // which happens pre-login (no session account to work from yet).
+    public Account findByEmail(String email) {
+        String sql = "SELECT * FROM account WHERE email = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Account a = new Account();
+                a.setId(resultSet.getInt("id"));
+                a.setUsername(resultSet.getString("username"));
+                a.setEmail(resultSet.getString("email"));
+                a.setPhone(resultSet.getString("phone"));
+                a.setFullName(resultSet.getString("full_name"));
+                a.setGender(resultSet.getBoolean("gender"));
+                a.setActive(resultSet.getBoolean("is_active"));
+                a.setRoleId(resultSet.getInt("role_id"));
+                return a;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
 }

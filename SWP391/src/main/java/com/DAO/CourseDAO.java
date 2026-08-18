@@ -96,15 +96,39 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     @Override
     public boolean delete(Course course) {
-        String sql = "DELETE FROM course WHERE id = ?";
         try {
             connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, course.getId());
-
-            int affectedRows = statement.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException ex) {
+            int courseId = course.getId();
+            
+            // 1. Clean up lessons and sections
+            LessonDAO lessonDAO = new LessonDAO();
+            lessonDAO.cleanupRemovedSectionsAndLessons(courseId, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+            
+            // Re-establish connection since cleanup closes it
+            connection = new DBContext().connection;
+            
+            // 2. Delete course approval logs
+            String sqlApp = "DELETE FROM course_approval_log WHERE course_id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlApp)) {
+                ps.setInt(1, courseId);
+                ps.executeUpdate();
+            }
+            
+            // 3. Delete user learning list associations
+            String sqlList = "DELETE FROM user_learning_list_course WHERE course_id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlList)) {
+                ps.setInt(1, courseId);
+                ps.executeUpdate();
+            }
+            
+            // 4. Finally, delete the course itself
+            String sql = "DELETE FROM course WHERE id = ?";
+            try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, courseId);
+                int affectedRows = ps.executeUpdate();
+                return affectedRows > 0;
+            }
+        } catch (Exception ex) {
             System.out.println("Error deleting course: " + ex.getMessage());
             return false;
         } finally {

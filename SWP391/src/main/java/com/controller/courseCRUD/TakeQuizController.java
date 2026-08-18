@@ -52,6 +52,17 @@ public class TakeQuizController extends HttpServlet {
                     try {
                         int qId = Integer.parseInt(textContent.substring(9).trim());
                         lessonQuiz = quizDAO.getLessonQuizById(qId);
+                        
+                        // Fetch the ORIGINAL lesson to get its duration and description
+                        if (lessonQuiz != null) {
+                            int originalLessonId = (Integer) lessonQuiz.get("lesson_id");
+                            Lesson originalLesson = lessonDAO.getLessonById(originalLessonId);
+                            if (originalLesson != null) {
+                                // Override duration and description
+                                lesson.setDurationMinutes(originalLesson.getDurationMinutes());
+                                lesson.setDescription(originalLesson.getDescription());
+                            }
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -66,14 +77,17 @@ public class TakeQuizController extends HttpServlet {
             int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
             
             // Check retake limits
+            int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
             if (maxRetakes != -1) {
-                int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 if (userAttempts >= maxRetakes) {
                     session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz.");
                     response.sendRedirect(request.getContextPath() + "/courses");
                     return;
                 }
             }
+            
+            request.setAttribute("userAttempts", userAttempts);
+            request.setAttribute("maxRetakes", maxRetakes);
             List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
             
             // Map questionId -> answers
