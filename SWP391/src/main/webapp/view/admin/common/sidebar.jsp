@@ -7,6 +7,7 @@
         <a href="${pageContext.request.contextPath}/admin/course-content">Course Content</a>
         <a href="${pageContext.request.contextPath}/admin/enrollment">Enrollment Management</a>
         <a href="${pageContext.request.contextPath}/admin/student">Student Management</a>
+        <a href="${pageContext.request.contextPath}/admin/payouts">Payout Management</a>
         <a href="${pageContext.request.contextPath}/admin/settings">System Administration</a>
     </nav>
 </aside>
