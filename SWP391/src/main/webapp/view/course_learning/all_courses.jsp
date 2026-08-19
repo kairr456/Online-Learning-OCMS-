@@ -33,13 +33,13 @@
             <div class="learning-controls">
                 <div class="learning-filters">
                     <select class="filter-select" id="sortBy" onchange="filterCourses()">
-                        <option value="recent">Sort by: Recently Accessed</option>
-                        <option value="title-asc">Title: A to Z</option>
-                        <option value="title-desc">Title: Z to A</option>
+                        <option value="title-asc" selected>Sort by: Title A to Z</option>
+                        <option value="title-desc">Sort by: Title Z to A</option>
                     </select>
 
                     <select class="filter-select" id="filterProgress" onchange="filterCourses()">
                         <option value="all">Progress: All</option>
+                        <option value="not-started">Not Started</option>
                         <option value="in-progress">In Progress</option>
                         <option value="completed">Completed</option>
                     </select>
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="learning-search">
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="searchCourses()">
+                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="filterCourses()">
                 </div>
             </div>
 
@@ -59,7 +59,7 @@
                 <c:when test="${not empty myCourses}">
                     <div class="course-grid" id="courseGrid">
                         <c:forEach var="item" items="${myCourses}">
-                            <div class="course-card" data-title="${item.name}">
+                            <div class="course-card" data-title="${item.name}" data-progress="${item.progress}" data-category="${item.categoryName}">
                                 <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
                                 <div class="course-card-body">
                                     <h3 class="course-card-title">${item.name}</h3>
@@ -74,6 +74,10 @@
                                 </div>
                             </div>
                         </c:forEach>
+                    </div>
+                    <div class="empty-state-box" id="noResults" style="display:none;">
+                        <div class="empty-state-title">No courses found</div>
+                        <div class="empty-state-desc">No courses match your search or filter. Try adjusting your criteria.</div>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -284,17 +288,69 @@
                 .catch(() => alert('Connection error occurred!'));
         }
 
-        function searchCourses() {
-            const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+        function populateCategoryFilter() {
+            const categories = new Set();
             document.querySelectorAll('#courseGrid .course-card').forEach(function (card) {
-                const title = card.getAttribute('data-title').toLowerCase();
-                card.style.display = title.includes(keyword) ? 'block' : 'none';
+                const category = card.getAttribute('data-category');
+                if (category) categories.add(category);
+            });
+
+            const select = document.getElementById('filterCategory');
+            categories.forEach(function (category) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                select.appendChild(option);
             });
         }
 
         function filterCourses() {
-            searchCourses();
+            const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+            const progressFilter = document.getElementById('filterProgress').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            const cards = Array.from(document.querySelectorAll('#courseGrid .course-card'));
+
+            cards.forEach(function (card) {
+                const title = card.getAttribute('data-title').toLowerCase();
+                const progress = parseInt(card.getAttribute('data-progress'), 10) || 0;
+                const category = card.getAttribute('data-category') || '';
+
+                const matchesKeyword = title.includes(keyword);
+                const matchesProgress = progressFilter === 'all'
+                    || (progressFilter === 'not-started' && progress === 0)
+                    || (progressFilter === 'in-progress' && progress > 0 && progress < 100)
+                    || (progressFilter === 'completed' && progress >= 100);
+                const matchesCategory = categoryFilter === 'all' || category === categoryFilter;
+
+                card.style.display = (matchesKeyword && matchesProgress && matchesCategory) ? 'block' : 'none';
+            });
+
+            const visibleCards = cards.filter(function (card) {
+                return card.style.display !== 'none';
+            });
+
+            if (sortBy === 'title-asc') {
+                visibleCards.sort(function (a, b) {
+                    return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'));
+                });
+            } else if (sortBy === 'title-desc') {
+                visibleCards.sort(function (a, b) {
+                    return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'));
+                });
+            }
+
+            const grid = document.getElementById('courseGrid');
+            visibleCards.forEach(function (card) {
+                grid.appendChild(card);
+            });
+
+            document.getElementById('noResults').style.display = visibleCards.length === 0 ? 'block' : 'none';
         }
+
+        populateCategoryFilter();
+        filterCourses();
     </script>
 </body>
 
