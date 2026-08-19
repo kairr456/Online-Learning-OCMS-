@@ -35,6 +35,7 @@
                     <a href="<%= ctx %>/my-list">My List</a>
                     <a href="<%= ctx %>/archived">Archived</a>
                     <a href="<%= ctx %>/learning-tools">Learning Tools</a>
+                    <a href="<%= ctx %>/my-certificates">Certificates</a>
                 </div>
             </div>
             <% } %>
@@ -75,6 +76,7 @@
                         <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                        <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>
                 <script>
