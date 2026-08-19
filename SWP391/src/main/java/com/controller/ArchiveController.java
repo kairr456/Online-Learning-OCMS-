@@ -45,6 +45,16 @@ public class ArchiveController extends HttpServlet {
         boolean isSuccess = false;
 
         try {
+            if ("archive".equals(action)) {
+                String idError = MyLearningValidator.validateCourseId(request.getParameter("courseId"));
+                if (idError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + idError + "\"}");
+                    return;
+                }
+                int courseId = Integer.parseInt(request.getParameter("courseId"));
+                isSuccess = archiveDAO.add(account.getId(), courseId);
+            }
+
             if ("unarchive".equals(action)) {
                 String idError = MyLearningValidator.validateCourseId(request.getParameter("courseId"));
                 if (idError != null) {

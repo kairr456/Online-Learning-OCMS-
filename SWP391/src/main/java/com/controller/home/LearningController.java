@@ -1,5 +1,6 @@
 package com.controller.home;
 
+import com.DAO.ArchivedCourseDAO;
 import com.DAO.CertificateDAO;
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
@@ -300,6 +301,8 @@ public class LearningController extends HttpServlet {
         }
         int progress = learningDAO.getCourseProgress(accountId, courseId);
         if (progress >= 100) {
+            // Tự động archive khóa học khi học viên vừa hoàn thành 100%
+            new ArchivedCourseDAO().add(accountId, courseId);
             return new CertificateDAO().issueCertificate(accountId, courseId);
         }
         return null;

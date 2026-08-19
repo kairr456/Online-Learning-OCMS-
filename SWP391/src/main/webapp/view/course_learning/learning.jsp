@@ -15,7 +15,14 @@
     <!-- Top bar -->
     <div class="learn-topbar">
         <div class="tb-nav">
-            <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
+            <c:choose>
+                    <c:when test="${param.from == 'archived'}">
+                        <a href="${pageContext.request.contextPath}/archived"><i class="fa-solid fa-arrow-left"></i> Archived</a>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
+                    </c:otherwise>
+                </c:choose>
         </div>
         <div class="tb-title">${course.name}</div>
         <div class="tb-nav">

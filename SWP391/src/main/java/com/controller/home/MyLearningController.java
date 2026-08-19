@@ -66,15 +66,8 @@ public class MyLearningController extends HttpServlet {
             c.setProgress(p != null ? p : 0);
         }
 
-        // Tự động archive những khóa học đã hoàn thành 100% (xử lý cả dữ liệu cũ)
         ArchivedCourseDAO archiveDAO = new ArchivedCourseDAO();
         Set<Integer> archivedCourseIds = archiveDAO.getCourseIdsByAccountId(account.getId());
-        for (Course c : myCourses) {
-            if (c.getProgress() >= 100 && !archivedCourseIds.contains(c.getId())) {
-                archiveDAO.add(account.getId(), c.getId());
-                archivedCourseIds.add(c.getId());
-            }
-        }
 
         // Khóa học đã archived không còn hiển thị ở All Courses
         myCourses.removeIf(c -> archivedCourseIds.contains(c.getId()));
