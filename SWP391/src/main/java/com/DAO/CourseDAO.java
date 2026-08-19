@@ -444,11 +444,8 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     public Course getByQuestionId(int questionId) {
         String sql = "SELECT c.* FROM course c " +
-                     "JOIN section s ON c.id = s.course_id " +
-                     "JOIN lesson l ON s.id = l.section_id " +
-                     "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                     "JOIN quiz_question qq ON lq.id = qq.quiz_id " +
-                     "WHERE qq.id = ?";
+                     "JOIN question_bank qb ON c.id = qb.course_id " +
+                     "WHERE qb.id = ?";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);

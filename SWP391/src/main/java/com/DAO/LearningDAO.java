@@ -120,7 +120,9 @@ public class LearningDAO extends DBContext {
 
     public List<QuizQuestion> getQuestionsByQuizId(int quizId) {
         List<QuizQuestion> list = new ArrayList<>();
-        String sql = "SELECT * FROM quiz_question WHERE quiz_id = ? AND status = 'active' ORDER BY order_number";
+        String sql = "SELECT qb.* FROM question_bank qb " +
+                     "JOIN lesson_quiz lq ON qb.lesson_id = lq.lesson_id " +
+                     "WHERE lq.id = ? AND qb.status = 'active'";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -129,14 +131,18 @@ public class LearningDAO extends DBContext {
             while (resultSet.next()) {
                 QuizQuestion q = new QuizQuestion();
                 q.setId(resultSet.getInt("id"));
-                q.setQuizId(resultSet.getInt("quiz_id"));
+                // We keep quiz_id for backward compatibility in models
+                q.setQuizId(quizId);
                 q.setQuestionText(resultSet.getString("question_text"));
                 q.setPoints(resultSet.getInt("points"));
-                q.setOrderNumber(resultSet.getInt("order_number"));
+                q.setOrderNumber(1);
+                q.setStatus(resultSet.getString("status"));
+                q.setCreatedDate(resultSet.getTimestamp("created_date"));
+                // q.setModifiedDate(resultSet.getTimestamp("modified_date")); // no longer exists
                 list.add(q);
             }
         } catch (SQLException ex) {
-            System.out.println("Error getting quiz questions: " + ex.getMessage());
+            ex.printStackTrace();
         } finally {
             closeResources();
         }
@@ -145,7 +151,7 @@ public class LearningDAO extends DBContext {
 
     public List<QuizAnswer> getAnswersByQuestionId(int questionId) {
         List<QuizAnswer> list = new ArrayList<>();
-        String sql = "SELECT * FROM quiz_answer WHERE question_id = ? ORDER BY order_number";
+        String sql = "SELECT * FROM question_bank_answer WHERE question_bank_id = ? ORDER BY id ASC";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -154,10 +160,10 @@ public class LearningDAO extends DBContext {
             while (resultSet.next()) {
                 QuizAnswer a = new QuizAnswer();
                 a.setId(resultSet.getInt("id"));
-                a.setQuestionId(resultSet.getInt("question_id"));
+                a.setQuestionId(resultSet.getInt("question_bank_id"));
                 a.setAnswerText(resultSet.getString("answer_text"));
                 a.setIsCorrect(resultSet.getBoolean("is_correct"));
-                a.setOrderNumber(resultSet.getInt("order_number"));
+                a.setOrderNumber(1);
                 list.add(a);
             }
         } catch (SQLException ex) {
@@ -305,32 +311,6 @@ public class LearningDAO extends DBContext {
             closeResources();
         }
         return false;
-    }
-
-    public int getCourseProgressPercent(int accountId, int courseId) {
-        String sql = "SELECT COUNT(l.id) AS total, "
-                + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
-                + "FROM lesson l "
-                + "JOIN section s ON l.section_id = s.id "
-                + "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.account_id = ? "
-                + "WHERE s.course_id = ?";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, accountId);
-            statement.setInt(2, courseId);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                int total = resultSet.getInt("total");
-                int completed = resultSet.getInt("completed");
-                return total > 0 ? (int) Math.round(completed * 100.0 / total) : 0;
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting course progress percent: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return 0;
     }
 
     /**
