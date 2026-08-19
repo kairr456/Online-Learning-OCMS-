@@ -58,8 +58,32 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=<%= System.currentTimeMillis() %>">
+    <style>
+        /* Force light theme colors on search and filter inputs */
+        .search-input-wrap .search-input {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+            caret-color: #0F1E33 !important;
+            color-scheme: light !important;
+            -webkit-text-fill-color: #0F1E33 !important;
+            opacity: 1 !important;
+        }
+        .search-input-wrap .search-input::placeholder {
+            color: #5B6B82 !important;
+            -webkit-text-fill-color: #5B6B82 !important;
+            opacity: 0.85 !important;
+        }
+        .filter-select {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+            color-scheme: light !important;
+        }
+        .filter-select option {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -159,7 +183,7 @@
                 <div class="search-filter-wrap">
                     <div class="search-input-wrap">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="filterKeyword" class="search-input" placeholder="Tìm theo tiêu đề bài viết..." onkeyup="filterTable()">
+                        <input type="text" id="filterKeyword" class="search-input" placeholder="Tìm theo tiêu đề bài viết..." autocomplete="off" onkeyup="filterTable()" style="color: #0F1E33 !important; background-color: #ffffff !important; -webkit-text-fill-color: #0F1E33 !important;">
                     </div>
                     <select id="filterCategory" class="filter-select" onchange="filterTable()">
                         <option value="">Tất cả danh mục</option>
@@ -192,13 +216,13 @@
                     <table class="blog-table" id="myBlogTable">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">STT</th>
+                                <th class="col-stt">STT</th>
                                 <th>Bài Viết</th>
                                 <th>Danh Mục</th>
                                 <th>Trạng Thái</th>
                                 <th>Ngày Tạo</th>
                                 <th>Cập Nhật</th>
-                                <th style="text-align: center; width: 140px;">Thao Tác</th>
+                                <th class="col-action-head">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -209,7 +233,7 @@
                                 boolean isActive = "Active".equalsIgnoreCase(b.getStatus());
                             %>
                             <tr data-title="<%= b.getTitle().toLowerCase() %>" data-cat="<%= catName %>" data-status="<%= b.getStatus() %>">
-                                <td style="color: var(--text-muted); font-weight: 600;"><%= index++ %></td>
+                                <td class="td-index"><%= index++ %></td>
                                 <td>
                                     <div class="post-cell">
                                         <% if (b.getThumbnail() != null && !b.getThumbnail().trim().isEmpty()) { %>
@@ -243,10 +267,10 @@
                                         </span>
                                     <% } %>
                                 </td>
-                                <td style="color: var(--text-muted); font-size: 13px;"><%= createdStr %></td>
-                                <td style="color: var(--text-muted); font-size: 13px;"><%= updatedStr %></td>
-                                <td style="text-align: center;">
-                                    <div class="action-btns" style="justify-content: center;">
+                                <td class="td-date"><%= createdStr %></td>
+                                <td class="td-date"><%= updatedStr %></td>
+                                <td class="td-center">
+                                    <div class="action-btns action-btns--center">
                                         <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= b.getId() %>" target="_blank" class="btn-action btn-action--view" title="Xem chi tiết">
                                             <i class="fa-regular fa-eye"></i>
                                         </a>
@@ -275,7 +299,7 @@
                 <i class="fa-solid fa-trash-can"></i>
             </div>
             <h3>Xác nhận xóa bài viết?</h3>
-            <p>Bạn có chắc chắn muốn xóa bài viết <strong id="deleteBlogTitle" style="color:var(--text-dark);"></strong>? Hành động này sẽ xóa vĩnh viễn bài viết khỏi hệ thống và không thể hoàn tác.</p>
+            <p>Bạn có chắc chắn muốn xóa bài viết <strong id="deleteBlogTitle" class="delete-blog-title"></strong>? Hành động này sẽ xóa vĩnh viễn bài viết khỏi hệ thống và không thể hoàn tác.</p>
             <div class="modal-actions">
                 <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Hủy bỏ</button>
                 <a id="btnConfirmDelete" href="#" class="btn-modal-confirm">

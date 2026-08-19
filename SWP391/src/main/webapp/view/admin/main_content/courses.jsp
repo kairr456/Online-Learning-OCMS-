@@ -30,8 +30,6 @@
                 <option value="">All Status</option>
                 <option value="active" ${param.status == 'active' ? 'selected' : ''}>Active</option>
                 <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Inactive</option>
-                <option value="pending" ${param.status == 'pending' ? 'selected' : ''}>Pending</option>
-                <option value="cancelled" ${param.status == 'cancelled' ? 'selected' : ''}>Cancelled</option>
                 <option value="draft" ${param.status == 'draft' ? 'selected' : ''}>Draft</option>
             </select>
 
@@ -82,12 +80,6 @@
                                 <c:when test="${course.status == 'inactive'}">
                                     <span class="badge inactive">Inactive</span>
                                 </c:when>
-                                <c:when test="${course.status == 'pending'}">
-                                    <span class="badge pending">Pending</span>
-                                </c:when>
-                                <c:when test="${course.status == 'cancelled'}">
-                                    <span class="badge cancelled">Cancelled</span>
-                                </c:when>
                                 <c:otherwise>
                                     <span class="badge draft">Draft</span>
                                 </c:otherwise>
@@ -99,18 +91,6 @@
                         <td>${course.createdDate}</td>
 
                         <td class="action-cell">
-                            <c:if test="${course.status == 'pending'}">
-                                <a href="${pageContext.request.contextPath}/admin/courses?action=approve&id=${course.id}"
-                                   class="btn-action approve"
-                                   onclick="return confirm('Approve this course? It will be published to students.')"
-                                   title="Approve">
-                                    <i class="fa-solid fa-check"></i>
-                                </a>
-                                <button type="button" class="btn-action reject" title="Reject"
-                                        onclick="openReject(${course.id}, '${fn:escapeXml(course.name)}')">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </button>
-                            </c:if>
                             <button type="button" class="btn-action edit" title="Edit"
                                     onclick="openEdit(this)"
                                     data-id="${course.id}"
@@ -136,7 +116,7 @@
                 <!-- Trường hợp không có khóa học nào -->
                 <c:if test="${empty courseList}">
                     <tr>
-                        <td colspan="9" style="text-align:center;">No courses found.</td>
+                        <td colspan="9" class="td-empty">No courses found.</td>
                     </tr>
                 </c:if>
             </tbody>
@@ -159,7 +139,7 @@
         </div>
     </c:if>
 
-    <!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
+<!-- ===== Bảng thay đổi khóa học (course_approval_log) =====
          Chỉ hiển thị ở view Course Approval (status=pending).
          Hiển thị các thay đổi gần nhất (SUBMIT/APPROVE/REJECT), mới nhất trên cùng. -->
     <c:if test="${param.status == 'pending'}">
@@ -196,7 +176,7 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${log.oldStatus} <i class="fa-solid fa-arrow-right" style="color:#9CA3AF;"></i> ${log.newStatus}</td>
+                                <td>${log.oldStatus} <i class="fa-solid fa-arrow-right admin-status-arrow"></i> ${log.newStatus}</td>
                                 <td>${log.actorName}</td>
                                 <td>${log.note}</td>
                                 <td>${log.ipAddress}</td>
@@ -204,7 +184,7 @@
                         </c:forEach>
                         <c:if test="${empty courseApprovalLogs}">
                             <tr>
-                                <td colspan="7" style="text-align:center;">No changes yet.</td>
+                                <td colspan="7" class="td-empty">No changes yet.</td>
                             </tr>
                         </c:if>
                     </tbody>
@@ -218,7 +198,7 @@
 <!-- ===== Modal Edit khóa học =====
      - openEdit() : đổ dữ liệu từ data-* của nút Edit vào form, action='edit'.
      - Submit qua fetch POST -> /admin/courses, trả JSON {success, error}. -->
-<div id="courseModal" class="modal" style="display:none;">
+<div id="courseModal" class="modal modal-hidden">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
         <h3 id="modalTitle">Edit Course</h3>
@@ -247,8 +227,6 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="draft">Draft</option>
-                <option value="pending">Pending</option>
-                <option value="cancelled">Cancelled</option>
             </select>
 
             <label>Category</label>
@@ -258,7 +236,7 @@
                 </c:forEach>
             </select>
 
-            <p id="modalError" style="color:#dc3545;"></p>
+            <p id="modalError" class="modal-error"></p>
             <button type="submit">Save</button>
             <button type="button" onclick="closeModal()">Cancel</button>
         </form>
@@ -266,7 +244,7 @@
 </div>
 
 <!-- ===== Modal Từ chối khóa học ===== -->
-<div id="rejectModal" class="modal" style="display:none;">
+<div id="rejectModal" class="modal modal-hidden">
     <div class="modal-content">
         <span class="modal-close" onclick="closeReject()">&times;</span>
         <h3>Reject Course</h3>
@@ -274,7 +252,7 @@
             <input type="hidden" id="rejectId" name="id">
             <label>Reason (required)</label>
             <textarea id="rejectNote" name="note" rows="3" required></textarea>
-            <p id="rejectError" style="color:#dc3545;"></p>
+            <p id="rejectError" class="modal-error"></p>
             <button type="submit">Reject</button>
             <button type="button" onclick="closeReject()">Cancel</button>
         </form>

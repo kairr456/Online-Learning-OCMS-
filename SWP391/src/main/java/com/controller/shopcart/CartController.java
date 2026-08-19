@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet("/cart")
 public class CartController extends HttpServlet {
@@ -117,9 +119,19 @@ public class CartController extends HttpServlet {
             pagedItems = new ArrayList<>();
         }
 
+        // Build a map of courses for the cart items to avoid EL method calls in the JSP
+        Map<Integer, Course> courseMap = new HashMap<>();
+        for (CartItem ci : pagedItems) {
+            Course c = courseDAO.findById(ci.getCourseId());
+            if (c != null) {
+                courseMap.put(ci.getCourseId(), c);
+            }
+        }
+
         // Set attributes for the JSP
         request.setAttribute("cart", cart);
         request.setAttribute("cartItems", pagedItems);
+        request.setAttribute("courseMap", courseMap);
         request.setAttribute("cartTotal", cartTotal);
         request.setAttribute("itemCount", totalFilteredItems);
         request.setAttribute("totalCartItems", totalCartItems);

@@ -342,3 +342,167 @@ body {
     list-style: none;
     padding: 0;
 }
+
+/* ==========================================================================
+   Inline styles moved from view/common/home/course-details.jsp
+   ========================================================================== */
+
+/* Curriculum accordion */
+.course-curriculum-item {
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.course-curriculum-btn {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 15px 20px;
+}
+.course-curriculum-body {
+    padding: 0;
+}
+.course-curriculum-lesson {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.lesson-icon-play {
+    color: var(--primary);
+    margin-right: 10px;
+}
+.lesson-icon-file {
+    color: #28a745;
+    margin-right: 10px;
+}
+.lesson-icon-text {
+    color: #ffc107;
+    margin-right: 10px;
+}
+.lesson-link {
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+.lesson-link-locked {
+    color: #888;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+.lesson-lock-icon {
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+/* Reviews */
+.course-reviews-list {
+    margin-bottom: 30px;
+}
+.no-reviews-text {
+    color: #666;
+    font-style: italic;
+}
+.review-item {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+}
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.review-author-name {
+    font-size: 16px;
+}
+.review-date {
+    color: #888;
+    font-size: 14px;
+}
+.review-rating {
+    color: #ffc107;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.review-comment {
+    color: #444;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Review form */
+.course-review-form {
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 30px;
+}
+.review-form-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+}
+.review-form-group {
+    margin-bottom: 15px;
+}
+.review-form-group-spaced {
+    margin-bottom: 20px;
+}
+.review-form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.rating-selection {
+    color: #ffc107;
+    font-size: 20px;
+    cursor: pointer;
+}
+.rating-input {
+    display: none;
+}
+.review-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+}
+.review-submit-btn {
+    background-color: #ffc107;
+    color: #1a1a2e;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* Purchased cost box */
+.courses__cost-wrap--purchased {
+    background-color: #28a745;
+}
+.courses__cost-wrap--purchased .title {
+    font-size: 24px;
+}
+.purchase-note {
+    margin-top: 10px;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+
+/* Back to top */
+.back-to-top-wrap {
+    padding-bottom: 40px;
+}
+.back-to-top-btn {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}

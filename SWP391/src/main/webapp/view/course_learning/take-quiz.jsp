@@ -11,72 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
-    <style>
-        body { background-color: #f4f6f8; }
-        .quiz-container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        }
-        .question-card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .question-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2d2f31;
-            margin-bottom: 15px;
-        }
-        .answer-option {
-            background: #fff;
-            border: 1px solid #d1d7dc;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-        }
-        .answer-option:hover {
-            background: #f1f3f5;
-        }
-        .answer-option input[type="radio"] {
-            margin-right: 15px;
-            transform: scale(1.2);
-            cursor: pointer;
-        }
-        .answer-label {
-            margin-bottom: 0;
-            cursor: pointer;
-            width: 100%;
-        }
-        .quiz-header {
-            border-bottom: 2px solid #f1f3f5;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-        .btn-submit {
-            background-color: #5624d0;
-            color: #fff;
-            font-weight: 600;
-            padding: 12px 30px;
-            border-radius: 30px;
-        }
-        .btn-submit:hover {
-            background-color: #401b9c;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
-<body>
+<body class="take-quiz-page">
     <jsp:include page="/view/common/header.jsp" />
 
     <main class="container">
@@ -147,27 +84,20 @@
                     </div>
                     <h2 class="mb-3" id="resultTitle">Quiz Completed!</h2>
                     
-                    <div class="display-4 fw-bold mb-2" id="scoreDisplay" style="color: #5624d0;">
+                    <div class="display-4 fw-bold mb-2 score-display" id="scoreDisplay">
                         0%
                     </div>
                     <p class="text-muted fs-5 mb-4" id="correctCountDisplay">
                         You answered 0 / 0 questions correctly.
                     </p>
                     
-                    <div class="modal-footer justify-content-center">
-                        <c:if test="${maxRetakes == -1 || userAttempts + 1 < maxRetakes}">
-                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload();">
-                                <i class="fas fa-redo me-2"></i> Retry
-                            </button>
-                        </c:if>
-                        <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary" style="background-color: #5624d0; border-color: #5624d0;">
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="window.location.reload();">
+                            <i class="fas fa-redo me-2"></i> Retry
+                        </button>
+                        <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary px-4 py-2 quiz-back-btn">
                             <i class="fas fa-arrow-left me-2"></i> Back to Course
                         </a>
-                        <c:if test="${maxRetakes != -1 && userAttempts + 1 >= maxRetakes}">
-                            <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-success">
-                                <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
-                            </a>
-                        </c:if>
                     </div>
                 </div>
             </div>
@@ -230,10 +160,10 @@
                     
                     const iconDiv = document.getElementById('resultIcon');
                     if(data.passed) {
-                        iconDiv.innerHTML = '<i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>';
+                        iconDiv.innerHTML = '<i class="fas fa-check-circle text-success result-icon"></i>';
                         document.getElementById('resultTitle').innerText = "Congratulations! You Passed.";
                     } else {
-                        iconDiv.innerHTML = '<i class="fas fa-times-circle text-danger" style="font-size: 80px;"></i>';
+                        iconDiv.innerHTML = '<i class="fas fa-times-circle text-danger result-icon"></i>';
                         document.getElementById('resultTitle').innerText = "Keep Trying! You Failed.";
                     }
                     

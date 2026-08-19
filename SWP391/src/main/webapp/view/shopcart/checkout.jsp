@@ -149,7 +149,7 @@
                             <div class="payment-option-header" onclick="selectPaymentMethod('Card')">
                                 <div class="payment-radio-wrap">
                                     <input type="radio" name="paymentTypeRadio" id="radioCard" value="Card" checked>
-                                    <label for="radioCard" class="mb-0" style="cursor:pointer;">
+                                    <label for="radioCard" class="mb-0 pay-radio-label">
                                         <i class="fa-regular fa-credit-card me-1 text-primary"></i> Thẻ tín dụng / Ghi nợ (Cards)
                                     </label>
                                 </div>
@@ -164,7 +164,7 @@
                             <div class="payment-option-body" id="cardBody">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <label class="form-label mb-0">Số thẻ (Card Number) <span class="text-danger">*</span></label>
-                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 12px;" onclick="fillTestCard()">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fill-test-btn" onclick="fillTestCard()">
                                         <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Điền thẻ test
                                     </button>
                                 </div>
@@ -205,12 +205,12 @@
 
                                 <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="saveCard" name="saveCard" checked>
-                                    <label class="form-check-label text-muted" for="saveCard" style="font-size:13px;">
+                                    <label class="form-check-label text-muted save-card-label" for="saveCard">
                                         Lưu thông tin thẻ an toàn cho lần thanh toán sau
                                     </label>
                                 </div>
 
-                                <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit" style="background: #6f2bd9; font-size: 16px; margin-top: 10px;">
+                                <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit btn-pay-submit--card">
                                     <i class="fa-solid fa-lock me-2"></i>
                                     <span>Thanh toán ngay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
                                 </button>
@@ -222,7 +222,7 @@
                             <div class="payment-option-header" onclick="selectPaymentMethod('QR_CODE')">
                                 <div class="payment-radio-wrap">
                                     <input type="radio" name="paymentTypeRadio" id="radioQR" value="QR_CODE">
-                                    <label for="radioQR" class="mb-0" style="cursor:pointer;">
+                                    <label for="radioQR" class="mb-0 pay-radio-label">
                                         <i class="fa-solid fa-qrcode me-1 text-success"></i> Thanh toán qua mã QR (VietQR / Mobile Banking)
                                     </label>
                                 </div>
@@ -286,7 +286,7 @@
                                     </div>
 
                                     <!-- Direct Confirm Button inside QR Box -->
-                                    <button type="submit" onclick="selectPaymentMethod('QR_CODE')" class="btn-pay-submit" style="background: #16a34a; font-size: 16px; margin-top: 12px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
+                                    <button type="submit" onclick="selectPaymentMethod('QR_CODE')" class="btn-pay-submit btn-pay-submit--qr">
                                         <i class="fa-solid fa-circle-check me-2"></i>
                                         <span>Xác nhận đã chuyển khoản (Kích hoạt khóa học ngay)</span>
                                     </button>
@@ -303,13 +303,13 @@
             <!-- RIGHT COLUMN: ORDER SUMMARY -->
             <div class="col-lg-5">
                 <div class="order-summary-box">
-                    <div class="summary-title" style="font-size: 26px; font-weight: 700; color: #1e293b; margin-bottom: 20px; padding-bottom: 0; border-bottom: none;">
+                    <div class="summary-title summary-title--lg">
                         Order summary
                     </div>
 
                     <!-- Course Items List Preview -->
                     <c:if test="${not empty cartItems}">
-                        <div class="mb-3" style="max-height: 220px; overflow-y: auto; padding-right: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                        <div class="mb-3 summary-items-scroll">
                             <c:forEach var="item" items="${cartItems}">
                                 <div class="course-item-summary">
                                     <c:set var="cObj" value="${courseDAO != null ? courseDAO.findById(item.courseId) : null}" />
@@ -325,19 +325,19 @@
                     </c:if>
 
                     <!-- Total Row -->
-                    <div class="summary-calc-total" style="border-top: none; margin-top: 0; padding-top: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: 18px; font-weight: 700; color: #1e293b; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                    <div class="summary-calc-total summary-calc-total--summary">
                         <span>Total (${itemCount} course<c:if test="${itemCount > 1}">s</c:if>):</span>
                         <span class="total-amount-display" style="font-size: 24px; font-weight: 800; color: #1e293b;">
                             <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫
                         </span>
                     </div>
 
-                    <p class="text-muted mt-3" style="font-size: 13px; line-height: 1.5; color: #64748b;">
-                        By completing your purchase, you agree to these <a href="#" style="color: #6f2bd9; text-decoration: none;">Terms of Use</a>.
+                    <p class="text-muted mt-3 terms-note">
+                        By completing your purchase, you agree to these <a href="#" class="terms-link">Terms of Use</a>.
                     </p>
 
                     <!-- Pay Submit Button (Main) -->
-                    <button type="submit" form="checkoutForm" class="btn-pay-submit" id="btnSubmitPayment" style="background: #6f2bd9; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: 700; box-shadow: none;">
+                    <button type="submit" form="checkoutForm" class="btn-pay-submit btn-pay-submit--main" id="btnSubmitPayment">
                         <i class="fa-solid fa-lock me-2"></i>
                         <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
                     </button>

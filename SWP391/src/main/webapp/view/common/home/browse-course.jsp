@@ -74,7 +74,7 @@
                 <label>search teacher by name</label>
                 <div class="search-input-wrapper">
                     <input type="text" name="teacherName" value="${teacherName != null ? teacherName : ''}" onkeydown="if(event.key === 'Enter'){ document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit(); }">
-                    <i class="fa-solid fa-magnifying-glass" style="cursor: pointer;" onclick="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"></i>
+                    <i class="fa-solid fa-magnifying-glass search-submit-icon" onclick="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"></i>
                 </div>
             </div>
         </aside>
@@ -99,7 +99,7 @@
             </div>
             
             <c:if test="${empty courses}">
-                <p style="text-align:center; padding: 40px;">No courses available right now.</p>
+                <p class="no-courses-msg">No courses available right now.</p>
             </c:if>
             
             <div class="course-grid">
@@ -125,10 +125,10 @@
                                 <div class="course-footer">
                                     <c:choose>
                                         <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
-                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
+                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn enroll-btn--learn-now">LEARNING NOW</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
+                                            <button type="button" class="enroll-btn enroll-btn--plain"
                                                     data-course-id="${course.id}"
                                                     data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
                                                     onclick="submitAddToCart(this);">ENROLL NOW</button>
@@ -192,7 +192,7 @@
         }
     </script>
     
-    <form id="addToCartForm" action="${pageContext.request.contextPath}/cart" method="post" style="display:none;">
+    <form id="addToCartForm" action="${pageContext.request.contextPath}/cart" method="post" class="hidden-form">
         <input type="hidden" name="action" value="add">
         <input type="hidden" name="courseId" id="cartCourseId">
         <input type="hidden" name="price" id="cartPrice">

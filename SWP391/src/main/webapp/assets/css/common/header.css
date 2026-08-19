@@ -414,3 +414,54 @@ html {
   .site-header__icon-btn { width: 34px; height: 34px; }
   .site-header__account { gap: 6px; }
 }
+
+/* -- "Course Dashboard" nav dropdown (teacher) -- */
+
+.site-header__nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 15px;
+}
+.site-header__nav-dropdown .nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  min-width: 180px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  z-index: 1000;
+  padding: 10px 0;
+  border: 1px solid #eaeaea;
+}
+.site-header__nav-dropdown.show .nav-dropdown-menu {
+  display: block;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a:hover {
+  background-color: #f8f9fa;
+  color: #5d3fd3;
+}
+
+.nav-dropdown-toggle {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.nav-dropdown-toggle svg {
+  margin-left: 4px;
+}
+

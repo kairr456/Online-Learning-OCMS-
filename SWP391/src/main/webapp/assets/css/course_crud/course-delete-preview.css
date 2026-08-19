@@ -1,0 +1,157 @@
+:root {
+    --primary-dark: #1a1a2e;
+    --bg-color: #f4f6f9;
+    --white: #ffffff;
+    --text-main: #333333;
+    --text-muted: #6c757d;
+    --border-light: #e9ecef;
+    --danger: #dc3545;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Inter', 'Segoe UI', sans-serif; 
+    margin: 0;
+    padding: 0;
+}
+
+.delete-preview-container {
+    max-width: 800px;
+    margin: 60px auto;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.preview-header {
+    background-color: #fee2e2;
+    padding: 20px 30px;
+    border-bottom: 1px solid #fecaca;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.preview-header i {
+    font-size: 24px;
+    color: var(--danger);
+}
+
+.preview-header h2 {
+    margin: 0;
+    color: var(--danger);
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.preview-content {
+    padding: 40px;
+}
+
+.course-info {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.course-thumbnail {
+    width: 250px;
+    height: 160px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--border-light);
+}
+
+.course-details {
+    flex: 1;
+}
+
+.course-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin: 0 0 15px 0;
+}
+
+.course-description {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.course-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.course-meta span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.course-meta i {
+    color: var(--text-muted);
+}
+
+.warning-text {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 5px solid #ffeeba;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 25px;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-cancel {
+    background-color: var(--border-light);
+    color: var(--text-main);
+}
+
+.btn-cancel:hover {
+    background-color: #d3d9df;
+}
+
+.btn-confirm {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.btn-confirm:hover {
+    background-color: #c82333;
+}
+
+/* Inline helpers (moved from inline styles) */
+.inline-form {
+    margin: 0;
+}
+.rating-icon {
+    color: #ffc107;
+}
+.price-icon {
+    color: #28a745;
+}
