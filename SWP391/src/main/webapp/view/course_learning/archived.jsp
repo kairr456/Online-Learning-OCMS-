@@ -35,10 +35,13 @@
                     <div class="course-grid">
                         <c:forEach var="item" items="${archivedCourses}">
                             <div class="course-card">
-                                <img src="${item.thumbnail}" alt="${item.name}">
+                                <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
                                 <div class="course-card-body">
                                     <h3 class="course-card-title">${item.name}</h3>
-                                    <button class="btn btn-outline-primary btn-sm">Unarchive</button>
+                                    <div class="btn-action-group">
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple">View Course</a>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="unarchiveCourse(${item.id})">Unarchive</button>
+                                    </div>
                                 </div>
                             </div>
                         </c:forEach>
@@ -54,6 +57,26 @@
             </c:choose>
         </div>
     </main>
+
+    <script>
+        const ARCHIVE_API = '${pageContext.request.contextPath}/archive-course';
+
+        function unarchiveCourse(courseId) {
+            const body = new URLSearchParams();
+            body.append('action', 'unarchive');
+            body.append('courseId', courseId);
+            fetch(ARCHIVE_API, { method: 'POST', body: body })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Unarchive failed: ' + (d.message || 'Error occurred'));
+                    }
+                })
+                .catch(() => alert('Connection error occurred!'));
+        }
+    </script>
 
 </body>
 

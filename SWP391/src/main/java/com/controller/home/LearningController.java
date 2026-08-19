@@ -1,5 +1,6 @@
 package com.controller.home;
 
+import com.DAO.ArchivedCourseDAO;
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
 import com.DAO.LearningDAO;
@@ -248,6 +249,7 @@ public class LearningController extends HttpServlet {
                     int lessonId = learningDAO.getLessonIdByQuizId(quizId);
                     if (lessonId > 0) {
                         learningDAO.saveLessonProgress(account.getId(), lessonId, true);
+                        autoArchiveIfCompleted(account.getId(), lessonId);
                     }
                 }
                 if (saved) {
@@ -260,6 +262,9 @@ public class LearningController extends HttpServlet {
             } else if ("markComplete".equals(action)) {
                 int lessonId = Integer.parseInt(request.getParameter("lessonId"));
                 boolean ok = learningDAO.saveLessonProgress(account.getId(), lessonId, true);
+                if (ok) {
+                    autoArchiveIfCompleted(account.getId(), lessonId);
+                }
                 out.print(ok
                         ? "{\"status\":\"success\"}"
                         : "{\"status\":\"error\", \"message\":\"Failed to update progress.\"}");
@@ -269,6 +274,17 @@ public class LearningController extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             out.print("{\"status\":\"error\", \"message\":\"" + e.getMessage().replace("\"", "\\\"") + "\"}");
+        }
+    }
+
+    private void autoArchiveIfCompleted(int accountId, int lessonId) {
+        LearningDAO learningDAO = new LearningDAO();
+        int courseId = learningDAO.getCourseIdByLessonId(lessonId);
+        if (courseId <= 0) {
+            return;
+        }
+        if (learningDAO.getCourseProgressPercent(accountId, courseId) >= 100) {
+            new ArchivedCourseDAO().add(accountId, courseId);
         }
     }
 

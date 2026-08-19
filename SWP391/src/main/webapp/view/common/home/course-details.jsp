@@ -613,6 +613,10 @@
                             
                             <c:if test="${not isEnrolled}">
                                 <div class="courses__details-enroll">
+                                    <button type="button" class="wishlist-heart wishlist-heart--lg ${isWishlisted ? 'active' : ''}"
+                                            data-course-id="${course.id}" onclick="toggleWishlist(this)" title="Add to wishlist">
+                                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    </button>
                                     <form action="${pageContext.request.contextPath}/cart" method="post">
                                         <input type="hidden" name="action" value="add">
                                         <input type="hidden" name="courseId" value="${course.id}">
@@ -641,6 +645,40 @@
 
     <!-- Bootstrap JS for tabs/accordion -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleWishlist(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var ctx = '${pageContext.request.contextPath}';
+            fetch(ctx + '/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: new URLSearchParams({ action: 'toggle', courseId: courseId })
+            })
+            .then(function (res) {
+                if (res.status === 401) {
+                    window.location.href = ctx + '/view/authen/login.jsp';
+                    throw new Error('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (data.status === 'success') {
+                    btn.classList.toggle('active');
+                    var icon = btn.querySelector('i');
+                    if (icon) {
+                        if (btn.classList.contains('active')) {
+                            icon.classList.remove('fa-regular');
+                            icon.classList.add('fa-solid');
+                        } else {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                        }
+                    }
+                }
+            })
+            .catch(function (err) { console.error('Wishlist error:', err); });
+        }
+    </script>
 </body>
 
 </html>

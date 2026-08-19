@@ -50,7 +50,8 @@
                 </div>
 
                 <div class="learning-search">
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="filterCourses()">
+                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeydown="if(event.key==='Enter'){filterCourses();}">
+                    <button type="button" onclick="filterCourses()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
                 </div>
             </div>
 

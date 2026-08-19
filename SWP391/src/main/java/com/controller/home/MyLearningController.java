@@ -1,12 +1,16 @@
 package com.controller.home;
 
+import com.DAO.ArchivedCourseDAO;
 import com.DAO.CourseRegistrationDAO;
 import com.DAO.CategoryDAO;
 import com.DAO.LearningDAO;
+import com.DAO.ReminderDAO;
 import com.DAO.UserLearningListDAO;
 import com.entity.Account;
 import com.entity.Course;
+import com.entity.LearningReminder;
 import com.entity.UserLearningList;
+import com.utils.EmailService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,7 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "MyLearningController", urlPatterns = {"/all-courses", "/my-list", "/wishlist", "/archived", "/learning-tools", "/my-learning"})
+@WebServlet(name = "MyLearningController", urlPatterns = {"/all-courses", "/my-list", "/archived", "/learning-tools", "/my-learning"})
 public class MyLearningController extends HttpServlet {
 
     @Override
@@ -61,6 +65,19 @@ public class MyLearningController extends HttpServlet {
             c.setProgress(p != null ? p : 0);
         }
 
+        // Tự động archive những khóa học đã hoàn thành 100% (xử lý cả dữ liệu cũ)
+        ArchivedCourseDAO archiveDAO = new ArchivedCourseDAO();
+        Set<Integer> archivedCourseIds = archiveDAO.getCourseIdsByAccountId(account.getId());
+        for (Course c : myCourses) {
+            if (c.getProgress() >= 100 && !archivedCourseIds.contains(c.getId())) {
+                archiveDAO.add(account.getId(), c.getId());
+                archivedCourseIds.add(c.getId());
+            }
+        }
+
+        // Khóa học đã archived không còn hiển thị ở All Courses
+        myCourses.removeIf(c -> archivedCourseIds.contains(c.getId()));
+
         Set<Integer> categoryIds = new HashSet<>();
         for (Course c : myCourses) {
             categoryIds.add(c.getCategoryId());
@@ -73,8 +90,11 @@ public class MyLearningController extends HttpServlet {
         UserLearningListDAO listDAO = new UserLearningListDAO();
         List<UserLearningList> myLists = listDAO.getListsByAccountId(account.getId());
 
+        LearningReminder reminder = new ReminderDAO().getByAccountId(account.getId());
+
         request.setAttribute("myCourses", myCourses);
         request.setAttribute("myLists", myLists);
+        request.setAttribute("reminder", reminder);
 
         // /my-learning is kept as an alias for /all-courses so old links still work.
         String view;
@@ -82,10 +102,8 @@ public class MyLearningController extends HttpServlet {
             case "/my-list":
                 view = "/view/course_learning/my_list.jsp";
                 break;
-            case "/wishlist":
-                view = "/view/course_learning/wishlist.jsp";
-                break;
             case "/archived":
+                request.setAttribute("archivedCourses", archiveDAO.getCoursesByAccountId(account.getId()));
                 view = "/view/course_learning/archived.jsp";
                 break;
             case "/learning-tools":
@@ -124,7 +142,39 @@ public class MyLearningController extends HttpServlet {
         boolean isSuccess = false;
 
         try {
-            if ("create".equals(action)) {
+            if ("saveReminder".equals(action)) {
+                String days = request.getParameter("days");
+                if (days == null || days.trim().isEmpty()) {
+                    out.print("{\"status\":\"error\", \"message\":\"Please select at least one day.\"}");
+                    return;
+                }
+                String reminderTime = request.getParameter("reminderTime");
+                if (reminderTime == null || reminderTime.trim().isEmpty()) {
+                    reminderTime = "20:00";
+                }
+                boolean enabled = "true".equalsIgnoreCase(request.getParameter("enabled"))
+                        || "on".equalsIgnoreCase(request.getParameter("enabled"))
+                        || "1".equals(request.getParameter("enabled"));
+                isSuccess = new ReminderDAO().upsert(account.getId(), days, reminderTime, enabled);
+
+            } else if ("testReminder".equals(action)) {
+                StringBuilder body = new StringBuilder();
+                body.append("Hi ").append(account.getFullName() != null ? account.getFullName() : account.getUsername()).append(",\n\n");
+                body.append("This is a test reminder from OCMS. Here is what you are currently learning:\n\n");
+                List<Course> enrolled = new CourseRegistrationDAO().getCoursesByAccountId(account.getId());
+                if (enrolled.isEmpty()) {
+                    body.append("- You have not enrolled in any course yet.\n");
+                } else {
+                    for (Course c : enrolled) {
+                        body.append("- ").append(c.getName()).append("\n");
+                    }
+                }
+                body.append("\nKeep up the good work!\nOCMS");
+                EmailService.sendEmail("ducduy8000pro@gmail.com", "OCMS - Learning Reminder (Test)", body.toString());
+                out.print("{\"status\":\"success\",\"message\":\"Test reminder email sent\"}");
+                return;
+
+            } else if ("create".equals(action)) {
                 String title = request.getParameter("title");
                 String description = request.getParameter("description");
                 int newListId = listDAO.createList(account.getId(), title, description);

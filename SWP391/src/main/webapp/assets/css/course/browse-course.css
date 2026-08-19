@@ -248,9 +248,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-top: auto;
     padding-top: 15px;
     border-top: 1px dashed var(--border-light);
+}
+.course-footer__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.course-footer__actions .wishlist-heart {
+    flex-shrink: 0;
 }
 .enroll-btn {
     background-color: var(--accent-yellow);
