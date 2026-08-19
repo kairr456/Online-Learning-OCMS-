@@ -307,6 +307,50 @@ public class LearningDAO extends DBContext {
         return false;
     }
 
+    public int getCourseIdByLessonId(int lessonId) {
+        String sql = "SELECT s.course_id FROM lesson l JOIN section s ON l.section_id = s.id WHERE l.id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("course_id");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting course id by lesson: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return -1;
+    }
+
+    public int getCourseProgressPercent(int accountId, int courseId) {
+        String sql = "SELECT COUNT(l.id) AS total, "
+                + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
+                + "FROM lesson l "
+                + "JOIN section s ON l.section_id = s.id "
+                + "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.account_id = ? "
+                + "WHERE s.course_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            statement.setInt(2, courseId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                int total = resultSet.getInt("total");
+                int completed = resultSet.getInt("completed");
+                return total > 0 ? (int) Math.round(completed * 100.0 / total) : 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getting course progress percent: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
     /**
      * Trả về phần trăm tiến độ (0-100) theo khóa học cho tài khoản, chỉ tính
      * những khóa học mà tài khoản đã đăng ký hợp lệ.

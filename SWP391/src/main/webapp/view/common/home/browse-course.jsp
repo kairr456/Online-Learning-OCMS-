@@ -128,10 +128,16 @@
                                             <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn enroll-btn--learn-now">LEARNING NOW</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <button type="button" class="enroll-btn enroll-btn--plain"
-                                                    data-course-id="${course.id}"
-                                                    data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
-                                                    onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            <div class="course-footer__actions">
+                                                <button type="button" class="wishlist-heart ${not empty wishlistCourseIds and wishlistCourseIds.contains(course.id) ? 'active' : ''}"
+                                                        data-course-id="${course.id}" onclick="toggleWishlist(this)" title="Add to wishlist">
+                                                    <i class="${not empty wishlistCourseIds and wishlistCourseIds.contains(course.id) ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                                </button>
+                                                <button type="button" class="enroll-btn enroll-btn--plain"
+                                                        data-course-id="${course.id}"
+                                                        data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                                        onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            </div>
                                             <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>₫</span>
                                         </c:otherwise>
                                     </c:choose>
@@ -189,6 +195,41 @@
             document.getElementById('cartCourseId').value = courseId;
             document.getElementById('cartPrice').value    = price;
             document.getElementById('addToCartForm').submit();
+        }
+
+        function toggleWishlist(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var ctx = '${pageContext.request.contextPath}';
+            fetch(ctx + '/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: new URLSearchParams({ action: 'toggle', courseId: courseId })
+            })
+            .then(function (res) {
+                if (res.status === 401) {
+                    window.location.href = ctx + '/view/authen/login.jsp';
+                    throw new Error('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (data.status === 'success') {
+                    btn.classList.toggle('active');
+                    var icon = btn.querySelector('i');
+                    if (icon) {
+                        if (btn.classList.contains('active')) {
+                            icon.classList.remove('fa-regular');
+                            icon.classList.add('fa-solid');
+                        } else {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                        }
+                    }
+                } else {
+                    alert('Wishlist error: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(function (err) { alert('Wishlist error: ' + err.message); });
         }
     </script>
     

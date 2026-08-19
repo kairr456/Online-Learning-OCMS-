@@ -964,3 +964,32 @@ body.take-quiz-page {
     font-size: 80px;
 }
 
+/* Search box: input + visible Search button (applies to All Courses & Wishlist) */
+.learning-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 260px;
+    max-width: 360px;
+    flex-grow: 1;
+}
+.learning-search input {
+    flex: 1;
+    min-width: 0;
+}
+.learning-search button {
+    position: static;
+    transform: none;
+    background: #5624d0;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.learning-search button:hover {
+    background: #401b9c;
+}
+
