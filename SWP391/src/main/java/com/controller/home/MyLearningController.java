@@ -1,6 +1,7 @@
 package com.controller.home;
 
 import com.DAO.CourseRegistrationDAO;
+import com.DAO.CategoryDAO;
 import com.DAO.LearningDAO;
 import com.DAO.UserLearningListDAO;
 import com.entity.Account;
@@ -9,8 +10,10 @@ import com.entity.UserLearningList;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -56,6 +59,15 @@ public class MyLearningController extends HttpServlet {
         for (Course c : myCourses) {
             Integer p = courseProgress.get(c.getId());
             c.setProgress(p != null ? p : 0);
+        }
+
+        Set<Integer> categoryIds = new HashSet<>();
+        for (Course c : myCourses) {
+            categoryIds.add(c.getCategoryId());
+        }
+        Map<Integer, String> categoryNames = new CategoryDAO().findNames(categoryIds);
+        for (Course c : myCourses) {
+            c.setCategoryName(categoryNames.get(c.getCategoryId()));
         }
 
         UserLearningListDAO listDAO = new UserLearningListDAO();

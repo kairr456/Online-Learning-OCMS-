@@ -31,6 +31,7 @@ public class CourseRegistrationDAO extends DBContext implements I_DAO<Registrati
                     course.setDescription(rs.getString("description"));
                     course.setPrice(rs.getFloat("price"));
                     course.setThumbnail(rs.getString("thumbnail"));
+                    course.setCategoryId(rs.getInt("category_id"));
                     courses.add(course);
                 }
             }
