@@ -437,7 +437,7 @@ html {
   padding: 10px 0;
   border: 1px solid #eaeaea;
 }
-.site-header__nav-dropdown:hover .nav-dropdown-menu {
+.site-header__nav-dropdown.show .nav-dropdown-menu {
   display: block;
 }
 .site-header__nav-dropdown .nav-dropdown-menu a {

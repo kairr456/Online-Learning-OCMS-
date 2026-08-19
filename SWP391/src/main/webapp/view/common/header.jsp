@@ -67,17 +67,24 @@
             <% if (headerAccount != null) { %>
 
                 <% if (headerAccount.getRoleId() == 2) { %>
-                <div class="site-header__nav-dropdown">
-                    <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle">
+                <div class="site-header__nav-dropdown" id="courseDashboardDropdown">
+                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); document.getElementById('courseDashboardDropdown').classList.toggle('show');">
                         Course Dashboard 
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
-                    <div class="nav-dropdown-menu">
-                        <a href="<%= ctx %>/course-dashboard">Trang tổng quan khóa học</a>
-                        <a href="<%= ctx %>/lesson">Course Add</a>
+                    <div class="nav-dropdown-menu" id="course-dashboard">
+                        <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                     </div>
                 </div>
+                <script>
+                    document.addEventListener('click', function(e) {
+                        var dropdown = document.getElementById('courseDashboardDropdown');
+                        if (dropdown && !dropdown.contains(e.target)) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                </script>
                 <% } %>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/view/common/wishlist.jsp" title="Wishlist" aria-label="Wishlist">
