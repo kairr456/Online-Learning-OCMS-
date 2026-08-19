@@ -64,7 +64,7 @@
                                 <div class="course-card-body">
                                     <h3 class="course-card-title">${item.name}</h3>
                                     <div class="course-progress">
-                                        <div class="course-progress-bar"><span style="width:${item.progress}%"></span></div>
+                                        <div class="course-progress-bar"><span style="--progress-width:${item.progress}%"></span></div>
                                         <span class="course-progress-text">${item.progress}%</span>
                                     </div>
                                     <div class="btn-action-group">
@@ -96,9 +96,9 @@
             </div>
 
             <!-- Dynamic view selector (Used by '+' button from All Courses) -->
-            <div id="viewSelectList" class="custom-modal-body" style="display: none;">
+            <div id="viewSelectList" class="custom-modal-body modal-body-hidden">
                 <p class="text-muted small mb-3">Select a list to add this course to:</p>
-                <div id="existingListsContainer" style="max-height: 240px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <div id="existingListsContainer" class="existing-lists-container"></div>
                 <button type="button" class="btn btn-outline-primary w-100 fw-bold" onclick="showCreateListFormView()">
                     + Create New List
                 </button>
