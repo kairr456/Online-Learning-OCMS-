@@ -16,7 +16,7 @@ public class DBContext {
         try {
             String username = "root";
 
-            String password = "1234"; // Thay đổi mật khẩu MySQL của bạn ở đây
+            String password = "123456"; // Thay đổi mật khẩu MySQL của bạn ở đây
             String url = "jdbc:mysql://localhost:3306/ocms?useSSL=false&allowPublicKeyRetrieval=true";
             //String password = "1234"; //Mk Duy
             //String password = ""; //Mk Luong
