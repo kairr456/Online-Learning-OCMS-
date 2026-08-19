@@ -4,6 +4,7 @@ import com.DAO.WishlistDAO;
 import com.DAO.CategoryDAO;
 import com.entity.Account;
 import com.entity.Course;
+import com.validator.MyLearningValidator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -71,8 +72,9 @@ public class WishlistController extends HttpServlet {
         boolean isSuccess = false;
 
         try {
-            if (courseIdParam == null || courseIdParam.trim().isEmpty()) {
-                out.print("{\"status\":\"error\", \"message\":\"Missing courseId.\"}");
+            String idError = MyLearningValidator.validateCourseId(courseIdParam);
+            if (idError != null) {
+                out.print("{\"status\":\"error\", \"message\":\"" + idError + "\"}");
                 return;
             }
             int courseId = Integer.parseInt(courseIdParam);

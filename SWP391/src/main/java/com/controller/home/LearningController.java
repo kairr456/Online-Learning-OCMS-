@@ -13,6 +13,7 @@ import com.entity.LessonVideo;
 import com.entity.QuizAnswer;
 import com.entity.QuizQuestion;
 import com.entity.Section;
+import com.validator.MyLearningValidator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -224,7 +225,13 @@ public class LearningController extends HttpServlet {
 
         try {
             if ("submitQuiz".equals(action)) {
-                int quizId = Integer.parseInt(request.getParameter("quizId"));
+                String quizIdParam = request.getParameter("quizId");
+                String quizIdError = MyLearningValidator.validateQuizId(quizIdParam);
+                if (quizIdError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + quizIdError + "\"}");
+                    return;
+                }
+                int quizId = Integer.parseInt(quizIdParam);
                 List<QuizQuestion> questions = learningDAO.getQuestionsByQuizId(quizId);
                 int total = 0;
                 int score = 0;
@@ -262,7 +269,13 @@ public class LearningController extends HttpServlet {
                 }
 
             } else if ("markComplete".equals(action)) {
-                int lessonId = Integer.parseInt(request.getParameter("lessonId"));
+                String lessonIdParam = request.getParameter("lessonId");
+                String lessonIdError = MyLearningValidator.validateLessonId(lessonIdParam);
+                if (lessonIdError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + lessonIdError + "\"}");
+                    return;
+                }
+                int lessonId = Integer.parseInt(lessonIdParam);
                 boolean ok = learningDAO.saveLessonProgress(account.getId(), lessonId, true);
                 // Cấp chứng chỉ ngay nếu HV vừa đạt 100% progress và khóa có template
                 String certCode = ok ? grantCertificateIfCompleted(account.getId(), lessonId) : null;

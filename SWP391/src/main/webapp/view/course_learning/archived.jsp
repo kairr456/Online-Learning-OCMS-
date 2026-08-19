@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
 
-<body>
+<body data-ctx="${pageContext.request.contextPath}">
 
     <!-- Common Header -->
     <jsp:include page="/view/common/header.jsp" />
@@ -58,25 +58,7 @@
         </div>
     </main>
 
-    <script>
-        const ARCHIVE_API = '${pageContext.request.contextPath}/archive-course';
-
-        function unarchiveCourse(courseId) {
-            const body = new URLSearchParams();
-            body.append('action', 'unarchive');
-            body.append('courseId', courseId);
-            fetch(ARCHIVE_API, { method: 'POST', body: body })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.status === 'success') {
-                        location.reload();
-                    } else {
-                        alert('Unarchive failed: ' + (d.message || 'Error occurred'));
-                    }
-                })
-                .catch(() => alert('Connection error occurred!'));
-        }
-    </script>
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/archived.js"></script>
 
 </body>
 

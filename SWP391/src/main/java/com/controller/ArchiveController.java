@@ -2,6 +2,7 @@ package com.controller;
 
 import com.DAO.ArchivedCourseDAO;
 import com.entity.Account;
+import com.validator.MyLearningValidator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,6 +46,11 @@ public class ArchiveController extends HttpServlet {
 
         try {
             if ("unarchive".equals(action)) {
+                String idError = MyLearningValidator.validateCourseId(request.getParameter("courseId"));
+                if (idError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + idError + "\"}");
+                    return;
+                }
                 int courseId = Integer.parseInt(request.getParameter("courseId"));
                 isSuccess = archiveDAO.remove(account.getId(), courseId);
             }
