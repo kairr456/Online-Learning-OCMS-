@@ -4,6 +4,7 @@ import com.DAO.LessonDAO;
 import com.DAO.QuizDAO;
 import com.entity.Account;
 import com.entity.Lesson;
+import com.validator.MyLearningValidator;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -123,8 +124,19 @@ public class TakeQuizController extends HttpServlet {
         }
 
         try {
-            int quizId = Integer.parseInt(request.getParameter("quizId"));
-            int lessonId = Integer.parseInt(request.getParameter("lessonId"));
+            String quizIdParam = request.getParameter("quizId");
+            String lessonIdParam = request.getParameter("lessonId");
+            String idError = MyLearningValidator.validateQuizId(quizIdParam);
+            if (idError == null) {
+                idError = MyLearningValidator.validateLessonId(lessonIdParam);
+            }
+            if (idError != null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"" + idError + "\"}");
+                return;
+            }
+            int quizId = Integer.parseInt(quizIdParam);
+            int lessonId = Integer.parseInt(lessonIdParam);
             
             QuizDAO quizDAO = new QuizDAO();
             LessonDAO lessonDAO = new LessonDAO();

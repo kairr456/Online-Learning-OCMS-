@@ -12,52 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
-    <style>
-        body { background-color: #f4f6f8; }
-        .result-container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        }
-        .summary-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-        }
-        .question-card {
-            background: #fff;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .answer-option {
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border: 1px solid #d1d7dc;
-            display: flex;
-            align-items: center;
-        }
-        .answer-option.correct {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        .answer-option.incorrect {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-        .answer-icon {
-            width: 25px;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/quiz-result.css">
 </head>
 <body>
     <jsp:include page="/view/common/header.jsp" />

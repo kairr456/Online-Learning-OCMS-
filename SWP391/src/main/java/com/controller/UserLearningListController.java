@@ -2,6 +2,7 @@ package com.controller;
 
 import com.DAO.UserLearningListDAO;
 import com.entity.Account;
+import com.validator.MyLearningValidator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,33 +52,78 @@ public class UserLearningListController extends HttpServlet {
             if ("create".equals(action)) {
                 String title = request.getParameter("title");
                 String description = request.getParameter("description");
+                String titleError = MyLearningValidator.validateListTitle(title);
+                if (titleError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + titleError + "\"}");
+                    return;
+                }
                 int newListId = listDAO.createList(account.getId(), title, description);
                 if (newListId > 0) {
                     isSuccess = true;
                     String courseId = request.getParameter("courseId");
-                    if (courseId != null && !courseId.trim().isEmpty()) {
+                    if (!MyLearningValidator.isBlank(courseId)) {
+                        String courseError = MyLearningValidator.validateCourseId(courseId);
+                        if (courseError != null) {
+                            out.print("{\"status\":\"error\", \"message\":\"" + courseError + "\"}");
+                            return;
+                        }
                         isSuccess = new UserLearningListDAO().addCourseToList(newListId, Integer.parseInt(courseId));
                     }
                 }
 
             } else if ("update".equals(action)) {
-                int listId = Integer.parseInt(request.getParameter("listId"));
+                String listIdParam = request.getParameter("listId");
                 String title = request.getParameter("title");
                 String description = request.getParameter("description");
+                String updateError = MyLearningValidator.validateListId(listIdParam);
+                if (updateError == null) {
+                    updateError = MyLearningValidator.validateListTitle(title);
+                }
+                if (updateError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + updateError + "\"}");
+                    return;
+                }
+                int listId = Integer.parseInt(listIdParam);
                 isSuccess = listDAO.updateList(listId, account.getId(), title, description);
 
             } else if ("delete".equals(action)) {
-                int listId = Integer.parseInt(request.getParameter("listId"));
+                String listIdParam = request.getParameter("listId");
+                String idError = MyLearningValidator.validateListId(listIdParam);
+                if (idError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + idError + "\"}");
+                    return;
+                }
+                int listId = Integer.parseInt(listIdParam);
                 isSuccess = listDAO.deleteList(listId, account.getId());
 
             } else if ("addCourse".equals(action)) {
-                int listId = Integer.parseInt(request.getParameter("listId"));
-                int courseId = Integer.parseInt(request.getParameter("courseId"));
+                String listIdParam = request.getParameter("listId");
+                String courseIdParam = request.getParameter("courseId");
+                String addError = MyLearningValidator.validateListId(listIdParam);
+                if (addError == null) {
+                    addError = MyLearningValidator.validateCourseId(courseIdParam);
+                }
+                if (addError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + addError + "\"}");
+                    return;
+                }
+                int listId = Integer.parseInt(listIdParam);
+                int courseId = Integer.parseInt(courseIdParam);
                 isSuccess = listDAO.addCourseToList(listId, courseId);
 
             } else if ("removeCourse".equals(action)) {
-                int listId = Integer.parseInt(request.getParameter("listId"));
-                int courseId = Integer.parseInt(request.getParameter("courseId"));
+                String listIdParam = request.getParameter("listId");
+                String courseIdParam = request.getParameter("courseId");
+                String removeError = MyLearningValidator.validateListId(listIdParam);
+                if (removeError == null) {
+                    removeError = MyLearningValidator.validateCourseId(courseIdParam);
+                }
+                if (removeError != null) {
+                    out.print("{\"status\":\"error\", \"message\":\"" + removeError + "\"}");
+                    return;
+                }
+                int listId = Integer.parseInt(listIdParam);
+                int courseId = Integer.parseInt(courseIdParam);
                 isSuccess = listDAO.removeCourseFromList(listId, courseId);
             }
 

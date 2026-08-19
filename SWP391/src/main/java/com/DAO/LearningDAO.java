@@ -307,24 +307,6 @@ public class LearningDAO extends DBContext {
         return false;
     }
 
-    public int getCourseIdByLessonId(int lessonId) {
-        String sql = "SELECT s.course_id FROM lesson l JOIN section s ON l.section_id = s.id WHERE l.id = ?";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, lessonId);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt("course_id");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting course id by lesson: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return -1;
-    }
-
     public int getCourseProgressPercent(int accountId, int courseId) {
         String sql = "SELECT COUNT(l.id) AS total, "
                 + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
