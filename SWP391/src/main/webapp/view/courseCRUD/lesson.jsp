@@ -233,10 +233,14 @@
                     addBlock(secId, lesId, 'text');
                 }
             } else if (type === 'video' || type === 'video_image') {
+                let fullUrl = rawVideo || '';
+                if (fullUrl && !fullUrl.startsWith('http')) {
+                    fullUrl = 'https://www.youtube.com/watch?v=' + fullUrl;
+                }
                 html = `
                     <div class="mb-3">
                         <label class="form-label text-danger"><i class="fab fa-youtube"></i> YouTube URL</label>
-                        <input type="url" name="lessonVideo_\${lessonKey}" class="form-control" value="\${rawVideo}" placeholder="https://youtube.com/..." required>
+                        <input type="url" name="lessonVideo_\${lessonKey}" class="form-control" value="\${fullUrl}" placeholder="https://youtube.com/..." required>
                     </div>
                 `;
                 container.innerHTML = html;

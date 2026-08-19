@@ -202,10 +202,10 @@ public class QuizDAO extends DBContext {
         // Find course_id and lesson_id
         int courseId = 0;
         int lessonId = 0;
-        String getInfoSql = "SELECT c.id as course_id, l.id as lesson_id FROM lesson l " +
-                            "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                            "JOIN section s ON l.section_id = s.id " +
-                            "JOIN course c ON s.course_id = c.id " +
+        String getInfoSql = "SELECT lq.lesson_id, c.id as course_id FROM lesson_quiz lq " +
+                            "JOIN lesson l ON lq.lesson_id = l.id " +
+                            "LEFT JOIN section s ON l.section_id = s.id " +
+                            "LEFT JOIN course c ON s.course_id = c.id " +
                             "WHERE lq.id = ?";
         try (PreparedStatement psInfo = connection.prepareStatement(getInfoSql)) {
             psInfo.setInt(1, quizId);
@@ -219,8 +219,16 @@ public class QuizDAO extends DBContext {
         
         String sql = "INSERT INTO question_bank (course_id, lesson_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, courseId);
-            ps.setInt(2, lessonId);
+            if (courseId > 0) {
+                ps.setInt(1, courseId);
+            } else {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            }
+            if (lessonId > 0) {
+                ps.setInt(2, lessonId);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
             ps.setString(3, text);
             ps.setInt(4, points);
             ps.executeUpdate();

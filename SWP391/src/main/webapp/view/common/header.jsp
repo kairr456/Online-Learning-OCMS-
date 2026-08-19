@@ -101,11 +101,7 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
                     <div class="nav-dropdown-menu">
-<<<<<<< HEAD
                         <a href="<%= ctx %>/course-dashboard">Dashboard Home</a>
-=======
-                        <a href="<%= ctx %>/course-dashboard">Trang tổng quan khóa học</a>
->>>>>>> 1b34976611a1720b205cd3310d144274e5880a07
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                     </div>

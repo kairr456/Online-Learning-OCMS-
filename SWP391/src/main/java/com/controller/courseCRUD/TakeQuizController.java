@@ -81,8 +81,8 @@ public class TakeQuizController extends HttpServlet {
             int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
             if (maxRetakes != -1) {
                 if (userAttempts >= maxRetakes) {
-                    session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz.");
-                    response.sendRedirect(request.getContextPath() + "/courses");
+                    session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz. Viewing your past results.");
+                    response.sendRedirect(request.getContextPath() + "/quiz-result?lessonId=" + lessonId);
                     return;
                 }
             }

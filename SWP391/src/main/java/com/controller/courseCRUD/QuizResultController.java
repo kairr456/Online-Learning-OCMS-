@@ -23,6 +23,11 @@ public class QuizResultController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        response.setContentType("text/html;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0); // Proxies.
+        
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute("account");
         

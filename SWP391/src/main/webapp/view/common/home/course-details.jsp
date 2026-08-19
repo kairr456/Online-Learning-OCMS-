@@ -355,10 +355,64 @@
             color: var(--accent-yellow);
             font-size: 12px;
         }
-        .list-wrap {
-            list-style: none;
-            padding: 0;
-        }
+          .list-wrap {
+              list-style: none;
+              padding: 0;
+          }
+          
+          /* Review form CSS */
+          .review-form-title {
+              margin-top: 30px;
+              margin-bottom: 20px;
+          }
+          .rating-selection {
+              display: flex;
+              gap: 5px;
+              margin-bottom: 15px;
+              margin-top: 5px;
+          }
+          .rating-selection label {
+              cursor: pointer;
+          }
+          .rating-input {
+              display: none;
+          }
+          .rating-star {
+              color: #ccc;
+              font-size: 20px;
+          }
+          .rating-star.fas {
+              color: var(--accent-yellow);
+          }
+          .review-textarea {
+              width: 100%;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 20px;
+              font-family: inherit;
+              background-color: #fff;
+              color: var(--text-main);
+              margin-top: 5px;
+          }
+          .review-textarea::placeholder {
+              color: #aaa;
+          }
+          .review-submit-btn {
+              background-color: var(--primary-color);
+              color: white;
+              border: none;
+              padding: 10px 25px;
+              border-radius: 20px;
+              font-weight: 600;
+          }
+          .review-submit-btn:hover {
+              background-color: #4832a8;
+              color: white;
+          }
+          .review-form-label {
+              font-weight: 600;
+          }
     </style>
 </head>
 

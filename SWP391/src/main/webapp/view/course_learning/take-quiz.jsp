@@ -95,6 +95,9 @@
                         <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="window.location.reload();">
                             <i class="fas fa-redo me-2"></i> Retry
                         </button>
+                        <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info px-4 py-2 text-white" id="viewHistoryBtn">
+                            <i class="fas fa-history me-2"></i> Xem lịch sử
+                        </a>
                         <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary px-4 py-2 quiz-back-btn">
                             <i class="fas fa-arrow-left me-2"></i> Back to Course
                         </a>

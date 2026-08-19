@@ -92,12 +92,17 @@
                                 <p class="text-muted mb-4 fs-5">${lesson.description}</p>
                                 
                                 <c:choose>
-                                    <c:when test="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}">
-                                        <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
-                                            <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
-                                        </button>
-                                        <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
-                                    </c:when>
+                                      <c:when test="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}">
+                                          <div>
+                                              <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
+                                                  <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
+                                              </button>
+                                              <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm text-white ms-3 mt-3 mt-md-0">
+                                                  <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
+                                              </a>
+                                          </div>
+                                          <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
+                                      </c:when>
                                     <c:otherwise>
                                         <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm quiz-start-btn">
                                             <i class="fas fa-play-circle me-2"></i> Bắt đầu làm bài
