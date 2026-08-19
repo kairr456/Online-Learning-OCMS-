@@ -33,9 +33,9 @@
                 <div class="site-header__dropdown" id="learningDropdown">
                     <a href="<%= ctx %>/all-courses">All Courses</a>
                     <a href="<%= ctx %>/my-list">My List</a>
-                    <a href="<%= ctx %>/wishlist">Wishlist</a>
                     <a href="<%= ctx %>/archived">Archived</a>
                     <a href="<%= ctx %>/learning-tools">Learning Tools</a>
+                    <a href="<%= ctx %>/my-certificates">Certificates</a>
                 </div>
             </div>
             <% } %>
@@ -67,24 +67,28 @@
             <% if (headerAccount != null) { %>
 
                 <% if (headerAccount.getRoleId() == 2) { %>
-                <div class="site-header__nav-dropdown">
-                    <a href="<%= ctx %>/course-dashboard" class="nav-dropdown-toggle">
+                <div class="site-header__nav-dropdown" id="courseDashboardDropdown">
+                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); document.getElementById('courseDashboardDropdown').classList.toggle('show');">
                         Course Dashboard 
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
-                    <div class="nav-dropdown-menu">
-                        <a href="<%= ctx %>/course-dashboard">Trang tổng quan khóa học</a>
+                    <div class="nav-dropdown-menu" id="course-dashboard">
+                        <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                        <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>
+                <script>
+                    document.addEventListener('click', function(e) {
+                        var dropdown = document.getElementById('courseDashboardDropdown');
+                        if (dropdown && !dropdown.contains(e.target)) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                </script>
                 <% } %>
 
-                <a class="site-header__icon-btn" href="<%= ctx %>/wishlist" title="Wishlist" aria-label="Wishlist">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                    </svg>
-                </a>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/cart" title="Cart" aria-label="Cart">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -107,6 +111,13 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
+                        <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #5d3fd3; border-bottom: 1px solid #eee;">
+                            <% if (headerAccount.getRoleId() == 2) { %>
+                                Role: Teacher
+                            <% } else if (headerAccount.getRoleId() == 3) { %>
+                                Role: Student
+                            <% }%>
+                        </div>
                         <% if (headerAccount.getRoleId() == 3) { %>
                             <a href="<%= ctx %>/my-purchases">My Purchases</a>
                         <% } else if (headerAccount.getRoleId() == 2) { %>

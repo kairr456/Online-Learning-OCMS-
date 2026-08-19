@@ -1,6 +1,6 @@
 package com.controller.home;
 
-import com.DAO.ArchivedCourseDAO;
+import com.DAO.CertificateDAO;
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
 import com.DAO.LearningDAO;
@@ -245,16 +245,18 @@ public class LearningController extends HttpServlet {
                 }
                 boolean passed = total > 0 && ((double) score / total) >= PASS_RATIO;
                 boolean saved = learningDAO.saveQuizAttempt(account.getId(), quizId, score, passed);
+                String certCode = null;
                 if (passed) {
                     int lessonId = learningDAO.getLessonIdByQuizId(quizId);
                     if (lessonId > 0) {
                         learningDAO.saveLessonProgress(account.getId(), lessonId, true);
-                        autoArchiveIfCompleted(account.getId(), lessonId);
+                        // Cấp chứng chỉ ngay nếu HV vừa đạt 100% progress và khóa có template
+                        certCode = grantCertificateIfCompleted(account.getId(), lessonId);
                     }
                 }
                 if (saved) {
                     out.print("{\"status\":\"success\",\"score\":" + score + ",\"total\":" + total
-                            + ",\"passed\":" + passed + "}");
+                            + ",\"passed\":" + passed + ",\"certificateCode\":\"" + (certCode == null ? "" : certCode) + "\"}");
                 } else {
                     out.print("{\"status\":\"error\", \"message\":\"Failed to save quiz attempt.\"}");
                 }
@@ -262,11 +264,10 @@ public class LearningController extends HttpServlet {
             } else if ("markComplete".equals(action)) {
                 int lessonId = Integer.parseInt(request.getParameter("lessonId"));
                 boolean ok = learningDAO.saveLessonProgress(account.getId(), lessonId, true);
-                if (ok) {
-                    autoArchiveIfCompleted(account.getId(), lessonId);
-                }
+                // Cấp chứng chỉ ngay nếu HV vừa đạt 100% progress và khóa có template
+                String certCode = ok ? grantCertificateIfCompleted(account.getId(), lessonId) : null;
                 out.print(ok
-                        ? "{\"status\":\"success\"}"
+                        ? "{\"status\":\"success\",\"certificateCode\":\"" + (certCode == null ? "" : certCode) + "\"}"
                         : "{\"status\":\"error\", \"message\":\"Failed to update progress.\"}");
             } else {
                 out.print("{\"status\":\"error\", \"message\":\"Unknown action.\"}");
@@ -277,15 +278,18 @@ public class LearningController extends HttpServlet {
         }
     }
 
-    private void autoArchiveIfCompleted(int accountId, int lessonId) {
+    /** Cấp chứng chỉ nếu HV đạt 100% progress của khóa (chỉ khi khóa có template). Trả về mã hoặc null. */
+    private String grantCertificateIfCompleted(int accountId, int lessonId) {
         LearningDAO learningDAO = new LearningDAO();
         int courseId = learningDAO.getCourseIdByLessonId(lessonId);
         if (courseId <= 0) {
-            return;
+            return null;
         }
-        if (learningDAO.getCourseProgressPercent(accountId, courseId) >= 100) {
-            new ArchivedCourseDAO().add(accountId, courseId);
+        int progress = learningDAO.getCourseProgress(accountId, courseId);
+        if (progress >= 100) {
+            return new CertificateDAO().issueCertificate(accountId, courseId);
         }
+        return null;
     }
 
     private String toYoutubeEmbed(String url) {
