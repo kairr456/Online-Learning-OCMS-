@@ -74,6 +74,7 @@
                     </a>
                     <div class="nav-dropdown-menu" id="course-dashboard">
                         <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
+                        <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                     </div>
                 </div>
