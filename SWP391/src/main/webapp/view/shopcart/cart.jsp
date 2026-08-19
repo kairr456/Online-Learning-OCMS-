@@ -32,9 +32,9 @@
     <!-- header-area-end -->
 
     <!-- main-area -->
-    <main class="cart-main">
+    <main style="min-height:70vh; padding: 48px 0;">
         <div class="container">
-            <h1 class="cart-title">Shopping Cart</h1>
+            <h1 style="font-size:28px; font-weight:700; margin-bottom:32px;">Shopping Cart</h1>
 
             <!-- Toast messages will be shown via JavaScript -->
                 
@@ -91,8 +91,8 @@
                                 <c:choose>
                                     <%-- Khi tìm kiếm không có kết quả phù hợp --%>
                                     <c:when test="${empty cartItems}">
-<div class="empty-cart empty-cart-compact">
-<i class="fa-solid fa-magnifying-glass empty-cart-icon"></i>
+                                        <div class="empty-cart" style="padding: 40px 0;">
+                                            <i class="fa-solid fa-magnifying-glass" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i>
                                             <h5>Không tìm thấy khóa học nào phù hợp</h5>
                                             <p class="text-muted mb-3">Không có khóa học nào trong giỏ hàng khớp với từ khóa "<strong><c:out value="${search}"/></strong>".</p>
                                             <a href="${pageContext.request.contextPath}/cart?sort=<c:out value="${sort}"/>" class="btn btn-sm btn-outline-primary">
@@ -104,7 +104,7 @@
                                         <c:forEach items="${cartItems}" var="item" varStatus="status">
                                             <div class="cart-item">
                                                 <div class="row align-items-center">
-                                                    <c:set var="course" value="${courseMap[item.courseId]}" />
+                                                    <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
                                                     <div class="col-md-2">
                                                         <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
                                                     </div>
@@ -210,13 +210,15 @@
                         <div class="cart-actions mt-4">
                             <!-- Continue Shopping -->
                             <a href="${pageContext.request.contextPath}/courses"
-                                class="btn btn-outline-secondary btn-continue-shopping">
+                                class="btn btn-outline-secondary"
+                                style="display: inline-block; margin-right: 10px;">
                                 Continue Shopping
                             </a>
 
                             <!-- Proceed to Checkout -->
                             <a href="${pageContext.request.contextPath}/checkout"
-                                class="btn btn-primary btn-checkout-link">
+                                class="btn btn-primary"
+                                style="display: flex; align-items: center; justify-content: center; width: 50%; text-decoration: none;">
                                 Checkout
                             </a>
                         </div>                     

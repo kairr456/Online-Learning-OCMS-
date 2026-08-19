@@ -5,9 +5,7 @@
         <a href="${pageContext.request.contextPath}/admin/courses" class="${contentPage == 'courses.jsp' && param.status != 'pending' ? 'active' : ''}">Course Management</a>
         <a href="${pageContext.request.contextPath}/admin/courses?status=pending" class="${contentPage == 'courses.jsp' && param.status == 'pending' ? 'active' : ''}">Course Approval</a>
         <a href="${pageContext.request.contextPath}/admin/blog-categories" class="${contentPage == 'blog_categories.jsp' ? 'active' : ''}">Blog Category Management</a>
-        <a href="${pageContext.request.contextPath}/admin/payouts">Payout Management</a>
         <a href="${pageContext.request.contextPath}/admin/registrations" class="${contentPage == 'registrations.jsp' ? 'active' : ''}">Course Registration</a>
         <a href="${pageContext.request.contextPath}/admin/payouts" class="${contentPage == 'payouts.jsp' ? 'active' : ''}">Payout Management</a>
-
     </nav>
 </aside>
