@@ -69,7 +69,8 @@
                                         <span class="course-progress-text">${item.progress}%</span>
                                     </div>
                                     <div class="btn-action-group">
-                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple">Start Course</a>
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=all-courses" class="btn-purple">Start Course</a>
+                                        <button type="button" class="btn btn-outline-secondary" title="Archive" onclick="archiveCourse(${item.id}, '${item.name}')"><i class="fa-solid fa-box-archive"></i></button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="openAddToListModal('${item.id}', '${item.name}')">+</button>
                                     </div>
                                 </div>
@@ -131,6 +132,23 @@
                     <button type="submit" class="btn-purple" id="btnSaveListSubmit">Create List</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CONFIRM ARCHIVE ==================== -->
+    <div class="custom-modal-backdrop" id="archiveConfirmModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="fw-bold mb-0">Archive Course</h5>
+                <button type="button" class="btn-close" onclick="closeArchiveConfirmModal()"></button>
+            </div>
+            <div class="custom-modal-body">
+                <p id="archiveConfirmMessage" class="mb-0"></p>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeArchiveConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="confirmArchiveAction()">Archive</button>
+            </div>
         </div>
     </div>
 

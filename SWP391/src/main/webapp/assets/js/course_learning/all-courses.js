@@ -29,6 +29,40 @@ function reloadPreservingTab() {
     window.location.reload();
 }
 
+let pendingArchiveCourseId = null;
+
+function archiveCourse(courseId, courseName) {
+    pendingArchiveCourseId = courseId;
+    document.getElementById('archiveConfirmMessage').innerText =
+        'Are you sure you want to archive "' + (courseName || 'this course') + '"? You can unarchive it later from the Archived page.';
+    document.getElementById('archiveConfirmModal').classList.add('show');
+}
+
+function closeArchiveConfirmModal() {
+    pendingArchiveCourseId = null;
+    const modal = document.getElementById('archiveConfirmModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function confirmArchiveAction() {
+    const courseId = pendingArchiveCourseId;
+    if (!courseId) return;
+    closeArchiveConfirmModal();
+    const body = new URLSearchParams();
+    body.append('action', 'archive');
+    body.append('courseId', courseId);
+    fetch(CTX + '/archive-course', { method: 'POST', body: body })
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') {
+                location.reload();
+            } else {
+                alert('Archive failed: ' + (d.message || 'Error occurred'));
+            }
+        })
+        .catch(() => alert('Connection error occurred!'));
+}
+
 function openAddToListModal(courseId, courseTitle) {
     activeCourse = courseId ? { id: courseId, name: courseTitle } : null;
     document.getElementById('modalEditListId').value = '';

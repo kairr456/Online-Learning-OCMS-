@@ -1,7 +1,25 @@
 // Archived page (view/course_learning/archived.jsp)
 const ARCHIVE_API = document.body.getAttribute('data-ctx') + '/archive-course';
 
-function unarchiveCourse(courseId) {
+let pendingUnarchiveCourseId = null;
+
+function unarchiveCourse(courseId, courseName) {
+    pendingUnarchiveCourseId = courseId;
+    document.getElementById('unarchiveConfirmMessage').innerText =
+        'Are you sure you want to unarchive "' + (courseName || 'this course') + '"? You can archive it again from All Courses.';
+    document.getElementById('unarchiveConfirmModal').classList.add('show');
+}
+
+function closeUnarchiveConfirmModal() {
+    pendingUnarchiveCourseId = null;
+    const modal = document.getElementById('unarchiveConfirmModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function confirmUnarchiveAction() {
+    const courseId = pendingUnarchiveCourseId;
+    if (!courseId) return;
+    closeUnarchiveConfirmModal();
     const body = new URLSearchParams();
     body.append('action', 'unarchive');
     body.append('courseId', courseId);
