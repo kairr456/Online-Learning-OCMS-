@@ -36,6 +36,7 @@
                     <a href="<%= ctx %>/wishlist">Wishlist</a>
                     <a href="<%= ctx %>/archived">Archived</a>
                     <a href="<%= ctx %>/learning-tools">Learning Tools</a>
+                    <a href="<%= ctx %>/my-certificates">Certificates</a>
                 </div>
             </div>
             <% } %>
@@ -75,6 +76,7 @@
                     <div class="nav-dropdown-menu" id="course-dashboard">
                         <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                        <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>
                 <script>

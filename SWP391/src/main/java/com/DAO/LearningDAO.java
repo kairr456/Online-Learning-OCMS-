@@ -343,4 +343,50 @@ public class LearningDAO extends DBContext {
         }
         return map;
     }
+
+    /** Lấy course_id từ lesson_id (JOIN section) — dùng để cấp chứng chỉ khi hoàn thành bài. */
+    public int getCourseIdByLessonId(int lessonId) {
+        String sql = "SELECT s.course_id FROM lesson l JOIN section s ON l.section_id = s.id WHERE l.id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("course_id");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getCourseIdByLessonId: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return -1;
+    }
+
+    /** Phần trăm tiến độ (0-100) của 1 khóa học cho 1 tài khoản (giống getCourseProgressMap, chỉ 1 khóa). */
+    public int getCourseProgress(int accountId, int courseId) {
+        String sql = "SELECT COUNT(l.id) AS total, "
+                + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
+                + "FROM lesson l "
+                + "JOIN section s ON l.section_id = s.id "
+                + "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.account_id = ? "
+                + "WHERE s.course_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            statement.setInt(2, courseId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                int total = resultSet.getInt("total");
+                int completed = resultSet.getInt("completed");
+                return total > 0 ? (int) Math.round(completed * 100.0 / total) : 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getCourseProgress: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
 }
