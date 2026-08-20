@@ -88,7 +88,6 @@
                             <button type="button" class="btn btn-outline-dark fw-bold w-100" onclick="sendTestReminder()">
                                 <i class="fas fa-paper-plane me-1"></i> Send Test Reminder
                             </button>
-                            <div id="reminderStatus" class="small mt-2 text-center fw-bold" style="display:none;"></div>
                         </form>
                     </div>
                 </div>
@@ -126,6 +125,22 @@
             </div>
         </div>
     </main>
+
+    <!-- ===== Notification Popup ===== -->
+    <div class="custom-modal-backdrop" id="notificationModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="fw-bold mb-0" id="notificationTitle">Notification</h5>
+                <button type="button" class="btn-close" onclick="closeNotificationModal()"></button>
+            </div>
+            <div class="custom-modal-body">
+                <p id="notificationMessage" class="mb-0"></p>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeNotificationModal()">Close</button>
+            </div>
+        </div>
+    </div>
 
     <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning-tools.js"></script>
 </body>
