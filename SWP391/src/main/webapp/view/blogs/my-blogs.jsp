@@ -67,25 +67,37 @@
                 </div>
                 <div class="stat-content">
                     <h3>${activeCount}</h3>
-                    <p>Đang hoạt động</p>
+                    <p>Đã duyệt</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon stat-icon--orange">
-                    <i class="fa-solid fa-eye-slash"></i>
+                <div class="stat-icon stat-icon--amber">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
                 <div class="stat-content">
                     <h3>${inactiveCount}</h3>
-                    <p>Bản nháp / Đang ẩn</p>
+                    <p>Chưa phê duyệt</p>
                 </div>
             </div>
         </div>
 
         <!-- Alert Notification -->
+        <c:if test="${param.message == 'draft_saved'}">
+            <div class="alert-box alert-box--success" style="background:#F1F5F9; border-color:#CBD5E1; color:#1E293B;">
+                <i class="fa-solid fa-floppy-disk" style="color:#64748B;"></i>
+                <span><strong>Đã lưu bài viết thành công!</strong> Bài viết chưa được duyệt và chỉ có bạn xem được.</span>
+            </div>
+        </c:if>
+        <c:if test="${param.message == 'submitted'}">
+            <div class="alert-box alert-box--success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span><strong>Gửi bài viết thành công!</strong> Bài viết đã được đưa vào hàng đợi chờ Admin phê duyệt.</span>
+            </div>
+        </c:if>
         <c:if test="${param.message == 'created'}">
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
-                <span>Tạo bài viết mới thành công! Bài viết đã được thêm vào danh sách của bạn.</span>
+                <span>Lưu bài viết thành công!</span>
             </div>
         </c:if>
         <c:if test="${param.message == 'updated'}">
@@ -98,6 +110,12 @@
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
                 <span>Đã xóa bài viết thành công khỏi hệ thống!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'already_approved'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết này đã được Admin phê duyệt và xuất bản công khai, bạn không thể chỉnh sửa bài viết đã duyệt!</span>
             </div>
         </c:if>
         <c:if test="${param.error == 'unauthorized'}">
@@ -129,9 +147,9 @@
                         </c:forEach>
                     </select>
                     <select id="filterStatus" class="filter-select" onchange="filterTable()">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="Active">Hoạt động (Active)</option>
-                        <option value="Inactive">Đang ẩn (Inactive)</option>
+                        <option value="">Tất cả</option>
+                        <option value="Active">Đã duyệt</option>
+                        <option value="Inactive">Chưa phê duyệt</option>
                     </select>
                 </div>
             </div>
@@ -202,12 +220,12 @@
                                             <c:choose>
                                                 <c:when test="${isActive}">
                                                     <span class="badge badge--active">
-                                                        <span class="badge-dot badge-dot--active"></span> Hoạt động
+                                                        <span class="badge-dot badge-dot--active"></span> Đã duyệt
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge badge--inactive">
-                                                        <span class="badge-dot badge-dot--inactive"></span> Đang ẩn
+                                                    <span class="badge badge--pending">
+                                                        <span class="badge-dot badge-dot--pending"></span> Chưa phê duyệt
                                                     </span>
                                                 </c:otherwise>
                                             </c:choose>
@@ -219,12 +237,24 @@
                                                 <a href="${pageContext.request.contextPath}/blog-detail?id=${b.id}" class="btn-action btn-action--view" title="Xem chi tiết">
                                                     <i class="fa-regular fa-eye"></i>
                                                 </a>
-                                                <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </a>
-                                                <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
-                                                    <i class="fa-regular fa-trash-can"></i>
-                                                </button>
+                                                <c:choose>
+                                                    <c:when test="${!isActive or sessionScope.account.roleId == 1}">
+                                                        <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </a>
+                                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
+                                                            <i class="fa-regular fa-trash-can"></i>
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="btn-action" title="Bài viết đã được Admin duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
+                                                        <span class="btn-action" title="Bài viết đã được Admin duyệt nên không thể xóa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-ban" style="color: #94A3B8;"></i>
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                         </td>
                                     </tr>

@@ -1,0 +1,2 @@
+-- KHÔNG CẦN CHẠY BẤT KỲ LỆNH NÀO TRONG FILE NÀY
+-- Hệ thống sử dụng trực tiếp bảng `blog` hiện có với 2 trạng thái: 'Active' và 'Inactive'.

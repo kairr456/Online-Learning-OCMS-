@@ -14,6 +14,11 @@ public class Blog {
     private Timestamp createdDate;
     private String status;
 
+    // Helper display fields (from joins)
+    private String authorName;
+    private String authorEmail;
+    private String categoryName;
+
     public Blog() {}
 
     public Blog(int id, String title, String thumbnail, String briefInfo, 
@@ -61,4 +66,13 @@ public class Blog {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getAuthorName() { return authorName; }
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
+
+    public String getAuthorEmail() { return authorEmail; }
+    public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
+
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
 }

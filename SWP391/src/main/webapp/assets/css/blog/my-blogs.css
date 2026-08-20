@@ -404,9 +404,17 @@ body {
     background: #DEF7EC;
     color: #03543F;
 }
-.badge--inactive {
+.badge--pending {
+    background: #FEF3C7;
+    color: #B45309;
+}
+.badge--rejected {
     background: #FDE8E8;
     color: #9B1C1C;
+}
+.badge--inactive {
+    background: #F1F5F9;
+    color: #64748B;
 }
 .badge-dot {
     width: 6px;
@@ -415,7 +423,23 @@ body {
     display: inline-block;
 }
 .badge-dot--active { background: #31C48D; }
-.badge-dot--inactive { background: #F98080; }
+.badge-dot--pending { background: #D97706; }
+.badge-dot--rejected { background: #E02424; }
+.badge-dot--inactive { background: #94A3B8; }
+
+.stat-icon--amber { background: #FEF3C7; color: #D97706; }
+.stat-icon--red { background: #FDE8E8; color: #E02424; }
+
+.myblog-reject-notice {
+    margin-top: 6px;
+    font-size: 12px;
+    background: #FEF2F2;
+    border-left: 3px solid #DC2626;
+    padding: 6px 10px;
+    border-radius: 0 6px 6px 0;
+    color: #991B1B;
+    line-height: 1.4;
+}
 
 /* Actions */
 .action-btns {

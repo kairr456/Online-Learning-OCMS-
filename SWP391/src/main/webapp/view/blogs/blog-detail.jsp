@@ -87,7 +87,7 @@
                             <i class="fa-solid fa-arrow-left"></i> Xem tất cả bài viết khác
                         </a>
                         <div class="article-footer-actions">
-                            <c:if test="${not empty sessionScope.account and (sessionScope.account.id == blog.author or sessionScope.account.roleId == 1)}">
+                            <c:if test="${not empty sessionScope.account and ((sessionScope.account.id == blog.author and blog.status != 'Active') or sessionScope.account.roleId == 1)}">
                                 <a href="${pageContext.request.contextPath}/blogs-edit?id=${blog.id}" class="btn-back-blogs btn-back-blogs--edit">
                                     <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa bài này
                                 </a>

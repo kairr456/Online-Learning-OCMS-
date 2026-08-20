@@ -160,9 +160,24 @@ public class BlogController extends HttpServlet {
         }
 
         Blog blog = (blogId > 0) ? new BlogDAO().getBlogById(blogId) : null;
+        if (blog == null) {
+            response.sendRedirect(request.getContextPath() + "/blogs?error=notfound");
+            return;
+        }
+
+        // Bài viết chưa duyệt (Inactive) chỉ cho phép tác giả hoặc Admin xem
+        if (!"Active".equalsIgnoreCase(blog.getStatus())) {
+            Account currentAcc = (Account) request.getSession().getAttribute("account");
+            boolean canView = (currentAcc != null && (currentAcc.getRoleId() == 1 || currentAcc.getId() == blog.getAuthor()));
+            if (!canView) {
+                response.sendRedirect(request.getContextPath() + "/blogs");
+                return;
+            }
+        }
+
         Map<Integer, String> blogCategories = new BlogDAO().getBlogCategories();
         Map<Integer, String> authorNames = new AccountDAO().getAuthorNames();
-        List<Blog> relatedBlogs = (blog != null && blog.getCategoryId() > 0)
+        List<Blog> relatedBlogs = (blog.getCategoryId() > 0)
                 ? new BlogDAO().getRelatedBlogs(blog.getCategoryId(), blog.getId(), 3)
                 : new ArrayList<>();
         List<Blog> recentBlogs = new BlogDAO().getRecentBlogs(4);
@@ -261,10 +276,24 @@ public class BlogController extends HttpServlet {
         }
 
         newBlog.setAuthor(account.getId());
+
+        String submitAction = request.getParameter("submitAction");
+
+        // Nếu người dùng không phải Admin, bài viết sẽ ở trạng thái Inactive (Chờ duyệt / Bản nháp)
+        if (account.getRoleId() != 1) {
+            newBlog.setStatus("Inactive");
+        }
+
         boolean success = new BlogDAO().insertBlog(newBlog);
 
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/my-blogs?message=created");
+            String msg = "created";
+            if ("draft".equalsIgnoreCase(submitAction)) {
+                msg = "draft_saved";
+            } else if ("submit_admin".equalsIgnoreCase(submitAction)) {
+                msg = "submitted";
+            }
+            response.sendRedirect(request.getContextPath() + "/my-blogs?message=" + msg);
         } else {
             request.setAttribute("error", "Đã xảy ra lỗi khi lưu bài viết vào cơ sở dữ liệu. Vui lòng thử lại!");
             request.setAttribute("draft", newBlog);
@@ -304,6 +333,12 @@ public class BlogController extends HttpServlet {
             return;
         }
 
+        // Bài viết đã được duyệt (Active) thì tác giả thường không được phép chỉnh sửa
+        if ("Active".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+            return;
+        }
+
         Map<Integer, String> categories = new BlogDAO().getBlogCategories();
         request.setAttribute("blog", blog);
         request.setAttribute("categories", categories);
@@ -334,6 +369,12 @@ public class BlogController extends HttpServlet {
             return;
         }
 
+        // Bài viết đã được duyệt (Active) thì tác giả thường không được phép chỉnh sửa
+        if ("Active".equalsIgnoreCase(existingBlog.getStatus()) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+            return;
+        }
+
         Blog updatedData = extractAndValidateBlogForm(request);
         if (updatedData == null) {
             request.setAttribute("error", "Vui lòng nhập đầy đủ Tiêu đề, Tóm tắt và Nội dung bài viết!");
@@ -348,12 +389,26 @@ public class BlogController extends HttpServlet {
         existingBlog.setBriefInfo(updatedData.getBriefInfo());
         existingBlog.setContent(updatedData.getContent());
         existingBlog.setCategoryId(updatedData.getCategoryId());
-        existingBlog.setStatus(updatedData.getStatus());
+
+        String submitAction = request.getParameter("submitAction");
+
+        // Nếu người dùng thông thường sửa bài
+        if (account.getRoleId() != 1) {
+            existingBlog.setStatus("Inactive");
+        } else {
+            existingBlog.setStatus(updatedData.getStatus());
+        }
 
         boolean success = new BlogDAO().updateBlog(existingBlog);
 
         if (success) {
-            response.sendRedirect(request.getContextPath() + "/my-blogs?message=updated");
+            String msg = "updated";
+            if ("draft".equalsIgnoreCase(submitAction)) {
+                msg = "draft_saved";
+            } else if ("submit_admin".equalsIgnoreCase(submitAction)) {
+                msg = "submitted";
+            }
+            response.sendRedirect(request.getContextPath() + "/my-blogs?message=" + msg);
         } else {
             request.setAttribute("error", "Đã xảy ra lỗi khi cập nhật bài viết. Vui lòng thử lại!");
             request.setAttribute("blog", existingBlog);
@@ -383,6 +438,12 @@ public class BlogController extends HttpServlet {
 
         Blog blog = new BlogDAO().getBlogById(blogId);
         if (blog != null) {
+            // Bài viết đã duyệt (Active) không thể bị xóa bởi người dùng thông thường
+            if ("Active".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
+                response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+                return;
+            }
+
             // Chỉ tác giả hoặc admin mới có quyền xóa
             if (blog.getAuthor() == account.getId() || account.getRoleId() == 1) {
                 boolean success = new BlogDAO().deleteBlog(blogId, blog.getAuthor());

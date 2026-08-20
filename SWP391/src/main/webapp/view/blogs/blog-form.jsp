@@ -86,27 +86,45 @@
                 </div>
 
                 <!-- Danh mục & Trạng thái -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="categoryId">Danh mục bài viết</label>
-                        <select id="categoryId" name="categoryId" class="form-select">
-                            <option value="">-- Chọn danh mục --</option>
-                            <c:if test="${not empty categories}">
-                                <c:forEach var="entry" items="${categories}">
-                                    <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
-                                </c:forEach>
-                            </c:if>
-                        </select>
-                    </div>
+                <c:choose>
+                    <c:when test="${sessionScope.account.roleId == 1}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="categoryId">Danh mục bài viết</label>
+                                <select id="categoryId" name="categoryId" class="form-select">
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <c:if test="${not empty categories}">
+                                        <c:forEach var="entry" items="${categories}">
+                                            <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
+                                        </c:forEach>
+                                    </c:if>
+                                </select>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="status">Trạng thái xuất bản</label>
-                        <select id="status" name="status" class="form-select">
-                            <option value="Active" ${formStatus == 'Active' ? 'selected' : ''}>Active (Công khai)</option>
-                            <option value="Inactive" ${formStatus == 'Inactive' ? 'selected' : ''}>Inactive (Bản nháp / Ẩn)</option>
-                        </select>
-                    </div>
-                </div>
+                            <div class="form-group">
+                                <label for="status">Trạng thái bài viết</label>
+                                <select id="status" name="status" class="form-select">
+                                    <option value="Active" ${formStatus == 'Active' ? 'selected' : ''}>Đã duyệt</option>
+                                    <option value="Inactive" ${formStatus == 'Inactive' ? 'selected' : ''}>Chưa phê duyệt</option>
+                                </select>
+                            </div>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="form-group">
+                            <label for="categoryId">Danh mục bài viết</label>
+                            <select id="categoryId" name="categoryId" class="form-select">
+                                <option value="">-- Chọn danh mục --</option>
+                                <c:if test="${not empty categories}">
+                                    <c:forEach var="entry" items="${categories}">
+                                        <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
+                                    </c:forEach>
+                                </c:if>
+                            </select>
+                            <input type="hidden" name="status" value="Inactive">
+                        </div>
+                    </c:otherwise>
+                </c:choose>
 
                 <!-- Link ảnh Thumbnail -->
                 <div class="form-group">
@@ -123,11 +141,12 @@
                     </div>
                 </div>
 
-                <!-- Tóm tắt ngắn -->
+                <!-- Tóm tắt bài viết -->
                 <div class="form-group">
                     <label for="briefInfo">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
                     <textarea id="briefInfo" name="briefInfo" class="form-control" rows="3" 
                               placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu..." required><c:out value="${formBriefInfo}" /></textarea>
+                    <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách.</div>
                 </div>
 
                 <!-- Nội dung chi tiết chính của bài viết -->
@@ -145,7 +164,7 @@
                 <!-- Nút dấu [+] để viết thêm ảnh và nội dung mới -->
                 <div style="margin: 20px 0 28px;">
                     <button type="button" class="btn-add-section-big" onclick="addBlogSection()">
-                        <i class="fa-solid fa-plus"></i> Thêm ảnh & đoạn nội dung (Add more image & content)
+                        <i class="fa-solid fa-plus"></i> Thêm ảnh &amp; đoạn nội dung (Add more image &amp; content)
                     </button>
                 </div>
 
@@ -155,16 +174,20 @@
                 <!-- Nút Submit / Cancel -->
                 <div class="form-actions">
                     <a href="${pageContext.request.contextPath}/my-blogs" class="btn-cancel">Hủy bỏ</a>
-                    <button type="submit" class="btn-submit" id="btnSubmitForm" onclick="return compileAndValidateForm()">
-                        <c:choose>
-                            <c:when test="${isEdit}">
-                                <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
-                            </c:when>
-                            <c:otherwise>
-                                <i class="fa-solid fa-plus"></i> Tạo bài viết mới
-                            </c:otherwise>
-                        </c:choose>
-                    </button>
+                    
+                    <c:choose>
+                        <c:when test="${sessionScope.account.roleId == 1}">
+                            <button type="submit" name="submitAction" value="save" class="btn-submit" onclick="return compileAndValidateForm()">
+                                <i class="fa-solid fa-check"></i> Lưu bài viết
+                            </button>
+                        </c:when>
+                        <c:otherwise>
+                            <!-- Nút Gửi chờ Admin xác nhận -->
+                            <button type="submit" name="submitAction" value="submit_admin" class="btn-submit" onclick="return compileAndValidateForm()">
+                                <i class="fa-solid fa-paper-plane"></i> Gửi chờ Admin xác nhận
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </form>
 
