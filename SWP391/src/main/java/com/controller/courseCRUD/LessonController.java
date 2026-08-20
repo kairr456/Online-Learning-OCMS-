@@ -58,6 +58,9 @@ public class LessonController extends HttpServlet {
                             les.setTextContent(lessonDAO.getLessonText(les.getId()));
                             les.setVideoUrl(lessonDAO.getLessonYoutube(les.getId()));
                             les.setFileUrl(lessonDAO.getLessonFileUrl(les.getId()));
+                            if ("quiz".equals(les.getType())) {
+                                les.setQuizConfig(lessonDAO.getLessonQuizConfig(les.getId()));
+                            }
                         }
                         lessonsMap.put(sec.getId(), lessons);
                     }
@@ -355,6 +358,7 @@ public class LessonController extends HttpServlet {
         }
     }
 }
+
 
 
 

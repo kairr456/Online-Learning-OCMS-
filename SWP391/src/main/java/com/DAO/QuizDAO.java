@@ -261,6 +261,10 @@ public class QuizDAO extends DBContext {
                     map.put("id", rs.getInt("id"));
                     map.put("passing_score", rs.getInt("passing_score"));
                     map.put("max_retakes", rs.getInt("max_retakes"));
+                    map.put("number_of_questions", rs.getInt("number_of_questions"));
+                    map.put("time_limit_minutes", rs.getInt("time_limit_minutes"));
+                    map.put("question_group_id", rs.getInt("question_group_id"));
+                    map.put("lesson_id", rs.getInt("lesson_id"));
                     return map;
                 }
             }
@@ -378,6 +382,9 @@ public class QuizDAO extends DBContext {
                     map.put("lesson_id", rs.getInt("lesson_id"));
                     map.put("passing_score", rs.getInt("passing_score"));
                     map.put("max_retakes", rs.getInt("max_retakes"));
+                    map.put("number_of_questions", rs.getInt("number_of_questions"));
+                    map.put("time_limit_minutes", rs.getInt("time_limit_minutes"));
+                    map.put("question_group_id", rs.getInt("question_group_id"));
                     return map;
                 }
             }
