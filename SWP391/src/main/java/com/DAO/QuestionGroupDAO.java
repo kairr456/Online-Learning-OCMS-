@@ -48,14 +48,30 @@ public class QuestionGroupDAO extends DBContext {
         return 0;
     }
 
-    public void deleteGroup(int id) {
+    public boolean deleteGroup(int id) {
+        String checkSql = "SELECT COUNT(*) FROM lesson_quiz WHERE question_group_id = ?";
+        try (PreparedStatement psCheck = connection.prepareStatement(checkSql)) {
+            psCheck.setInt(1, id);
+            try (ResultSet rs = psCheck.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return false; // In use by a lesson
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         String sql = "DELETE FROM question_group WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }
+
+
 

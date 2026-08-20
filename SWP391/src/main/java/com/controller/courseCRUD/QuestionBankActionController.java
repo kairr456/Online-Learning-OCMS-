@@ -46,8 +46,12 @@ public class QuestionBankActionController extends HttpServlet {
             } 
             else if ("delete_group".equals(action)) {
                 int groupId = Integer.parseInt(request.getParameter("groupId"));
-                groupDAO.deleteGroup(groupId);
-                response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId);
+                boolean deleted = groupDAO.deleteGroup(groupId);
+                if (deleted) {
+                    response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&msg=deleted");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&error=in_use");
+                }
             }
             else if ("add_question".equals(action)) {
                 int groupId = Integer.parseInt(request.getParameter("groupId"));
@@ -82,4 +86,5 @@ public class QuestionBankActionController extends HttpServlet {
         }
     }
 }
+
 
