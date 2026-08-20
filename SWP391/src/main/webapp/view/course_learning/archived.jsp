@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
 
-<body>
+<body data-ctx="${pageContext.request.contextPath}">
 
     <!-- Common Header -->
     <jsp:include page="/view/common/header.jsp" />
@@ -35,10 +35,13 @@
                     <div class="course-grid">
                         <c:forEach var="item" items="${archivedCourses}">
                             <div class="course-card">
-                                <img src="${item.thumbnail}" alt="${item.name}">
+                                <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
                                 <div class="course-card-body">
                                     <h3 class="course-card-title">${item.name}</h3>
-                                    <button class="btn btn-outline-primary btn-sm">Unarchive</button>
+                                    <div class="btn-action-group">
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=archived" class="btn-purple">View Course</a>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="unarchiveCourse(${item.id}, '${item.name}')">Unarchive</button>
+                                    </div>
                                 </div>
                             </div>
                         </c:forEach>
@@ -54,6 +57,25 @@
             </c:choose>
         </div>
     </main>
+
+    <!-- ==================== MODAL: CONFIRM UNARCHIVE ==================== -->
+    <div class="custom-modal-backdrop" id="unarchiveConfirmModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="fw-bold mb-0">Unarchive Course</h5>
+                <button type="button" class="btn-close" onclick="closeUnarchiveConfirmModal()"></button>
+            </div>
+            <div class="custom-modal-body">
+                <p id="unarchiveConfirmMessage" class="mb-0"></p>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUnarchiveConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="confirmUnarchiveAction()">Unarchive</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/archived.js"></script>
 
 </body>
 

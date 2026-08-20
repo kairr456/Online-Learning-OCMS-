@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
 
-<body>
+<body data-ctx="${pageContext.request.contextPath}">
 
     <!-- Common Header -->
     <jsp:include page="/view/common/header.jsp" />
@@ -33,13 +33,13 @@
             <div class="learning-controls">
                 <div class="learning-filters">
                     <select class="filter-select" id="sortBy" onchange="filterCourses()">
-                        <option value="recent">Sort by: Recently Accessed</option>
-                        <option value="title-asc">Title: A to Z</option>
-                        <option value="title-desc">Title: Z to A</option>
+                        <option value="title-asc" selected>Sort by: Title A to Z</option>
+                        <option value="title-desc">Sort by: Title Z to A</option>
                     </select>
 
                     <select class="filter-select" id="filterProgress" onchange="filterCourses()">
                         <option value="all">Progress: All</option>
+                        <option value="not-started">Not Started</option>
                         <option value="in-progress">In Progress</option>
                         <option value="completed">Completed</option>
                     </select>
@@ -50,7 +50,8 @@
                 </div>
 
                 <div class="learning-search">
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeyup="searchCourses()">
+                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeydown="if(event.key==='Enter'){filterCourses();}">
+                    <button type="button" onclick="filterCourses()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
                 </div>
             </div>
 
@@ -59,7 +60,7 @@
                 <c:when test="${not empty myCourses}">
                     <div class="course-grid" id="courseGrid">
                         <c:forEach var="item" items="${myCourses}">
-                            <div class="course-card" data-title="${item.name}">
+                            <div class="course-card" data-title="${item.name}" data-progress="${item.progress}" data-category="${item.categoryName}">
                                 <img src="${not empty item.thumbnail ? item.thumbnail : pageContext.request.contextPath.concat('/assets/img/courses/default-course.jpg')}" alt="${item.name}">
                                 <div class="course-card-body">
                                     <h3 class="course-card-title">${item.name}</h3>
@@ -68,12 +69,17 @@
                                         <span class="course-progress-text">${item.progress}%</span>
                                     </div>
                                     <div class="btn-action-group">
-                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}" class="btn-purple">Start Course</a>
+                                        <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=all-courses" class="btn-purple">Start Course</a>
+                                        <button type="button" class="btn btn-outline-secondary" title="Archive" onclick="archiveCourse(${item.id}, '${item.name}')"><i class="fa-solid fa-box-archive"></i></button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="openAddToListModal('${item.id}', '${item.name}')">+</button>
                                     </div>
                                 </div>
                             </div>
                         </c:forEach>
+                    </div>
+                    <div class="empty-state-box" id="noResults" style="display:none;">
+                        <div class="empty-state-title">No courses found</div>
+                        <div class="empty-state-desc">No courses match your search or filter. Try adjusting your criteria.</div>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -129,6 +135,23 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL: CONFIRM ARCHIVE ==================== -->
+    <div class="custom-modal-backdrop" id="archiveConfirmModal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="fw-bold mb-0">Archive Course</h5>
+                <button type="button" class="btn-close" onclick="closeArchiveConfirmModal()"></button>
+            </div>
+            <div class="custom-modal-body">
+                <p id="archiveConfirmMessage" class="mb-0"></p>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeArchiveConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="confirmArchiveAction()">Archive</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script chứa dữ liệu JSON từ JSTL -->
     <script id="myListsJsonData" type="application/json">
     [
@@ -148,154 +171,7 @@
     </script>
 
     <!-- Script xử lý logic JavaScript -->
-    <script>
-        const API_URL = '${pageContext.request.contextPath}/user-learning-list';
-        let activeCourse = null;
-
-        let myListsData = [];
-        try {
-            const rawJsonData = document.getElementById('myListsJsonData').textContent;
-            myListsData = JSON.parse(rawJsonData);
-        } catch (e) {
-            myListsData = [];
-        }
-
-        function sendAjaxRequest(params) {
-            return fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                },
-                body: new URLSearchParams(params)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network error');
-                return response.json();
-            });
-        }
-
-        function reloadPreservingTab() {
-            window.location.reload();
-        }
-
-        function openAddToListModal(courseId, courseTitle) {
-            activeCourse = courseId ? { id: courseId, name: courseTitle } : null;
-            document.getElementById('modalEditListId').value = '';
-            const modal = document.getElementById('addToListModal');
-
-            if (modal) {
-                if (myListsData.length === 0) {
-                    document.getElementById('modalTitleHeading').innerText = "Create New List";
-                    document.getElementById('btnSaveListSubmit').innerText = "Create List";
-                    document.getElementById('createListForm').onsubmit = submitCreateList;
-                    showCreateListFormView();
-                } else {
-                    showSelectListGroupView();
-                }
-                modal.classList.add('show');
-            }
-        }
-
-        function showSelectListGroupView() {
-            document.getElementById('modalTitleHeading').innerText = "Add to List";
-            document.getElementById('viewSelectList').style.display = 'block';
-            document.getElementById('createListForm').style.display = 'none';
-
-            const container = document.getElementById('existingListsContainer');
-            let html = '';
-
-            myListsData.forEach(function (list) {
-                const isAlreadyInList = activeCourse && list.courses.some(function (c) { return String(c.id) === String(activeCourse.id); });
-                const actionBtn = isAlreadyInList
-                    ? '<span class="badge bg-success">Added</span>'
-                    : '<button type="button" class="btn btn-sm btn-primary" onclick="addCourseToExistingList(' + list.id + ')">Add</button>';
-
-                html += '<div class="d-flex justify-content-between align-items-center p-2 border-bottom">' +
-                    '<div><strong>' + list.title + '</strong></div>' +
-                    actionBtn +
-                    '</div>';
-            });
-
-            container.innerHTML = html;
-        }
-
-        function showCreateListFormView() {
-            document.getElementById('viewSelectList').style.display = 'none';
-            document.getElementById('createListForm').style.display = 'block';
-            document.getElementById('createListForm').reset();
-
-            if (activeCourse) {
-                document.getElementById('modalCourseId').value = activeCourse.id;
-                document.getElementById('modalCourseTitle').value = activeCourse.name;
-                document.getElementById('createListForm').onsubmit = submitCreateList;
-            } else {
-                document.getElementById('modalCourseId').value = '';
-                document.getElementById('modalCourseTitle').value = '';
-            }
-        }
-
-        function closeAddToListModal() {
-            const modal = document.getElementById('addToListModal');
-            if (modal) modal.classList.remove('show');
-        }
-
-        function submitCreateList(event) {
-            event.preventDefault();
-            const title = document.getElementById('listTitleInput').value.trim();
-            const description = document.getElementById('listDescInput').value.trim();
-            const courseId = document.getElementById('modalCourseId').value;
-
-            if (!title) {
-                alert('Please enter a list name.');
-                return;
-            }
-
-            const params = { action: 'create', title: title, description: description };
-            if (courseId) {
-                params.courseId = courseId;
-            }
-
-            sendAjaxRequest(params)
-            .then(data => {
-                if (data.status === 'success') {
-                    closeAddToListModal();
-                    reloadPreservingTab();
-                } else {
-                    alert('Create failed: ' + (data.message || 'Error occurred'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Connection error occurred!');
-            });
-        }
-
-        function addCourseToExistingList(listId) {
-            if (!activeCourse) return;
-            sendAjaxRequest({ action: 'addCourse', listId: listId, courseId: activeCourse.id })
-                .then(data => {
-                    if (data.status === 'success') {
-                        closeAddToListModal();
-                        reloadPreservingTab();
-                    } else {
-                        alert('Add course failed: ' + (data.message || 'Error occurred'));
-                    }
-                })
-                .catch(() => alert('Connection error occurred!'));
-        }
-
-        function searchCourses() {
-            const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
-            document.querySelectorAll('#courseGrid .course-card').forEach(function (card) {
-                const title = card.getAttribute('data-title').toLowerCase();
-                card.style.display = title.includes(keyword) ? 'block' : 'none';
-            });
-        }
-
-        function filterCourses() {
-            searchCourses();
-        }
-    </script>
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js"></script>
 </body>
 
 </html>

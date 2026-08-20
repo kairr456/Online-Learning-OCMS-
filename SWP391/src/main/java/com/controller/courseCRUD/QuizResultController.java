@@ -4,6 +4,7 @@ import com.DAO.LessonDAO;
 import com.DAO.QuizDAO;
 import com.entity.Account;
 import com.entity.Lesson;
+import com.validator.MyLearningValidator;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +23,11 @@ public class QuizResultController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        response.setContentType("text/html;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0); // Proxies.
+        
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute("account");
         
@@ -37,6 +43,11 @@ public class QuizResultController extends HttpServlet {
         }
 
         try {
+            String lessonIdError = MyLearningValidator.validateLessonId(lessonIdParam);
+            if (lessonIdError != null) {
+                response.sendRedirect(request.getContextPath() + "/courses");
+                return;
+            }
             int lessonId = Integer.parseInt(lessonIdParam);
             LessonDAO lessonDAO = new LessonDAO();
             Lesson lesson = lessonDAO.getLessonById(lessonId);
@@ -77,6 +88,11 @@ public class QuizResultController extends HttpServlet {
 
             // Determine which attempt to show
             String attemptIdParam = request.getParameter("attemptId");
+            String attemptIdError = MyLearningValidator.validateOptionalId("attemptId", attemptIdParam);
+            if (attemptIdError != null) {
+                response.sendRedirect(request.getContextPath() + "/courses");
+                return;
+            }
             int selectedAttemptId = -1;
             if (attemptIdParam != null && !attemptIdParam.isEmpty()) {
                 selectedAttemptId = Integer.parseInt(attemptIdParam);

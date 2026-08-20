@@ -7,6 +7,7 @@ package com.controller.home;
 import com.DAO.AccountDAO;
 import com.DAO.CategoryDAO;
 import com.DAO.CourseDAO;
+import com.DAO.WishlistDAO;
 import com.entity.Category;
 import com.entity.Course;
 import java.io.IOException;
@@ -78,6 +79,7 @@ public class CourseHomeController extends HttpServlet {
             
             // 4.5. Load Enrolled Courses
             java.util.List<Integer> enrolledCourseIds = new ArrayList<>();
+            java.util.Set<Integer> wishlistCourseIds = new java.util.HashSet<>();
             com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
             if (account != null) {
                 com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
@@ -93,6 +95,9 @@ public class CourseHomeController extends HttpServlet {
                         enrolledCourseIds.add(c.getId());
                     }
                 }
+
+                // Load wishlist course ids (to pre-fill heart icons)
+                wishlistCourseIds = new WishlistDAO().getCourseIdsByAccountId(account.getId());
             }
             
             // 5. Set Attributes
@@ -102,6 +107,7 @@ public class CourseHomeController extends HttpServlet {
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("currentPage", currentPage);
             request.setAttribute("enrolledCourseIds", enrolledCourseIds);
+            request.setAttribute("wishlistCourseIds", wishlistCourseIds);
             
             // Keep selected filter state in UI
             request.setAttribute("selectedCategories", categoryIds);

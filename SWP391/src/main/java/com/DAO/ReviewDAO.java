@@ -20,12 +20,29 @@ public class ReviewDAO extends DBContext {
             statement.setString(4, review.getComment());
 
             int rowsAffected = statement.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                updateCourseAverageRating(review.getCourseId());
+            }
             return rowsAffected > 0;
         } catch (SQLException ex) {
             Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         } finally {
             closeResources();
+        }
+    }
+
+    private void updateCourseAverageRating(int courseId) {
+        String sql = "UPDATE course SET rating = (SELECT ROUND(AVG(rating), 1) FROM review WHERE course_id = ?) WHERE id = ?";
+        try {
+            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, courseId);
+            ps.setInt(2, courseId);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

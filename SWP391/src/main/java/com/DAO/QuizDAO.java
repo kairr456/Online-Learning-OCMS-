@@ -21,12 +21,12 @@ public class QuizDAO extends DBContext {
 
             String sql = "SELECT " +
                      "  COUNT(DISTINCT lq.id) AS total_quizzes, " +
-                     "  COUNT(DISTINCT qq.id) AS total_questions, " +
+                     "  COUNT(DISTINCT qb.id) AS total_questions, " +
                      "  COUNT(DISTINCT qa.id) AS total_attempts, " +
                      "  COUNT(DISTINCT CASE WHEN qa.passed = 1 THEN qa.id ELSE NULL END) AS passed_attempts " +
                      "FROM lesson l " +
                      "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                     "LEFT JOIN quiz_question qq ON lq.id = qq.quiz_id " +
+                     "LEFT JOIN question_bank qb ON l.id = qb.lesson_id " +
                      "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
                      "WHERE l.created_by = ? AND l.type = 'quiz'";
 
@@ -58,13 +58,13 @@ public class QuizDAO extends DBContext {
             "SELECT lq.id AS quiz_id, l.title AS lesson_title, c.name AS course_name, " +
             "l.duration_minutes, l.status, " +
             "lq.passing_score, " +
-            "COUNT(DISTINCT qq.id) AS question_count, " +
+            "COUNT(DISTINCT qb.id) AS question_count, " +
             "COUNT(DISTINCT qa.id) AS attempts_count " +
             "FROM lesson l " +
             "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
             "LEFT JOIN section s ON l.section_id = s.id " +
             "LEFT JOIN course c ON s.course_id = c.id " +
-            "LEFT JOIN quiz_question qq ON lq.id = qq.quiz_id " +
+            "LEFT JOIN question_bank qb ON l.id = qb.lesson_id " +
             "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
             "WHERE l.created_by = ? AND l.type = 'quiz' "
         );
@@ -199,12 +199,38 @@ public class QuizDAO extends DBContext {
 
     // 6. Insert Quiz Question
     public int insertQuizQuestion(int quizId, String text, int points, int order) throws SQLException {
-        String sql = "INSERT INTO quiz_question (quiz_id, question_text, points, order_number, status) VALUES (?, ?, ?, ?, 'active')";
+        // Find course_id and lesson_id
+        int courseId = 0;
+        int lessonId = 0;
+        String getInfoSql = "SELECT lq.lesson_id, c.id as course_id FROM lesson_quiz lq " +
+                            "JOIN lesson l ON lq.lesson_id = l.id " +
+                            "LEFT JOIN section s ON l.section_id = s.id " +
+                            "LEFT JOIN course c ON s.course_id = c.id " +
+                            "WHERE lq.id = ?";
+        try (PreparedStatement psInfo = connection.prepareStatement(getInfoSql)) {
+            psInfo.setInt(1, quizId);
+            try (ResultSet rsInfo = psInfo.executeQuery()) {
+                if (rsInfo.next()) {
+                    courseId = rsInfo.getInt("course_id");
+                    lessonId = rsInfo.getInt("lesson_id");
+                }
+            }
+        }
+        
+        String sql = "INSERT INTO question_bank (course_id, lesson_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, quizId);
-            ps.setString(2, text);
-            ps.setInt(3, points);
-            ps.setInt(4, order);
+            if (courseId > 0) {
+                ps.setInt(1, courseId);
+            } else {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            }
+            if (lessonId > 0) {
+                ps.setInt(2, lessonId);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
+            ps.setString(3, text);
+            ps.setInt(4, points);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -215,12 +241,11 @@ public class QuizDAO extends DBContext {
 
     // 7. Insert Quiz Answer
     public void insertQuizAnswer(int questionId, String text, boolean isCorrect, int order) throws SQLException {
-        String sql = "INSERT INTO quiz_answer (question_id, answer_text, is_correct, order_number) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO question_bank_answer (question_bank_id, answer_text, is_correct) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, questionId);
             ps.setString(2, text);
-            ps.setInt(3, isCorrect ? 1 : 0);
-            ps.setInt(4, order);
+            ps.setBoolean(3, isCorrect);
             ps.executeUpdate();
         }
     }
@@ -246,15 +271,19 @@ public class QuizDAO extends DBContext {
 
     public List<Map<String, Object>> getQuestionsByQuizId(int quizId) {
         List<Map<String, Object>> questions = new ArrayList<>();
-        String sql = "SELECT * FROM quiz_question WHERE quiz_id = ? AND status = 'active' ORDER BY id ASC";
+        String sql = "SELECT qb.* FROM question_bank qb " +
+                     "JOIN lesson_quiz lq ON qb.lesson_id = lq.lesson_id " +
+                     "WHERE lq.id = ? AND qb.status = 'active' ORDER BY qb.id ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, quizId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
+                    map.put("quiz_id", quizId); // Backward compatibility
                     map.put("question_text", rs.getString("question_text"));
                     map.put("points", rs.getInt("points"));
+                    map.put("order_number", 1); // Not used
                     questions.add(map);
                 }
             }
@@ -266,15 +295,17 @@ public class QuizDAO extends DBContext {
 
     public List<Map<String, Object>> getAnswersByQuestionId(int questionId) {
         List<Map<String, Object>> answers = new ArrayList<>();
-        String sql = "SELECT * FROM quiz_answer WHERE question_id = ? ORDER BY id ASC";
+        String sql = "SELECT * FROM question_bank_answer WHERE question_bank_id = ? ORDER BY id ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, questionId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
+                    map.put("question_id", rs.getInt("question_bank_id"));
                     map.put("answer_text", rs.getString("answer_text"));
                     map.put("is_correct", rs.getBoolean("is_correct"));
+                    map.put("order_number", 1); // Not used
                     answers.add(map);
                 }
             }
@@ -285,15 +316,19 @@ public class QuizDAO extends DBContext {
     }
 
     public int insertQuizAttempt(int accountId, int quizId, float score, boolean passed) {
-        String sql = "INSERT INTO quiz_attempt (account_id, quiz_id, score, passed, start_time, end_time) VALUES (?, ?, ?, ?, NOW(), NOW())";
+        int attemptNumber = countUserAttemptsForQuiz(accountId, quizId) + 1;
+        String sql = "INSERT INTO quiz_attempt (account_id, quiz_id, attempt_number, score, passed, start_time, end_time) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, accountId);
             ps.setInt(2, quizId);
-            ps.setFloat(3, score);
-            ps.setBoolean(4, passed);
+            ps.setInt(3, attemptNumber);
+            ps.setFloat(4, score);
+            ps.setBoolean(5, passed);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -302,7 +337,7 @@ public class QuizDAO extends DBContext {
     }
 
     public void insertQuizAttemptAnswer(int attemptId, int questionId, int selectedAnswerId) {
-        String sql = "INSERT INTO quiz_attempt_answer (attempt_id, question_id, selected_answer_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO quiz_attempt_answer (attempt_id, question_bank_id, selected_answer_id) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, attemptId);
             ps.setInt(2, questionId);
@@ -312,6 +347,9 @@ public class QuizDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
+    // --- OTHER METHODS (unchanged) ---
+    // (omitted from replace for brevity, we can just replace the specific methods)
 
     public int countUserAttemptsForQuiz(int accountId, int quizId) {
         String sql = "SELECT COUNT(*) FROM quiz_attempt WHERE account_id = ? AND quiz_id = ?";
@@ -371,9 +409,9 @@ public class QuizDAO extends DBContext {
 
     public List<Map<String, Object>> getAttemptAnswers(int attemptId) {
         List<Map<String, Object>> ans = new ArrayList<>();
-        String sql = "SELECT qaa.question_id, qaa.selected_answer_id, qa.is_correct " +
+        String sql = "SELECT qaa.question_bank_id AS question_id, qaa.selected_answer_id, qa.is_correct " +
                      "FROM quiz_attempt_answer qaa " +
-                     "JOIN quiz_answer qa ON qaa.selected_answer_id = qa.id " +
+                     "JOIN question_bank_answer qa ON qaa.selected_answer_id = qa.id " +
                      "WHERE qaa.attempt_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, attemptId);
@@ -428,8 +466,8 @@ public class QuizDAO extends DBContext {
             String[] sqls = {
                 "DELETE FROM quiz_attempt_answer WHERE attempt_id IN (SELECT id FROM quiz_attempt WHERE quiz_id = ?)",
                 "DELETE FROM quiz_attempt WHERE quiz_id = ?",
-                "DELETE FROM quiz_answer WHERE question_id IN (SELECT id FROM quiz_question WHERE quiz_id = ?)",
-                "DELETE FROM quiz_question WHERE quiz_id = ?",
+                "DELETE FROM question_bank_answer WHERE question_bank_id IN (SELECT id FROM question_bank WHERE lesson_id = ?)",
+                "DELETE FROM question_bank WHERE lesson_id = ?",
                 "DELETE FROM lesson_quiz WHERE id = ?",
                 "DELETE FROM lesson WHERE id = ?"
             };
@@ -439,7 +477,8 @@ public class QuizDAO extends DBContext {
                 
                 for (int i = 0; i < 5; i++) {
                     try (PreparedStatement ps = connection.prepareStatement(sqls[i])) {
-                        ps.setInt(1, quizId);
+                        if (i == 2 || i == 3) ps.setInt(1, lessonId);
+                        else ps.setInt(1, quizId);
                         ps.executeUpdate();
                     }
                 }
@@ -497,17 +536,34 @@ public class QuizDAO extends DBContext {
     }
 
     public void clearQuizQuestions(int quizId) {
+        // Find lesson_id from quiz_id
+        int lessonId = -1;
+        String findLessonSql = "SELECT lesson_id FROM lesson_quiz WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(findLessonSql)) {
+            ps.setInt(1, quizId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    lessonId = rs.getInt("lesson_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        if (lessonId == -1) return;
+
         // Cascade delete manually
         String[] sqls = {
             "DELETE FROM quiz_attempt_answer WHERE attempt_id IN (SELECT id FROM quiz_attempt WHERE quiz_id = ?)",
             "DELETE FROM quiz_attempt WHERE quiz_id = ?",
-            "DELETE FROM quiz_answer WHERE question_id IN (SELECT id FROM quiz_question WHERE quiz_id = ?)",
-            "DELETE FROM quiz_question WHERE quiz_id = ?"
+            "DELETE FROM question_bank_answer WHERE question_bank_id IN (SELECT id FROM question_bank WHERE lesson_id = ?)",
+            "DELETE FROM question_bank WHERE lesson_id = ?"
         };
         try {
-            for (String sql : sqls) {
-                try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                    ps.setInt(1, quizId);
+            for (int i = 0; i < sqls.length; i++) {
+                try (PreparedStatement ps = connection.prepareStatement(sqls[i])) {
+                    if (i < 2) ps.setInt(1, quizId);
+                    else ps.setInt(1, lessonId);
                     ps.executeUpdate();
                 }
             }

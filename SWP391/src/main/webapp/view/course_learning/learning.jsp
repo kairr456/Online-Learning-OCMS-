@@ -10,12 +10,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
-<body>
+<body data-ctx="${pageContext.request.contextPath}">
 
     <!-- Top bar -->
     <div class="learn-topbar">
         <div class="tb-nav">
-            <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
+            <c:choose>
+                    <c:when test="${param.from == 'archived'}">
+                        <a href="${pageContext.request.contextPath}/archived"><i class="fa-solid fa-arrow-left"></i> Archived</a>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
+                    </c:otherwise>
+                </c:choose>
         </div>
         <div class="tb-title">${course.name}</div>
         <div class="tb-nav">
@@ -190,50 +197,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const CTX = '${pageContext.request.contextPath}';
-
-        function markComplete(lessonId) {
-            const body = new URLSearchParams();
-            body.append('action', 'markComplete');
-            body.append('lessonId', lessonId);
-            fetch(CTX + '/learning', { method: 'POST', body: body })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.status === 'success') {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + d.message);
-                    }
-                })
-                .catch(() => alert('Connection error!'));
-        }
-
-        const quizForm = document.getElementById('quizForm');
-        if (quizForm) {
-            quizForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const body = new URLSearchParams(new FormData(quizForm));
-                body.append('action', 'submitQuiz');
-                fetch(CTX + '/learning', { method: 'POST', body: body })
-                    .then(r => r.json())
-                    .then(d => {
-                        const res = document.getElementById('quizResult');
-                        if (d.status === 'success') {
-                            res.innerHTML = '<div class="quiz-result ' + (d.passed ? 'pass' : 'fail') + '">'
-                                + 'Your score: <strong>' + d.score + ' / ' + d.total + '</strong>'
-                                + (d.passed ? ' — Passed!' : ' — Not passed. Please try again.')
-                                + '</div>';
-                            if (d.passed) {
-                                setTimeout(() => location.reload(), 1200);
-                            }
-                        } else {
-                            res.innerHTML = '<div class="quiz-result fail">Error: ' + d.message + '</div>';
-                        }
-                    })
-                    .catch(() => alert('Connection error!'));
-            });
-        }
-    </script>
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning.js"></script>
 </body>
 </html>

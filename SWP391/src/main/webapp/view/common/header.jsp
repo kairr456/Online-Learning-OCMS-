@@ -16,6 +16,43 @@
     // of being hardcoded -- new categories show up here automatically.
     List<Category> headerCategories = new CategoryDAO().findAll();
 %>
+<style>
+.site-header__nav-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+.site-header__nav-dropdown .nav-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    min-width: 180px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    z-index: 1000;
+    padding: 10px 0;
+    border: 1px solid #eaeaea;
+}
+.site-header__nav-dropdown.show .nav-dropdown-menu {
+    display: block;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a {
+    display: block;
+    padding: 10px 20px;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 500;
+}
+.site-header__nav-dropdown .nav-dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #5d3fd3; /* primary color */
+}
+</style>
 <header class="site-header">
     <div class="site-header__inner">
 
@@ -64,22 +101,24 @@
             </button>
         </form>
 
-        <div class="site-header__account">
+        <div class="site-header__account d-flex align-items-center">
             <% if (headerAccount != null) { %>
 
                 <% if (headerAccount.getRoleId() == 2) { %>
-                <div class="site-header__nav-dropdown" id="courseDashboardDropdown">
-                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); document.getElementById('courseDashboardDropdown').classList.toggle('show');">
+                <div class="site-header__nav-dropdown" style="margin-right: 15px;" id="courseDashboardDropdown">
+                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); document.getElementById('courseDashboardDropdown').classList.toggle('show');" style="color: #fff; text-decoration: none; font-weight: 500; display: flex; align-items: center;">
                         Course Dashboard 
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
-                    <div class="nav-dropdown-menu" id="course-dashboard">
-                        <a href="<%= ctx %>/course-dashboard">Course Dashboard</a>
+                    <div class="nav-dropdown-menu">
+                        <a href="<%= ctx %>/course-dashboard">Dashboard Home</a>
+                        <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
                         <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>
                 <script>
+                    // Close dropdown when clicking outside
                     document.addEventListener('click', function(e) {
                         var dropdown = document.getElementById('courseDashboardDropdown');
                         if (dropdown && !dropdown.contains(e.target)) {
@@ -90,6 +129,12 @@
                 <% } %>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/view/common/wishlist.jsp" title="Wishlist" aria-label="Wishlist">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+
+                <a class="site-header__icon-btn" href="<%= ctx %>/wishlist" title="Wishlist" aria-label="Wishlist">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                     </svg>
@@ -116,13 +161,6 @@
                     </button>
 
                     <div class="site-header__dropdown" id="headerDropdown">
-                        <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #5d3fd3; border-bottom: 1px solid #eee;">
-                            <% if (headerAccount.getRoleId() == 2) { %>
-                                Role: Teacher
-                            <% } else if (headerAccount.getRoleId() == 3) { %>
-                                Role: Student
-                            <% }%>
-                        </div>
                         <% if (headerAccount.getRoleId() == 3) { %>
                             <a href="<%= ctx %>/my-purchases">My Purchases</a>
                         <% } else if (headerAccount.getRoleId() == 2) { %>
@@ -147,35 +185,29 @@
 <script>
 (function () {
     // Self-contained so this fragment works even on pages that don't load app.js.
-    function bindDropdown(triggerId, wrapId, dropdownId) {
-        var toggle = document.getElementById(triggerId);
-        var dropdown = document.getElementById(dropdownId);
-        var wrap = document.getElementById(wrapId);
-        if (!toggle || !dropdown || !wrap) return;
+    var toggle = document.getElementById('headerProfileToggle');
+    var dropdown = document.getElementById('headerDropdown');
+    var wrap = document.getElementById('headerProfile');
+    if (!toggle || !dropdown || !wrap) return;
 
-        function close() {
-            dropdown.classList.remove('is-open');
-            wrap.classList.remove('is-open');
-            toggle.setAttribute('aria-expanded', 'false');
-        }
-
-        toggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            var willOpen = !dropdown.classList.contains('is-open');
-            dropdown.classList.toggle('is-open', willOpen);
-            wrap.classList.toggle('is-open', willOpen);
-            toggle.setAttribute('aria-expanded', String(willOpen));
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!wrap.contains(e.target)) close();
-        });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') close();
-        });
+    function close() {
+        dropdown.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
     }
 
-    bindDropdown('headerProfileToggle', 'headerProfile', 'headerDropdown');
+    toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var willOpen = !dropdown.classList.contains('is-open');
+        dropdown.classList.toggle('is-open', willOpen);
+        toggle.setAttribute('aria-expanded', String(willOpen));
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!wrap.contains(e.target)) close();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') close();
+    });
 })();
 </script>

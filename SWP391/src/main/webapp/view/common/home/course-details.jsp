@@ -355,10 +355,64 @@
             color: var(--accent-yellow);
             font-size: 12px;
         }
-        .list-wrap {
-            list-style: none;
-            padding: 0;
-        }
+          .list-wrap {
+              list-style: none;
+              padding: 0;
+          }
+          
+          /* Review form CSS */
+          .review-form-title {
+              margin-top: 30px;
+              margin-bottom: 20px;
+          }
+          .rating-selection {
+              display: flex;
+              gap: 5px;
+              margin-bottom: 15px;
+              margin-top: 5px;
+          }
+          .rating-selection label {
+              cursor: pointer;
+          }
+          .rating-input {
+              display: none;
+          }
+          .rating-star {
+              color: #ccc;
+              font-size: 20px;
+          }
+          .rating-star.fas {
+              color: var(--accent-yellow);
+          }
+          .review-textarea {
+              width: 100%;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 20px;
+              font-family: inherit;
+              background-color: #fff;
+              color: var(--text-main);
+              margin-top: 5px;
+          }
+          .review-textarea::placeholder {
+              color: #aaa;
+          }
+          .review-submit-btn {
+              background-color: var(--primary-color);
+              color: white;
+              border: none;
+              padding: 10px 25px;
+              border-radius: 20px;
+              font-weight: 600;
+          }
+          .review-submit-btn:hover {
+              background-color: #4832a8;
+              color: white;
+          }
+          .review-form-label {
+              font-weight: 600;
+          }
     </style>
 </head>
 
@@ -613,6 +667,10 @@
                             
                             <c:if test="${not isEnrolled}">
                                 <div class="courses__details-enroll">
+                                    <button type="button" class="wishlist-heart wishlist-heart--lg ${isWishlisted ? 'active' : ''}"
+                                            data-course-id="${course.id}" onclick="toggleWishlist(this)" title="Add to wishlist">
+                                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    </button>
                                     <form action="${pageContext.request.contextPath}/cart" method="post">
                                         <input type="hidden" name="action" value="add">
                                         <input type="hidden" name="courseId" value="${course.id}">
@@ -641,6 +699,40 @@
 
     <!-- Bootstrap JS for tabs/accordion -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleWishlist(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var ctx = '${pageContext.request.contextPath}';
+            fetch(ctx + '/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: new URLSearchParams({ action: 'toggle', courseId: courseId })
+            })
+            .then(function (res) {
+                if (res.status === 401) {
+                    window.location.href = ctx + '/view/authen/login.jsp';
+                    throw new Error('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (data.status === 'success') {
+                    btn.classList.toggle('active');
+                    var icon = btn.querySelector('i');
+                    if (icon) {
+                        if (btn.classList.contains('active')) {
+                            icon.classList.remove('fa-regular');
+                            icon.classList.add('fa-solid');
+                        } else {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                        }
+                    }
+                }
+            })
+            .catch(function (err) { console.error('Wishlist error:', err); });
+        }
+    </script>
 </body>
 
 </html>

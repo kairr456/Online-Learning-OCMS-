@@ -58,8 +58,32 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=<%= System.currentTimeMillis() %>">
+    <style>
+        /* Force light theme colors on search and filter inputs */
+        .search-input-wrap .search-input {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+            caret-color: #0F1E33 !important;
+            color-scheme: light !important;
+            -webkit-text-fill-color: #0F1E33 !important;
+            opacity: 1 !important;
+        }
+        .search-input-wrap .search-input::placeholder {
+            color: #5B6B82 !important;
+            -webkit-text-fill-color: #5B6B82 !important;
+            opacity: 0.85 !important;
+        }
+        .filter-select {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+            color-scheme: light !important;
+        }
+        .filter-select option {
+            background-color: #ffffff !important;
+            color: #0F1E33 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -159,7 +183,7 @@
                 <div class="search-filter-wrap">
                     <div class="search-input-wrap">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="filterKeyword" class="search-input" placeholder="Tìm theo tiêu đề bài viết..." onkeyup="filterTable()">
+                        <input type="text" id="filterKeyword" class="search-input" placeholder="Tìm theo tiêu đề bài viết..." autocomplete="off" onkeyup="filterTable()" style="color: #0F1E33 !important; background-color: #ffffff !important; -webkit-text-fill-color: #0F1E33 !important;">
                     </div>
                     <select id="filterCategory" class="filter-select" onchange="filterTable()">
                         <option value="">Tất cả danh mục</option>
