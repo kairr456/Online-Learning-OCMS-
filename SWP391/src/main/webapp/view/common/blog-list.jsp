@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blogs.css">
     <!-- Bootstrap CSS for card layout -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -23,8 +24,7 @@
             <c:forEach items="${blogList}" var="b">
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0">
-                        <img src="${b.thumbnail}" class="card-img-top" alt="${b.title}" 
-                             style="height: 200px; object-fit: cover;"
+                        <img src="${b.thumbnail}" class="card-img-top blog-list-thumb" alt="${b.title}" 
                              onerror="this.src='https://via.placeholder.com/300x200?text=No+Image';">
                         <div class="card-body">
                             <h5 class="card-title text-dark fw-bold">${b.title}</h5>

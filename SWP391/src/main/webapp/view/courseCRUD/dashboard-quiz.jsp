@@ -10,27 +10,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
-        body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; }
-        .kpi-card { border-radius: 12px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s; }
-        .kpi-card:hover { transform: translateY(-5px); }
-        .kpi-icon { font-size: 2.5rem; opacity: 0.8; }
-        .kpi-title { font-size: 0.9rem; text-transform: uppercase; font-weight: 700; color: #6c757d; }
-        .kpi-value { font-size: 2rem; font-weight: 800; color: var(--primary-dark); }
-        
-        .table-container { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .table thead th { background-color: #f8f9fa; color: var(--primary-dark); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; border-bottom: 2px solid #dee2e6; }
-        .table tbody td { vertical-align: middle; color: #495057; font-size: 0.95rem; }
-        
-        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .status-active { background-color: #d1e7dd; color: #0f5132; }
-        .status-inactive { background-color: #f8d7da; color: #842029; }
-        
-        .btn-action { width: 32px; height: 32px; padding: 0; line-height: 32px; text-align: center; border-radius: 50%; margin: 0 2px; }
-        .btn-create { background-color: var(--accent-yellow); color: var(--primary-dark); font-weight: bold; }
-        .btn-create:hover { background-color: #e0a800; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_crud/dashboard-quiz.css">
 </head>
 <body>
     <jsp:include page="/view/common/header.jsp" />
@@ -49,7 +29,7 @@
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="fw-bold" style="color: var(--primary-dark);"><i class="fas fa-tasks me-2"></i> Quiz Dashboard</h2>
+                <h2 class="fw-bold dark-text"><i class="fas fa-tasks me-2"></i> Quiz Dashboard</h2>
                 <p class="text-muted mb-0">Manage your course quizzes, questions, and view student performance.</p>
             </div>
             <a href="${pageContext.request.contextPath}/quiz-builder" class="btn btn-create px-4 rounded-pill shadow-sm">
@@ -158,7 +138,7 @@
                                 <c:forEach var="q" items="${quizzes}">
                                     <tr>
                                         <td>
-                                            <div class="fw-bold" style="color: var(--primary-dark);">${q.lesson_title}</div>
+                                            <div class="fw-bold dark-text">${q.lesson_title}</div>
                                             <div class="small text-muted"><i class="far fa-clock"></i> ${q.duration_minutes} mins • ${q.total_points} pts</div>
                                         </td>
                                         <td><span class="badge bg-light text-dark border">${q.course_name}</span></td>
@@ -197,7 +177,7 @@
 
             <!-- Right Column: Recent Activity -->
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <div class="card border-0 shadow-sm sidebar-card">
                     <div class="card-header bg-dark text-white py-3 border-0">
                         <h5 class="card-title mb-0 fw-bold"><i class="fas fa-bolt text-warning me-2"></i> Recent Submissions</h5>
                     </div>
@@ -209,10 +189,10 @@
                                         <h6 class="mb-0 fw-bold text-dark">${a.student_name}</h6>
                                         <small class="text-muted"><fmt:formatDate value="${a.end_time}" pattern="dd/MM HH:mm"/></small>
                                     </div>
-                                    <p class="mb-1 small text-muted text-truncate" style="max-width: 250px;"><i class="fas fa-file-alt text-primary me-1"></i> ${a.quiz_name}</p>
+                                    <p class="mb-1 small text-muted text-truncate recent-quiz-name"><i class="fas fa-file-alt text-primary me-1"></i> ${a.quiz_name}</p>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <span class="badge ${a.passed ? 'bg-success' : 'bg-danger'}">${a.passed ? 'PASSED' : 'FAILED'}</span>
-                                        <span class="fw-bold" style="color: var(--primary-dark);">Score: ${a.score}</span>
+                                        <span class="fw-bold dark-text">Score: ${a.score}</span>
                                     </div>
                                 </li>
                             </c:forEach>

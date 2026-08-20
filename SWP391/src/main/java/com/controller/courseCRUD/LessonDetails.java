@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.controller.home;
+package com.controller.courseCRUD;
 
 import com.DAO.LessonDAO;
 import com.entity.Lesson;
@@ -78,6 +78,26 @@ public class LessonDetails extends HttpServlet {
             if ("video".equals(lesson.getType())) {
                 String videoUrl = lessonDAO.getLessonYoutube(lessonId);
                 request.setAttribute("videoUrl", videoUrl);
+            } else if ("quiz".equals(lesson.getType()) && account != null) {
+                com.DAO.QuizDAO quizDAO = new com.DAO.QuizDAO();
+                java.util.Map<String, Object> lessonQuiz = quizDAO.getLessonQuizByLessonId(lessonId);
+                if (lessonQuiz == null) {
+                    if (lessonContent != null && lessonContent.startsWith("Quiz ID: ")) {
+                        try {
+                            int qId = Integer.parseInt(lessonContent.substring(9).trim());
+                            lessonQuiz = quizDAO.getLessonQuizById(qId);
+                        } catch (Exception ex) {}
+                    }
+                }
+                
+                if (lessonQuiz != null) {
+                    int quizId = (Integer) lessonQuiz.get("id");
+                    int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
+                    int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
+                    
+                    request.setAttribute("maxRetakes", maxRetakes);
+                    request.setAttribute("userAttempts", userAttempts);
+                }
             }
 
             request.setAttribute("lesson", lesson);

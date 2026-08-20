@@ -29,7 +29,7 @@
 
                 <div class="blog-section__head">
                     <h2>Blogs</h2>
-                    <a class="blog-section__more" href="<%= ctx %>/view/common/home/blogs.jsp">Look for more</a>
+                    <a class="blog-section__more" href="<%= ctx %>/blogs">Look for more</a>
                 </div>
 
                 <div class="blog-carousel">
@@ -44,7 +44,7 @@
                         <p class="blog-carousel__empty">No blog posts yet.</p>
                         <% } %>
                         <% for (Blog blog : homeBlogsPreview) { %>
-                        <a class="blog-card" href="<%= ctx %>/view/common/blog-detail.jsp?id=<%= blog.getId() %>">
+                        <a class="blog-card" href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= blog.getId() %>">
                             <div class="blog-card__thumb">
                                 <% if (blog.getThumbnail() != null && !blog.getThumbnail().isEmpty()) { %>
                                     <img src="<%= blog.getThumbnail() %>" alt="">

@@ -41,14 +41,13 @@
             <h4>Explore</h4>
             <a href="<%= ctx %>/">Home</a>
             <a href="<%= ctx %>/courses">Browse Course</a>
-            <a href="<%= ctx %>/my-learning?tab=all-courses">My Learning</a>
+            <a href="<%= ctx %>/all-courses">My Learning</a>
         </div>
 
         <div class="site-footer__col">
             <h4>Support</h4>
-            <a href="<%= ctx %>/view/common/help.jsp">Help Center</a>
-            <a href="<%= ctx %>/view/common/contact.jsp">Contact Us</a>
-            <a href="<%= ctx %>/view/common/faq.jsp">FAQs</a>
+            <a href="<%= ctx %>/view/contact-help/contact.jsp">Contact Us</a>
+            <a href="<%= ctx %>/view/contact-help/faq.jsp">FAQs</a>
         </div>
 
         <div class="site-footer__col">

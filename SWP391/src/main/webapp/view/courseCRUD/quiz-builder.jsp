@@ -9,60 +9,23 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
-        body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; padding-bottom: 80px; }
-        
-        .section-card { background: #fff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e9ecef; }
-        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; }
-        
-        .question-card { background: #fafbfc; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #e1e4e8; position: relative; }
-        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .question-number { font-weight: 700; color: #495057; font-size: 1.1rem; }
-        
-        .answer-row { display: flex; align-items: center; margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ced4da; }
-        .answer-row.correct { border-color: #198754; background-color: #f8fff9; }
-        .answer-text { flex-grow: 1; border: none; background: transparent; outline: none; margin-left: 10px; color: #000; }
-        
-        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 1000; padding: 15px 0; border-top: 1px solid #e9ecef; }
-        
-        .btn-add-q { background-color: var(--accent-yellow); color: var(--primary-dark); font-weight: bold; border-radius: 8px; border: none; }
-        .btn-add-q:hover { background-color: #e0a800; }
-        
-        .drag-handle { cursor: grab; color: #adb5bd; margin-right: 10px; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_crud/quiz-builder.css">
 </head>
 <body>
     <jsp:include page="/view/common/header.jsp" />
 
-    <div class="container my-4" style="max-width: 900px;">
-        <h2 class="fw-bold mb-1" style="color: var(--primary-dark);"><i class="fas fa-magic me-2"></i> Quiz Builder</h2>
+    <div class="container my-4 builder-container">
+        <h2 class="fw-bold mb-1 dark-text"><i class="fas fa-magic me-2"></i> Quiz Builder</h2>
         <p class="text-muted mb-4">Create dynamic, interactive quizzes to evaluate your students.</p>
 
         <form id="quizForm" action="quiz-builder" method="POST">
-            <input type="hidden" name="quizId" value="${quizInfo != null ? quizInfo.id : ''}">
+            <input type="hidden" name="quizId" value="${quizInfo != null ? quizInfo['id'] : ''}">
             
             <!-- Part 1: General Settings -->
             <div class="section-card">
                 <div class="section-title"><i class="fas fa-cog me-2"></i> 1. General Settings</div>
                 
-                <!-- Hidden Course & Section -->
-                <div class="row mb-3" style="display: none;">
-                    <div class="col-md-6">
-                        <label class="form-label">Course</label>
-                        <select class="form-select" id="courseSelect" name="courseId">
-                            <c:forEach var="course" items="${courses}">
-                                <option value="${course.id}">${course.name}</option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Section</label>
-                        <select class="form-select" id="sectionSelect" name="sectionId">
-                            <!-- Populated by JS -->
-                        </select>
-                    </div>
-                </div>
+                <!-- Hidden Course & Section removed for Quiz Bank mode -->
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Quiz Title <span class="text-danger">*</span></label>
@@ -81,12 +44,12 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Max Retakes</label>
-                        <input type="number" class="form-control" name="maxRetakes" min="-1" value="${quizInfo != null ? quizInfo.max_retakes : '-1'}" placeholder="-1 for unlimited" required>
-                        <small class="text-muted" style="font-size: 0.75rem;">Set to -1 for unlimited.</small>
+                        <input type="number" class="form-control" name="maxRetakes" min="-1" value="${quizInfo != null ? quizInfo['max_retakes'] : '-1'}" placeholder="-1 for unlimited" required>
+                        <small class="text-muted helper-note">Set to -1 for unlimited.</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Passing Score (%)</label>
-                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="${quizInfo != null ? quizInfo.passing_score : '80'}" required>
+                        <input type="number" class="form-control" name="passingScore" min="1" max="100" value="${quizInfo != null ? quizInfo['passing_score'] : '80'}" required>
                     </div>
                 </div>
             </div>
@@ -118,10 +81,10 @@
 
     <!-- Part 3: Sticky Footer Summary -->
     <div class="sticky-footer">
-        <div class="container" style="max-width: 900px;">
+        <div class="container builder-container">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 class="mb-0 fw-bold" style="color: var(--primary-dark);">Summary</h5>
+                    <h5 class="mb-0 fw-bold dark-text">Summary</h5>
                     <div class="text-muted small">
                         <span id="sumQuestions" class="fw-bold text-dark">0</span> Questions • 
                         <span id="sumPoints" class="fw-bold text-dark">0</span> Total Points
@@ -140,6 +103,25 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteQuestionModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-bottom-0">
+            <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle text-warning me-2"></i> Confirm Deletion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body py-0">
+            Are you sure you want to delete this question? This action cannot be undone.
+          </div>
+          <div class="modal-footer border-top-0">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmDeleteBtn">Delete Question</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -149,25 +131,8 @@
         let questionCounter = 0;
         
         // Populate sections based on course (auto-trigger for hidden selects)
-        document.getElementById('courseSelect').addEventListener('change', function() {
-            const courseId = this.value;
-            const sectionSelect = document.getElementById('sectionSelect');
-            sectionSelect.innerHTML = '';
-            
-            if (courseId && courseSections[courseId]) {
-                courseSections[courseId].forEach(section => {
-                    const option = document.createElement('option');
-                    option.value = section.id;
-                    option.textContent = section.title;
-                    sectionSelect.appendChild(option);
-                });
-            }
-        });
-        
-        // Trigger change initially to populate the hidden section dropdown with the first course
-        if(document.getElementById('courseSelect').options.length > 0) {
-            document.getElementById('courseSelect').dispatchEvent(new Event('change'));
-        }
+        // Initial calculations
+        updateSummary();
         
         function addQuestion() {
             questionCounter++;
@@ -178,7 +143,7 @@
                 '<div class="question-header">' +
                     '<div class="question-number"><i class="fas fa-grip-vertical drag-handle"></i> Question ' + qId + '</div>' +
                     '<div>' +
-                        '<div class="input-group input-group-sm d-inline-flex" style="width: 120px;">' +
+                        '<div class="input-group input-group-sm d-inline-flex points-input-group">' +
                             '<span class="input-group-text bg-light">Points</span>' +
                             '<input type="number" name="q_points_' + qId + '" class="form-control text-center point-input" value="1" min="1" onchange="updateSummary()" required>' +
                         '</div>' +
@@ -218,12 +183,22 @@
             container.insertAdjacentHTML('beforeend', generateAnswerRow(qId, aId, false));
         }
         
+        let questionToDelete = null;
         function removeQuestion(qId) {
-            if(confirm("Delete this question?")) {
-                document.getElementById(`q_card_\${qId}`).remove();
-                updateSummary();
-            }
+            questionToDelete = qId;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteQuestionModal'));
+            deleteModal.show();
         }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (questionToDelete) {
+                document.getElementById('q_card_' + questionToDelete).remove();
+                updateSummary();
+                questionToDelete = null;
+                var deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteQuestionModal'));
+                deleteModal.hide();
+            }
+        });
         
         function removeAnswer(qId, aId) {
             const row = document.getElementById(`a_row_\${qId}_\${aId}`);
@@ -314,7 +289,7 @@
                     '<div class="question-header">' +
                         '<div class="question-number"><i class="fas fa-grip-vertical drag-handle"></i> Question ' + qId + '</div>' +
                         '<div>' +
-                            '<div class="input-group input-group-sm d-inline-flex" style="width: 120px;">' +
+                            '<div class="input-group input-group-sm d-inline-flex points-input-group">' +
                                 '<span class="input-group-text bg-light">Points</span>' +
                                 '<input type="number" name="q_points_' + qId + '" class="form-control text-center point-input" value="' + (q.points || 1) + '" min="1" onchange="updateSummary()" required>' +
                             '</div>' +

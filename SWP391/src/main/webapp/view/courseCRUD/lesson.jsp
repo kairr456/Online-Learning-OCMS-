@@ -10,16 +10,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
-        body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; }
-        .dashboard-container { max-width: 900px; margin: 40px auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        h1, h2, h3, h4 { color: var(--primary-dark); font-weight: 700; }
-        .section-header { border-bottom: 2px solid var(--accent-yellow); padding-bottom: 10px; margin-bottom: 30px; }
-        .form-label { font-weight: 600; color: var(--primary-dark); }
-        .btn-primary, .btn-warning { background-color: var(--accent-yellow); color: var(--primary-dark); font-weight: bold; border: none; }
-        .btn-primary:hover, .btn-warning:hover { background-color: #e0a800; color: var(--primary-dark); }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_crud/lesson.css">
 </head>
 <body>
     <jsp:include page="/view/common/header.jsp" />
@@ -61,7 +52,7 @@
                         <label class="form-label">Thumbnail Image (Upload)</label>
                         <c:if test="${course != null && not empty course.thumbnail}">
                             <div class="mb-2">
-                                <img src="${course.thumbnail}" alt="Current Thumbnail" style="height:100px; border-radius:5px;">
+                                <img src="${course.thumbnail}" alt="Current Thumbnail" class="thumbnail-preview">
                             </div>
                             <small class="text-muted">Upload a new file to change the current thumbnail.</small>
                         </c:if>
@@ -105,7 +96,7 @@
                                                         <div id="lesson_fields_${sStat.index}_${lStat.index}">
                                                             <!-- Managed by JS based on selection -->
                                                         </div>
-                                                        <textarea id="rawHtml_${sStat.index}_${lStat.index}" style="display:none;">${fn:escapeXml(lesson.textContent)}</textarea>
+                                                        <textarea id="rawHtml_${sStat.index}_${lStat.index}" class="raw-html-field">${fn:escapeXml(lesson.textContent)}</textarea>
                                                         <input type="hidden" id="rawVideoUrl_${sStat.index}_${lStat.index}" value="${fn:escapeXml(lesson.videoUrl)}">
                                                     </div>
                                                 </div>
@@ -135,7 +126,7 @@
     <script>
         const quizBankList = [
             <c:forEach var="q" items="${quizBank}" varStatus="loop">
-                { id: "${q.quiz_id}", title: "${fn:escapeXml(q.lesson_title)}" }${!loop.last ? ',' : ''}
+                { id: "${q['quiz_id']}", title: "${fn:escapeXml(q['lesson_title'])}" }${!loop.last ? ',' : ''}
             </c:forEach>
         ];
 
@@ -242,10 +233,14 @@
                     addBlock(secId, lesId, 'text');
                 }
             } else if (type === 'video' || type === 'video_image') {
+                let fullUrl = rawVideo || '';
+                if (fullUrl && !fullUrl.startsWith('http')) {
+                    fullUrl = 'https://www.youtube.com/watch?v=' + fullUrl;
+                }
                 html = `
                     <div class="mb-3">
                         <label class="form-label text-danger"><i class="fab fa-youtube"></i> YouTube URL</label>
-                        <input type="url" name="lessonVideo_\${lessonKey}" class="form-control" value="\${rawVideo}" placeholder="https://youtube.com/..." required>
+                        <input type="url" name="lessonVideo_\${lessonKey}" class="form-control" value="\${fullUrl}" placeholder="https://youtube.com/..." required>
                     </div>
                 `;
                 container.innerHTML = html;
@@ -290,14 +285,14 @@
             } else if (type === 'file') {
                 icon = '<i class="fas fa-image text-success"></i>';
                 title = 'Image Block';
-                let existingInput = initialValue ? `<div class="mb-2"><img src="\${initialValue}" style="height:100px; border-radius:5px;"><input type="hidden" name="existingFile_\${lessonKey}_\${blockId}" value="\${initialValue}"></div>` : '';
+                let existingInput = initialValue ? `<div class="mb-2"><img src="\${initialValue}" class="thumbnail-preview"><input type="hidden" name="existingFile_\${lessonKey}_\${blockId}" value="\${initialValue}"></div>` : '';
                 blockContent = `\${existingInput}<input type="file" name="blockFile_\${lessonKey}_\${blockId}" class="form-control" accept="image/*" \${initialValue ? '' : 'required'}>`;
             }
 
             const html = `
-                <div class="card mb-3 border-0 shadow-sm" style="background-color: #f8f9fa;" id="block_\${lessonKey}_\${blockId}">
+                <div class="card mb-3 border-0 shadow-sm block-card" id="block_\${lessonKey}_\${blockId}">
                     <div class="card-body p-3 position-relative">
-                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="width:10px; height:10px;" onclick="document.getElementById('block_\${lessonKey}_\${blockId}').remove()"></button>
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 block-close" onclick="document.getElementById('block_\${lessonKey}_\${blockId}').remove()"></button>
                         <div class="fw-bold mb-2 text-muted small">\${icon} \${title}</div>
                         <input type="hidden" name="blockType_\${lessonKey}_\${blockId}" value="\${type}">
                         \${blockContent}

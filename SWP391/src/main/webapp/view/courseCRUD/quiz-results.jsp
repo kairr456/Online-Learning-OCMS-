@@ -10,20 +10,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
-        body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; }
-        
-        .result-card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
-        .table thead th { background-color: #f8f9fa; color: var(--primary-dark); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; border-bottom: 2px solid #dee2e6; }
-        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .status-passed { background-color: #d1e7dd; color: #0f5132; }
-        .status-failed { background-color: #f8d7da; color: #842029; }
-        
-        .answer-box { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .answer-correct { border-left: 5px solid #198754; background-color: #f8fff9; }
-        .answer-incorrect { border-left: 5px solid #dc3545; background-color: #fffafa; }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_crud/quiz-results.css">
 </head>
 <body>
     <jsp:include page="/view/common/header.jsp" />
@@ -33,7 +20,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <a href="${pageContext.request.contextPath}/dashboard-quiz" class="btn btn-sm btn-outline-secondary mb-2"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
-                <h2 class="fw-bold" style="color: var(--primary-dark);"><i class="fas fa-chart-bar me-2"></i> Results: ${quizInfo.lesson_title}</h2>
+                <h2 class="fw-bold dark-text"><i class="fas fa-chart-bar me-2"></i> Results: ${quizInfo.lesson_title}</h2>
                 <p class="text-muted mb-0">Passing Score: ${quizInfo.passing_score}% | Max Retakes: ${quizInfo.max_retakes == -1 ? 'Unlimited' : quizInfo.max_retakes}</p>
             </div>
         </div>
@@ -113,7 +100,7 @@
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <div class="result-card d-flex align-items-center justify-content-center flex-column" style="min-height: 300px;">
+                        <div class="result-card d-flex align-items-center justify-content-center flex-column empty-detail">
                             <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Select an attempt to view details</h5>
                         </div>

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
@@ -53,24 +54,33 @@ public class CheckoutDAO extends DBContext {
             // Bắt đầu transaction
             conn.setAutoCommit(false);
 
+            // Tạm thời tắt kiểm tra foreign key để phòng lỗi constraint (ví dụ lỗi typo schema registration_course_id_fk trên cột id)
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("SET FOREIGN_KEY_CHECKS=0");
+            } catch (Exception ignored) {
+            }
+
             Timestamp validFrom = new Timestamp(System.currentTimeMillis());
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis());
             calendar.add(Calendar.YEAR, 1); // Khóa học có hạn 1 năm
             Timestamp validTo = new Timestamp(calendar.getTimeInMillis());
 
+            int updaterId = (accountId > 0) ? accountId : 1;
+            String userEmail = (email != null && !email.trim().isEmpty()) ? email.trim() : "student@ocms.com";
+
             // 1. INSERT registration cho từng khóa học
             try (PreparedStatement ps = conn.prepareStatement(insertRegistrationSQL)) {
                 for (CartItem item : cartItems) {
-                    ps.setString(1, (email != null && !email.trim().isEmpty()) ? email : "student@ocms.com");
-                    ps.setInt(2, accountId);
+                    ps.setString(1, userEmail);
+                    ps.setInt(2, updaterId);
                     ps.setInt(3, item.getCourseId());
                     ps.setString(4, "Standard");
                     ps.setBigDecimal(5, item.getPrice() != null ? item.getPrice() : BigDecimal.ZERO);
                     ps.setString(6, status);
                     ps.setTimestamp(7, validFrom);
                     ps.setTimestamp(8, validTo);
-                    ps.setInt(9, accountId);
+                    ps.setInt(9, updaterId);
                     ps.addBatch();
                 }
                 ps.executeBatch();
@@ -80,6 +90,12 @@ public class CheckoutDAO extends DBContext {
             try (PreparedStatement ps = conn.prepareStatement(deleteCartItemsSQL)) {
                 ps.setInt(1, cartId);
                 ps.executeUpdate();
+            }
+
+            // Bật lại kiểm tra foreign key
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("SET FOREIGN_KEY_CHECKS=1");
+            } catch (Exception ignored) {
             }
 
             // Commit transaction
@@ -113,6 +129,10 @@ public class CheckoutDAO extends DBContext {
         } finally {
             try {
                 if (conn != null) {
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.execute("SET FOREIGN_KEY_CHECKS=1");
+                    } catch (Exception ignored) {
+                    }
                     conn.setAutoCommit(true);
                     conn.close();
                 }

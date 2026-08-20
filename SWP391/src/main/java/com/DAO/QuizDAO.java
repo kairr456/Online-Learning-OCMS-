@@ -202,10 +202,10 @@ public class QuizDAO extends DBContext {
         // Find course_id and lesson_id
         int courseId = 0;
         int lessonId = 0;
-        String getInfoSql = "SELECT c.id as course_id, l.id as lesson_id FROM lesson l " +
-                            "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                            "JOIN section s ON l.section_id = s.id " +
-                            "JOIN course c ON s.course_id = c.id " +
+        String getInfoSql = "SELECT lq.lesson_id, c.id as course_id FROM lesson_quiz lq " +
+                            "JOIN lesson l ON lq.lesson_id = l.id " +
+                            "LEFT JOIN section s ON l.section_id = s.id " +
+                            "LEFT JOIN course c ON s.course_id = c.id " +
                             "WHERE lq.id = ?";
         try (PreparedStatement psInfo = connection.prepareStatement(getInfoSql)) {
             psInfo.setInt(1, quizId);
@@ -219,8 +219,16 @@ public class QuizDAO extends DBContext {
         
         String sql = "INSERT INTO question_bank (course_id, lesson_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
         try (PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, courseId);
-            ps.setInt(2, lessonId);
+            if (courseId > 0) {
+                ps.setInt(1, courseId);
+            } else {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            }
+            if (lessonId > 0) {
+                ps.setInt(2, lessonId);
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
             ps.setString(3, text);
             ps.setInt(4, points);
             ps.executeUpdate();
@@ -562,5 +570,58 @@ public class QuizDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    public List<Map<String, Object>> getUserAttemptsForQuiz(int accountId, int quizId) {
+        List<Map<String, Object>> attempts = new ArrayList<>();
+        String sql = "SELECT id, score, passed, start_time, end_time " +
+                     "FROM quiz_attempt " +
+                     "WHERE account_id = ? AND quiz_id = ? " +
+                     "ORDER BY end_time ASC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ps.setInt(2, quizId);
+            try (ResultSet rs = ps.executeQuery()) {
+                int attemptNumber = 1;
+                while (rs.next()) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("id", rs.getInt("id"));
+                    a.put("attempt_number", attemptNumber++);
+                    a.put("score", rs.getFloat("score"));
+                    a.put("passed", rs.getInt("passed") == 1);
+                    a.put("start_time", rs.getTimestamp("start_time"));
+                    a.put("end_time", rs.getTimestamp("end_time"));
+                    attempts.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return attempts;
+    }
+
+    public Map<String, Object> getQuizAttemptById(int attemptId) {
+        String sql = "SELECT id, account_id, quiz_id, score, passed, start_time, end_time " +
+                     "FROM quiz_attempt " +
+                     "WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, attemptId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> a = new HashMap<>();
+                    a.put("id", rs.getInt("id"));
+                    a.put("account_id", rs.getInt("account_id"));
+                    a.put("quiz_id", rs.getInt("quiz_id"));
+                    a.put("score", rs.getFloat("score"));
+                    a.put("passed", rs.getInt("passed") == 1);
+                    a.put("start_time", rs.getTimestamp("start_time"));
+                    a.put("end_time", rs.getTimestamp("end_time"));
+                    return a;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

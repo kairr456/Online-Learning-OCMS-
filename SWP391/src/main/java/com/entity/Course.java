@@ -7,7 +7,7 @@ public class Course {
     private String name;
     private String description;
     private String thumbnail;
-    private int rating;
+    private double rating;
     private float price;
     private String status;
     private LocalDateTime createdDate;
@@ -16,11 +16,12 @@ public class Course {
     private int categoryId;
     private String teacherName;
     private String categoryName;
+    private int progress;
     
     public Course() {
     }
 
-    public Course(int id, String name, String description, String thumbnail, int rating, float price, String status, LocalDateTime createdDate, LocalDateTime modifiedDate, int createdBy, int categoryId) {
+    public Course(int id, String name, String description, String thumbnail, double rating, float price, String status, LocalDateTime createdDate, LocalDateTime modifiedDate, int createdBy, int categoryId) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -67,8 +68,12 @@ public class Course {
         this.thumbnail = thumbnail;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = Math.round(rating * 10.0) / 10.0;
     }
 
     public void setRating(int rating) {
@@ -137,5 +142,13 @@ public class Course {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
     }
 }

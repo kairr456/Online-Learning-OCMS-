@@ -4,6 +4,7 @@ import com.DAO.LessonDAO;
 import com.DAO.QuizDAO;
 import com.entity.Account;
 import com.entity.Lesson;
+import com.validator.MyLearningValidator;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,17 @@ public class TakeQuizController extends HttpServlet {
                     try {
                         int qId = Integer.parseInt(textContent.substring(9).trim());
                         lessonQuiz = quizDAO.getLessonQuizById(qId);
+                        
+                        // Fetch the ORIGINAL lesson to get its duration and description
+                        if (lessonQuiz != null) {
+                            int originalLessonId = (Integer) lessonQuiz.get("lesson_id");
+                            Lesson originalLesson = lessonDAO.getLessonById(originalLessonId);
+                            if (originalLesson != null) {
+                                // Override duration and description
+                                lesson.setDurationMinutes(originalLesson.getDurationMinutes());
+                                lesson.setDescription(originalLesson.getDescription());
+                            }
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -66,14 +78,17 @@ public class TakeQuizController extends HttpServlet {
             int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
             
             // Check retake limits
+            int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
             if (maxRetakes != -1) {
-                int userAttempts = quizDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 if (userAttempts >= maxRetakes) {
-                    session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz.");
-                    response.sendRedirect(request.getContextPath() + "/courses");
+                    session.setAttribute("errorMsg", "You have reached the maximum number of attempts (" + maxRetakes + ") for this quiz. Viewing your past results.");
+                    response.sendRedirect(request.getContextPath() + "/quiz-result?lessonId=" + lessonId);
                     return;
                 }
             }
+            
+            request.setAttribute("userAttempts", userAttempts);
+            request.setAttribute("maxRetakes", maxRetakes);
             List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
             
             // Map questionId -> answers
@@ -109,8 +124,19 @@ public class TakeQuizController extends HttpServlet {
         }
 
         try {
-            int quizId = Integer.parseInt(request.getParameter("quizId"));
-            int lessonId = Integer.parseInt(request.getParameter("lessonId"));
+            String quizIdParam = request.getParameter("quizId");
+            String lessonIdParam = request.getParameter("lessonId");
+            String idError = MyLearningValidator.validateQuizId(quizIdParam);
+            if (idError == null) {
+                idError = MyLearningValidator.validateLessonId(lessonIdParam);
+            }
+            if (idError != null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"" + idError + "\"}");
+                return;
+            }
+            int quizId = Integer.parseInt(quizIdParam);
+            int lessonId = Integer.parseInt(lessonIdParam);
             
             QuizDAO quizDAO = new QuizDAO();
             LessonDAO lessonDAO = new LessonDAO();

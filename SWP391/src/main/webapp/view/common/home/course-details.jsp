@@ -359,6 +359,101 @@
             list-style: none;
             padding: 0;
         }
+        .rating-selection {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .rating-selection label {
+            cursor: pointer;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+        }
+        .rating-selection input[type="radio"],
+        .rating-input {
+            display: none !important;
+        }
+        .rating-star {
+            font-size: 24px;
+            color: var(--accent-yellow);
+            transition: transform 0.2s, color 0.2s;
+        }
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+        .review-item {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .review-author-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        .review-date {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .review-rating {
+            color: var(--accent-yellow);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .review-comment {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .review-form-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+        }
+        .review-form-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .review-textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+        .review-textarea:focus {
+            border-color: var(--primary-color);
+        }
+        .review-submit-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+        .review-submit-btn:hover {
+            background-color: #4a2ec2;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -381,8 +476,10 @@
                         </div>
                         <div class="courses__details-content">
                             <ul class="courses__item-meta list-wrap">
-
-                                <li class="avg-rating"><i class="fas fa-star"></i> (${course.rating} Reviews)</li>
+                                <li class="courses__item-tag">
+                                    <a href="${pageContext.request.contextPath}/courses?category=${course.categoryId}">${not empty categoryName ? categoryName : 'General'}</a>
+                                </li>
+                                <li class="avg-rating"><i class="fas fa-star"></i> ${avgRating > 0 ? avgRating : '0.0'} (${reviewCount} ${reviewCount == 1 ? 'Review' : 'Reviews'})</li>
                             </ul>
                             <h2 class="title">${course.name}</h2>
                             <div class="courses__details-meta">
@@ -420,44 +517,44 @@
                                         <h3 class="title">Course Curriculum</h3>
                                         <div class="accordion" id="accordionExample">
                                             <c:forEach var="section" items="${sections}" varStatus="status">
-                                                <div class="accordion-item" style="margin-bottom: 15px; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+                                                <div class="accordion-item course-curriculum-item">
                                                     <h2 class="accordion-header" id="heading${status.index}">
-                                                        <button class="accordion-button ${status.index != 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${status.index}" aria-expanded="${status.index == 0 ? 'true' : 'false'}" aria-controls="collapse${status.index}" style="background-color: #f8f9fa; font-weight: 600; padding: 15px 20px;">
+                                                        <button class="accordion-button ${status.index != 0 ? 'collapsed' : ''} course-curriculum-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${status.index}" aria-expanded="${status.index == 0 ? 'true' : 'false'}" aria-controls="collapse${status.index}">
                                                             ${section.title}
                                                         </button>
                                                     </h2>
                                                     <div id="collapse${status.index}" class="accordion-collapse collapse ${status.index == 0 ? 'show' : ''}" aria-labelledby="heading${status.index}" data-bs-parent="#accordionExample">
-                                                        <div class="accordion-body" style="padding: 0;">
+                                                        <div class="accordion-body course-curriculum-body">
                                                             <ul class="list-group list-group-flush">
                                                                 <c:forEach var="lesson" items="${lessonsMap[section.id]}">
-                                                                    <li class="list-group-item" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-                                                                        <span>
-                                                                            <c:if test="${lesson.type == 'video'}">
-                                                                                <i class="fas fa-play-circle" style="color: var(--primary); margin-right: 10px;"></i>
-                                                                            </c:if>
-                                                                            <c:if test="${lesson.type == 'file'}">
-                                                                                <i class="fas fa-file-alt" style="color: #28a745; margin-right: 10px;"></i>
-                                                                            </c:if>
-                                                                            <c:if test="${lesson.type == 'text'}">
-                                                                                <i class="fas fa-book" style="color: #ffc107; margin-right: 10px;"></i>
-                                                                            </c:if>
-                                                                            
-                                                                            <!-- Link to the unified lesson details page -->
-                                                                            <!-- Conditional Link based on Enrollment / Free first lesson -->
-                                                                            <c:choose>
-                                                                                <c:when test="${isEnrolled or lesson.id == firstLessonId}">
-                                                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" style="color: #333; text-decoration: none; cursor: pointer; font-weight: 500;">
-                                                                                        ${lesson.title}
-                                                                                    </a>
-                                                                                </c:when>
-                                                                                <c:otherwise>
-                                                                                    <a href="javascript:void(0);" onclick="alert('Bạn chưa mua khóa học này! Vui lòng mua để xem toàn bộ bài giảng.');" style="color: #888; text-decoration: none; cursor: pointer; font-weight: 500;">
-                                                                                        <i class="fas fa-lock" style="font-size: 12px; margin-right: 5px;"></i> ${lesson.title}
-                                                                                    </a>
-                                                                                </c:otherwise>
-                                                                            </c:choose>
-                                                                        </span>
-                                                                    </li>
+<li class="list-group-item course-curriculum-lesson">
+                                        <span>
+                                            <c:if test="${lesson.type == 'video'}">
+                                                <i class="fas fa-play-circle lesson-icon-play"></i>
+                                            </c:if>
+                                            <c:if test="${lesson.type == 'file'}">
+                                                <i class="fas fa-file-alt lesson-icon-file"></i>
+                                            </c:if>
+                                            <c:if test="${lesson.type == 'text'}">
+                                                <i class="fas fa-book lesson-icon-text"></i>
+                                            </c:if>
+                                            
+                                            <!-- Link to the unified lesson details page -->
+                                            <!-- Conditional Link based on Enrollment / Free first lesson -->
+                                            <c:choose>
+                                                <c:when test="${isEnrolled or lesson.id == firstLessonId}">
+                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="lesson-link">
+                                                        ${lesson.title}
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="javascript:void(0);" onclick="alert('Bạn chưa mua khóa học này! Vui lòng mua để xem toàn bộ bài giảng.');" class="lesson-link-locked">
+                                                        <i class="fas fa-lock lesson-lock-icon"></i> ${lesson.title}
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
+                                    </li>
                                                                 </c:forEach>
                                                             </ul>
                                                         </div>
@@ -477,18 +574,54 @@
                                     <div class="courses__rating-wrap">
                                         <h2 class="title">Reviews</h2>
                                         
+                                        <!-- Overall Rating Summary -->
+                                        <div class="course-rate">
+                                            <div class="course-rate__summary">
+                                                <div class="course-rate__summary-value">${avgRating > 0 ? avgRating : '0.0'}</div>
+                                                <div class="course-rate__summary-stars">
+                                                    <c:forEach begin="1" end="5" var="s">
+                                                        <c:choose>
+                                                            <c:when test="${s <= avgRating}">
+                                                                <i class="fas fa-star"></i>
+                                                            </c:when>
+                                                            <c:when test="${s - 0.5 <= avgRating}">
+                                                                <i class="fas fa-star-half-alt"></i>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <i class="far fa-star"></i>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </c:forEach>
+                                                </div>
+                                                <div class="course-rate__summary-text">(${reviewCount} ${reviewCount == 1 ? 'Review' : 'Reviews'})</div>
+                                            </div>
+                                            <div class="course-rate__details">
+                                                <c:forEach var="item" items="${starDistributionList}">
+                                                    <div class="course-rate__details-row">
+                                                        <div class="course-rate__details-row-star">${item.star} <i class="fas fa-star"></i></div>
+                                                        <div class="course-rate__details-row-value">
+                                                            <div class="rating-gray">
+                                                                <div class="rating" style="width: ${item.percent}%;"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="rating-count">${item.count}</div>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
+
                                         <!-- Reviews List -->
-                                        <div class="course-reviews-list" style="margin-bottom: 30px;">
+                                        <div class="course-reviews-list">
                                             <c:if test="${empty reviews}">
-                                                <p style="color: #666; font-style: italic;">No reviews yet. Be the first to review this course!</p>
+                                                <p class="no-reviews-text">No reviews yet. Be the first to review this course!</p>
                                             </c:if>
                                             <c:forEach var="review" items="${reviews}">
-                                                <div class="review-item" style="border-bottom: 1px solid #eee; padding: 15px 0;">
-                                                    <div class="review-header" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                                        <strong style="font-size: 16px;">${accountNames[review.accountId]}</strong>
-                                                        <span style="color: #888; font-size: 14px;">${review.createdDate}</span>
+                                                <div class="review-item">
+                                                    <div class="review-header">
+                                                        <strong class="review-author-name">${not empty accountNames[review.accountId] ? accountNames[review.accountId] : 'Học viên'}</strong>
+                                                        <span class="review-date">${review.createdDate}</span>
                                                     </div>
-                                                    <div class="review-rating" style="color: #ffc107; margin-bottom: 10px; font-size: 14px;">
+                                                    <div class="review-rating">
                                                         <c:forEach begin="1" end="5" var="i">
                                                             <c:choose>
                                                                 <c:when test="${i <= review.rating}">
@@ -500,36 +633,36 @@
                                                             </c:choose>
                                                         </c:forEach>
                                                     </div>
-                                                    <p class="review-comment" style="color: #444; line-height: 1.5; margin: 0;">${review.comment}</p>
+                                                    <p class="review-comment">${review.comment}</p>
                                                 </div>
                                             </c:forEach>
                                         </div>
                                         
                                         <!-- Review Form -->
-                                        <div class="course-review-form" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px;">
-                                            <h3 class="title" style="font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 20px;">Write a Review</h3>
+                                        <div class="course-review-form">
+                                            <h3 class="title review-form-title">Write a Review</h3>
                                             <form action="${pageContext.request.contextPath}/submit-review" method="post">
                                                 <input type="hidden" name="courseId" value="${course.id}">
-                                                <div style="margin-bottom: 15px;">
-                                                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Your Rating:</label>
-                                                    <div class="rating-selection" style="color: #ffc107; font-size: 20px; cursor: pointer;">
-                                                        <label><input type="radio" name="rating" value="1" style="display:none;" required> <i class="far fa-star rating-star"></i></label>
-                                                        <label><input type="radio" name="rating" value="2" style="display:none;"> <i class="far fa-star rating-star"></i></label>
-                                                        <label><input type="radio" name="rating" value="3" style="display:none;"> <i class="far fa-star rating-star"></i></label>
-                                                        <label><input type="radio" name="rating" value="4" style="display:none;"> <i class="far fa-star rating-star"></i></label>
-                                                        <label><input type="radio" name="rating" value="5" style="display:none;"> <i class="far fa-star rating-star"></i></label>
+                                                <div class="review-form-group">
+                                                    <label class="review-form-label">Your Rating:</label>
+                                                    <div class="rating-selection">
+                                                        <label><input type="radio" name="rating" value="1" class="rating-input" required> <i class="far fa-star rating-star"></i></label>
+                                                        <label><input type="radio" name="rating" value="2" class="rating-input"> <i class="far fa-star rating-star"></i></label>
+                                                        <label><input type="radio" name="rating" value="3" class="rating-input"> <i class="far fa-star rating-star"></i></label>
+                                                        <label><input type="radio" name="rating" value="4" class="rating-input"> <i class="far fa-star rating-star"></i></label>
+                                                        <label><input type="radio" name="rating" value="5" class="rating-input"> <i class="far fa-star rating-star"></i></label>
                                                     </div>
                                                 </div>
-                                                <div style="margin-bottom: 20px;">
-                                                    <label for="reviewComment" style="display: block; font-weight: 600; margin-bottom: 8px;">Your Comment:</label>
-                                                    <textarea name="comment" id="reviewComment" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none;" placeholder="What do you think about this course?" required></textarea>
+                                                <div class="review-form-group-spaced">
+                                                    <label for="reviewComment" class="review-form-label">Your Comment:</label>
+                                                    <textarea name="comment" id="reviewComment" rows="4" class="review-textarea" placeholder="What do you think about this course?" required></textarea>
                                                 </div>
                                                 <c:choose>
                                                     <c:when test="${not empty sessionScope.account}">
-                                                        <button type="submit" class="btn" style="background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer;">Submit Review</button>
+                                                        <button type="submit" class="btn review-submit-btn">Submit Review</button>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <a href="${pageContext.request.contextPath}/login" class="btn" style="display: inline-block; background-color: #ffc107; color: #1a1a2e; padding: 10px 25px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; text-decoration: none;">Login to Submit Review</a>
+                                                        <a href="${pageContext.request.contextPath}/login" class="btn review-submit-btn">Login to Submit Review</a>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </form>
@@ -563,12 +696,12 @@
                         <div class="courses__details-sidebar">
                             <c:choose>
                                 <c:when test="${isEnrolled}">
-                                    <div class="courses__cost-wrap" style="background-color: #28a745;">
+                                    <div class="courses__cost-wrap courses__cost-wrap--purchased">
                                         <span>Status:</span>
-                                        <h2 class="title" style="font-size: 24px;">
+                                        <h2 class="title">
                                             <i class="fas fa-check-circle"></i> Purchased
                                         </h2>
-                                        <p style="margin-top: 10px; margin-bottom: 0; font-size: 14px;">You can now access all lessons in the curriculum.</p>
+                                        <p class="purchase-note">You can now access all lessons in the curriculum.</p>
                                     </div>
                                 </c:when>
                                 <c:otherwise>
@@ -611,6 +744,10 @@
                             
                             <c:if test="${not isEnrolled}">
                                 <div class="courses__details-enroll">
+                                    <button type="button" class="wishlist-heart wishlist-heart--lg ${isWishlisted ? 'active' : ''}"
+                                            data-course-id="${course.id}" onclick="toggleWishlist(this)" title="Add to wishlist">
+                                        <i class="${isWishlisted ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    </button>
                                     <form action="${pageContext.request.contextPath}/cart" method="post">
                                         <input type="hidden" name="action" value="add">
                                         <input type="hidden" name="courseId" value="${course.id}">
@@ -627,9 +764,9 @@
             </div>
         </section>
         <!-- courses-details-area-end -->
-        
-        <div class="container text-center" style="padding-bottom: 40px;">
-            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn-primary" style="background-color: var(--primary-color); border: none; padding: 10px 25px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+
+        <div class="container text-center back-to-top-wrap">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn-primary back-to-top-btn">
                 <i class="fas fa-arrow-up me-2"></i> Back to Top
             </button>
         </div>
@@ -639,6 +776,40 @@
 
     <!-- Bootstrap JS for tabs/accordion -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleWishlist(btn) {
+            var courseId = btn.getAttribute('data-course-id');
+            var ctx = '${pageContext.request.contextPath}';
+            fetch(ctx + '/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: new URLSearchParams({ action: 'toggle', courseId: courseId })
+            })
+            .then(function (res) {
+                if (res.status === 401) {
+                    window.location.href = ctx + '/view/authen/login.jsp';
+                    throw new Error('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                if (data.status === 'success') {
+                    btn.classList.toggle('active');
+                    var icon = btn.querySelector('i');
+                    if (icon) {
+                        if (btn.classList.contains('active')) {
+                            icon.classList.remove('fa-regular');
+                            icon.classList.add('fa-solid');
+                        } else {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                        }
+                    }
+                }
+            })
+            .catch(function (err) { console.error('Wishlist error:', err); });
+        }
+    </script>
 </body>
 
 </html>

@@ -72,6 +72,16 @@ public class WalletController extends HttpServlet {
         // 5. Lấy danh sách yêu cầu rút tiền
         List<PayoutRequest> payoutRequests = walletDAO.getPayoutRequestsByTeacherId(teacherId, sort);
 
+        // 6. Xử lý thông báo flash từ session (sau khi redirect) và xóa khỏi session
+        String flashMessage = (String) session.getAttribute("message");
+        String flashMessageType = (String) session.getAttribute("messageType");
+        if (flashMessage != null) {
+            request.setAttribute("flashMessage", flashMessage);
+            request.setAttribute("flashType", flashMessageType);
+            session.removeAttribute("message");
+            session.removeAttribute("messageType");
+        }
+
         // Đẩy dữ liệu sang JSP
         request.setAttribute("wallet", wallet);
         request.setAttribute("bankAccount", bankAccount);

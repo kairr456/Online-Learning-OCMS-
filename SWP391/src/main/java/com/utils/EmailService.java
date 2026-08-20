@@ -24,7 +24,7 @@ public class EmailService {
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final int SMTP_PORT = 587;
     private static final String SMTP_USERNAME = "huy69332@gmail.com";
-    private static final String SMTP_PASSWORD = "huy1442005";
+    private static final String SMTP_PASSWORD = "tgqfymtoqaggofje";
 
     private EmailService() {
     }
