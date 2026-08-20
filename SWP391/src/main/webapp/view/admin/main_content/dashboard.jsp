@@ -64,8 +64,8 @@
             </div>
 
             <div class="circle-stat">
-                <div class="circle-title">Course Completion Rate</div>
-                <div class="circle">68%</div>
+                <div class="circle-title">Lesson Completion Rate</div>
+                <div class="circle">${lessonCompletionRate}%</div>
             </div>
 
             <div class="stat-box">
@@ -87,10 +87,19 @@
             </div>
 
             <div class="stat-box">
-                <div class="stat-title">Payment by Status</div>
-                <div class="stat-row"><span>Success</span><span>1100</span></div>
-                <div class="stat-row"><span>Failed</span><span>80</span></div>
-                <div class="stat-row"><span>Cancelled</span><span>68</span></div>
+                <div class="stat-title">Registrations by Status</div>
+                <c:forEach var="entry" items="${registrationCountsByStatus}">
+                    <div class="stat-row">
+                        <span>${entry.key}</span>
+                        <span>${entry.value}</span>
+                    </div>
+                </c:forEach>
+                <c:if test="${empty registrationCountsByStatus}">
+                    <div class="stat-row">
+                        <span>No data</span>
+                        <span>-</span>
+                    </div>
+                </c:if>
             </div>
 
             <div class="circle-stat">

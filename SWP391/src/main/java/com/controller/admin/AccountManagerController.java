@@ -51,12 +51,12 @@ public class AccountManagerController extends HttpServlet {
 
         // Lấy danh sách account (instance riêng — connection bị đóng sau mỗi lần gọi)
         List<Account> userList = new AccountDAO().searchAccounts(keyword, roleId, status, page, PAGE_SIZE);
-
+        
         // Đưa danh sách account và thông tin filter sang JSP
         request.setAttribute("userList", userList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-
+        
         // Main content cần render
         request.setAttribute("contentPage", "accounts.jsp");
 

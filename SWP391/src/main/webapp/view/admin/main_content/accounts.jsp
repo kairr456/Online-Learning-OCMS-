@@ -25,9 +25,8 @@
             <select name="roleId" class="filter-select" onchange="submitFilter()">
                 <option value="">All Roles</option>
                 <option value="1" ${param.roleId == '1' ? 'selected' : ''}>Admin</option>
-                <option value="2" ${param.roleId == '2' ? 'selected' : ''}>Instructor</option>
+                <option value="2" ${param.roleId == '2' ? 'selected' : ''}>Teacher</option>
                 <option value="3" ${param.roleId == '3' ? 'selected' : ''}>Student</option>
-                <option value="4" ${param.roleId == '4' ? 'selected' : ''}>Manager</option>
             </select>
 
             <!-- Filter Status -->

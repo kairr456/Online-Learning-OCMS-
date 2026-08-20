@@ -127,11 +127,6 @@ public class AdminDashboardDAO extends DBContext {
 // 12 tháng gần nhất (tháng không có registration = 0)
     public Map<String, Integer> getRegistrationsByMonth() {
         Map<String, Integer> map = new LinkedHashMap<>();
-        LocalDate now = LocalDate.now();
-        for (int i = 11; i >= 0; i--) {
-            YearMonth ym = YearMonth.now().minusMonths(i);
-            map.put(ym.getMonthValue() + "/" + ym.getYear(), 0);
-        }
         String sql = "SELECT MONTH(registration_time) AS m, YEAR(registration_time) AS y, COUNT(*) AS c "
                 + "FROM registration GROUP BY YEAR(registration_time), MONTH(registration_time) ORDER BY y, m";
         try {
@@ -169,6 +164,47 @@ public class AdminDashboardDAO extends DBContext {
             closeStatementAndResultSet();
         }
         return total == 0 ? 0 : (int) Math.round((double) passed / total * 100);
+    }
+
+    // Số registration theo status — dùng cho ô "Registrations by Status" trên dashboard
+    public Map<String, Integer> getRegistrationCountByStatus() {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        String sql = "SELECT status, COUNT(*) AS c FROM registration GROUP BY status ORDER BY status";
+        try {
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                map.put(resultSet.getString(1), resultSet.getInt(2));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } finally {
+            closeStatementAndResultSet();
+        }
+        return map;
+    }
+
+// Tỷ lệ hoàn thành bài học = lesson_progress đã hoàn thành / tổng số lesson
+    public int getLessonCompletionRate() {
+        int completed = 0, total = 0;
+        try {
+            statement = connection.prepareStatement("SELECT COUNT(*) FROM lesson_progress WHERE completed = 1");
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                completed = resultSet.getInt(1);
+            }
+            resultSet.close();
+            statement = connection.prepareStatement("SELECT COUNT(*) FROM lesson");
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                total = resultSet.getInt(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } finally {
+            closeStatementAndResultSet();
+        }
+        return total == 0 ? 0 : (int) Math.round((double) completed / total * 100);
     }
 
     // Hàm phụ trợ đóng Statement và ResultSet an toàn

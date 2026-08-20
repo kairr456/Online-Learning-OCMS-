@@ -31,6 +31,8 @@ public class AdminDashboardController extends HttpServlet {
         request.setAttribute("courseCountsByStatus", dashboardDAO.getCourseCountByStatus());
         request.setAttribute("registrationsByMonth", dashboardDAO.getRegistrationsByMonth());
         request.setAttribute("quizPassRate", dashboardDAO.getQuizPassRate());
+        request.setAttribute("registrationCountsByStatus", dashboardDAO.getRegistrationCountByStatus());
+        request.setAttribute("lessonCompletionRate", dashboardDAO.getLessonCompletionRate());
         // Trong AdminDashboardController.java
         request.setAttribute("contentPage", "dashboard.jsp");
 
