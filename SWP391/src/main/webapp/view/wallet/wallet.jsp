@@ -18,65 +18,6 @@
     
     <!-- Custom Wallet CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/wallet/wallet.css?v=2.2">
-    
-    <style>
-        .wallet-pagination-wrapper {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            width: 100% !important;
-            gap: 14px !important;
-            margin: 36px auto 16px auto !important;
-            padding: 12px 0 !important;
-            user-select: none !important;
-            clear: both !important;
-        }
-        .wallet-page-btn {
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            border-radius: 50% !important;
-            background: #ffffff !important;
-            color: #1e1b4b !important;
-            border: 1px solid rgba(0, 0, 0, 0.06) !important;
-            outline: none !important;
-            font-size: 15px !important;
-            font-weight: 700 !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
-            cursor: pointer !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            text-decoration: none !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-        }
-        .wallet-page-btn:hover:not(.disabled):not(.active) {
-            background: #ffffff !important;
-            color: #5d3fd3 !important;
-            transform: translateY(-3px) !important;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.13) !important;
-            border-color: #c7d2fe !important;
-        }
-        .wallet-page-btn.active {
-            background: #181928 !important;
-            color: #ffffff !important;
-            box-shadow: 0 6px 18px rgba(24, 25, 40, 0.35) !important;
-            border-color: #181928 !important;
-            cursor: default !important;
-            transform: none !important;
-        }
-        .wallet-page-btn.disabled {
-            opacity: 0.35 !important;
-            cursor: not-allowed !important;
-            pointer-events: none !important;
-        }
-        .wallet-page-btn i {
-            font-size: 14px !important;
-            color: inherit !important;
-        }
-    </style>
 </head>
 <body data-has-bank="${not empty bankAccount}"
     data-wallet-balance="${wallet.balance != null ? wallet.balance : 0}"
