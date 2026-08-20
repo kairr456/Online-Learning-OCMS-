@@ -116,7 +116,17 @@
                     <button type="button" class="btn btn-warning mb-4 px-4 py-2" onclick="addSection()">+ Add Curriculum Section</button>
 
                     <hr class="my-5">
-                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3">${not empty course ? 'Save Changes' : 'Publish Course'}</button>
+                    </div> <!-- End courseTabsContent -->
+                    
+                    <hr class="my-5">
+                    <div class="d-flex gap-3 mb-4">
+                        <button type="submit" name="submitAction" value="continue" class="btn btn-outline-primary btn-lg w-50 py-3 fw-bold">
+                            <i class="fas fa-save me-2"></i> Save Draft & Continue
+                        </button>
+                        <button type="submit" name="submitAction" value="exit" class="btn btn-primary btn-lg w-50 py-3 fw-bold">
+                            <i class="fas fa-check me-2"></i> ${not empty course ? 'Save Changes & Exit' : 'Publish Course & Exit'}
+                        </button>
+                    </div>
                     <input type="hidden" name="sectionCount" id="sectionCount" value="${not empty sections ? fn:length(sections) : 0}">
                 </form>
             </div>
@@ -341,7 +351,12 @@
                         var type = sel ? sel.value : 'script';
                         var rawHtml = document.getElementById('rawHtml_${sStat.index}_${lStat.index}').value;
                         var rawVideo = document.getElementById('rawVideoUrl_${sStat.index}_${lStat.index}').value;
-                        changeLessonType(${sStat.index}, ${lStat.index}, type, rawHtml, rawVideo);
+                        var rawQuizNum = document.getElementById('rawQuizNum_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizNum_${sStat.index}_${lStat.index}').value : '10';
+                        var rawQuizTime = document.getElementById('rawQuizTime_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizTime_${sStat.index}_${lStat.index}').value : '15';
+                        var rawQuizRetake = document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}').value : '3';
+                        var rawQuizPass = document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}').value : '5';
+                        var rawQuizGroup = document.getElementById('rawQuizGroup_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizGroup_${sStat.index}_${lStat.index}').value : '';
+                        changeLessonType(${sStat.index}, ${lStat.index}, type, rawHtml, rawVideo, {num: rawQuizNum, time: rawQuizTime, retake: rawQuizRetake, pass: rawQuizPass, group: rawQuizGroup});
                     </c:forEach>
                 </c:forEach>
             }
@@ -349,3 +364,4 @@
     </script>
 </body>
 </html>
+

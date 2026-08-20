@@ -8,15 +8,13 @@ import java.sql.Statement;
 public class LessonDAO extends DBContext {
 
     public int insertSection(Section section) {
-        String sql = "INSERT INTO section (course_id, title, description, order_number, status) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO section (course_id, title, order_number) VALUES (?, ?, ?)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, section.getCourseId());
             statement.setString(2, section.getTitle());
-            statement.setString(3, section.getDescription());
-            statement.setInt(4, section.getOrderNumber());
-            statement.setString(5, section.getStatus());
+            statement.setInt(3, section.getOrderNumber());
             
             int affected = statement.executeUpdate();
             if (affected > 0) {
@@ -34,7 +32,7 @@ public class LessonDAO extends DBContext {
     }
 
     public int insertLesson(Lesson lesson) {
-        String sql = "INSERT INTO lesson (section_id, title, type, order_number, duration_minutes, status) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO lesson (section_id, title, type, order_number, status) VALUES (?, ?, ?, ?, ?)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -42,8 +40,7 @@ public class LessonDAO extends DBContext {
             statement.setString(2, lesson.getTitle());
             statement.setString(3, lesson.getType());
             statement.setInt(4, lesson.getOrderNumber());
-            statement.setInt(5, lesson.getDurationMinutes());
-            statement.setString(6, lesson.getStatus());
+            statement.setString(5, lesson.getStatus());
             
             int affected = statement.executeUpdate();
             if (affected > 0) {
@@ -413,6 +410,69 @@ public class LessonDAO extends DBContext {
             
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+    }
+
+    public com.entity.LessonQuizz getLessonQuizConfig(int lessonId) {
+        String sql = "SELECT * FROM lesson_quiz WHERE lesson_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                com.entity.LessonQuizz q = new com.entity.LessonQuizz();
+                q.setId(resultSet.getInt("id"));
+                q.setLessonId(resultSet.getInt("lesson_id"));
+                q.setNumberOfQuestions(resultSet.getInt("number_of_questions"));
+                q.setTimeLimitMinutes(resultSet.getInt("time_limit_minutes"));
+                q.setMaxRetakes(resultSet.getInt("max_retakes"));
+                q.setPassingScore(resultSet.getInt("passing_score"));
+                q.setQuestionGroupId(resultSet.getInt("question_group_id"));
+                return q;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
+    public void upsertLessonQuiz(int lessonId, int numQuestions, int timeLimit, int maxRetakes, int passScore, int groupId) {
+        String checkSql = "SELECT id FROM lesson_quiz WHERE lesson_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(checkSql);
+            statement.setInt(1, lessonId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String upSql = "UPDATE lesson_quiz SET number_of_questions=?, time_limit_minutes=?, max_retakes=?, passing_score=?, question_group_id=? WHERE lesson_id=?";
+                java.sql.PreparedStatement ps = connection.prepareStatement(upSql);
+                ps.setInt(1, numQuestions);
+                ps.setInt(2, timeLimit);
+                ps.setInt(3, maxRetakes);
+                ps.setInt(4, passScore);
+                ps.setInt(5, groupId);
+                ps.setInt(6, lessonId);
+                ps.executeUpdate();
+                ps.close();
+            } else {
+                String inSql = "INSERT INTO lesson_quiz (lesson_id, number_of_questions, time_limit_minutes, max_retakes, passing_score, question_group_id) VALUES (?, ?, ?, ?, ?, ?)";
+                java.sql.PreparedStatement ps = connection.prepareStatement(inSql);
+                ps.setInt(1, lessonId);
+                ps.setInt(2, numQuestions);
+                ps.setInt(3, timeLimit);
+                ps.setInt(4, maxRetakes);
+                ps.setInt(5, passScore);
+                ps.setInt(6, groupId);
+                ps.executeUpdate();
+                ps.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         } finally {
             closeResources();
         }

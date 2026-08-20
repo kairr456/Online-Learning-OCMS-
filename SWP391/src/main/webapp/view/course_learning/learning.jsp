@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -152,6 +152,7 @@
                                 <c:if test="${not empty quizQuestions}">
                                     <form id="quizForm">
                                         <input type="hidden" name="quizId" value="${quizId}">
+                                        <input type="hidden" name="servedQuestionIds" value="${servedQuestionIds}">
                                         <c:forEach var="q" items="${quizQuestions}" varStatus="qs">
                                             <div class="quiz-question">
                                                 <div class="quiz-question-title">${qs.index + 1}. ${q.questionText}</div>

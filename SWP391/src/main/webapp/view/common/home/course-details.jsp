@@ -790,6 +790,9 @@
                     window.location.href = ctx + '/view/authen/login.jsp';
                     throw new Error('Unauthorized');
                 }
+                if (!res.ok) {
+                    throw new Error('Server responded with status ' + res.status);
+                }
                 return res.json();
             })
             .then(function (data) {
@@ -805,9 +808,16 @@
                             icon.classList.add('fa-regular');
                         }
                     }
+                } else {
+                    alert(data.message || 'Operation failed.');
                 }
             })
-            .catch(function (err) { console.error('Wishlist error:', err); });
+            .catch(function (err) {
+                console.error('Wishlist error:', err);
+                if (!err || err.message !== 'Unauthorized') {
+                    alert('Wishlist request failed: ' + (err && err.message ? err.message : 'Unknown error'));
+                }
+            });
         }
     </script>
 </body>
