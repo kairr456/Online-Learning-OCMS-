@@ -7,13 +7,17 @@ package com.controller.home;
 import com.DAO.AccountDAO;
 import com.DAO.CategoryDAO;
 import com.DAO.CourseDAO;
+import com.DAO.CourseRegistrationDAO;
 import com.DAO.WishlistDAO;
+import com.entity.Account;
 import com.entity.Category;
 import com.entity.Course;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -46,16 +50,24 @@ public class CourseHomeController extends HttpServlet {
 
             // 2. Parse Parameters
             List<Integer> categoryIds = new ArrayList<>();
+            List<String> selectedCategoriesStr = new ArrayList<>();
             if (categoryParams != null) {
                 for (String c : categoryParams) {
-                    try { categoryIds.add(Integer.parseInt(c)); } catch (NumberFormatException ignored) {}
+                    if (c != null && !c.trim().isEmpty()) {
+                        selectedCategoriesStr.add(c.trim());
+                        try { categoryIds.add(Integer.parseInt(c.trim())); } catch (NumberFormatException ignored) {}
+                    }
                 }
             }
 
             List<Integer> ratings = new ArrayList<>();
+            List<String> selectedRatingsStr = new ArrayList<>();
             if (ratingParams != null) {
                 for (String r : ratingParams) {
-                    try { ratings.add(Integer.parseInt(r)); } catch (NumberFormatException ignored) {}
+                    if (r != null && !r.trim().isEmpty()) {
+                        selectedRatingsStr.add(r.trim());
+                        try { ratings.add(Integer.parseInt(r.trim())); } catch (NumberFormatException ignored) {}
+                    }
                 }
             }
 
@@ -78,22 +90,17 @@ public class CourseHomeController extends HttpServlet {
             Map<Integer, String> authorNames = accountDAO.getAuthorNames();
             
             // 4.5. Load Enrolled Courses
-            java.util.List<Integer> enrolledCourseIds = new ArrayList<>();
-            java.util.Set<Integer> wishlistCourseIds = new java.util.HashSet<>();
-            com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+            Set<Integer> enrolledCourseIds = new HashSet<>();
+            Set<Integer> wishlistCourseIds = new HashSet<>();
+            Account account = (Account) request.getSession().getAttribute("account");
             if (account != null) {
-                com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
-                List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
-                for (Course c : enrolledCourses) {
-                    enrolledCourseIds.add(c.getId());
-                }
+                CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
+                enrolledCourseIds.addAll(regDAO.getEnrolledCourseIds(account.getId()));
                 
                 // ALSO add courses created by the user (so they are free for the creator)
                 List<Course> createdCourses = courseDAO.findByCreator(account.getId());
                 for (Course c : createdCourses) {
-                    if (!enrolledCourseIds.contains(c.getId())) {
-                        enrolledCourseIds.add(c.getId());
-                    }
+                    enrolledCourseIds.add(c.getId());
                 }
 
                 // Load wishlist course ids (to pre-fill heart icons)
@@ -112,6 +119,8 @@ public class CourseHomeController extends HttpServlet {
             // Keep selected filter state in UI
             request.setAttribute("selectedCategories", categoryIds);
             request.setAttribute("selectedRatings", ratings);
+            request.setAttribute("selectedCategoriesStr", selectedCategoriesStr);
+            request.setAttribute("selectedRatingsStr", selectedRatingsStr);
             request.setAttribute("teacherName", teacherName);
             request.setAttribute("courseName", courseName);
             request.setAttribute("sort", sort);
