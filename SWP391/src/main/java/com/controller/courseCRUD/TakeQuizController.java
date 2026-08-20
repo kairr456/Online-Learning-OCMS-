@@ -89,8 +89,23 @@ public class TakeQuizController extends HttpServlet {
             
             request.setAttribute("userAttempts", userAttempts);
             request.setAttribute("maxRetakes", maxRetakes);
-            List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
+            List<Map<String, Object>> allQuestions = quizDAO.getQuestionsByQuizId(quizId);
+            java.util.Collections.shuffle(allQuestions);
             
+            int numToTake = (Integer) lessonQuiz.get("number_of_questions");
+            List<Map<String, Object>> questions = allQuestions;
+            if (numToTake > 0 && numToTake < allQuestions.size()) {
+                questions = allQuestions.subList(0, numToTake);
+            }
+            
+            // Extract IDs for hidden input
+            StringBuilder servedIds = new StringBuilder();
+            for (Map<String, Object> q : questions) {
+                if (servedIds.length() > 0) servedIds.append(",");
+                servedIds.append(q.get("id"));
+            }
+            request.setAttribute("servedQuestionIds", servedIds.toString());
+
             // Map questionId -> answers
             Map<Integer, List<Map<String, Object>>> questionAnswersMap = new HashMap<>();
             for (Map<String, Object> q : questions) {
@@ -140,7 +155,23 @@ public class TakeQuizController extends HttpServlet {
             
             QuizDAO quizDAO = new QuizDAO();
             LessonDAO lessonDAO = new LessonDAO();
-            List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
+            List<Map<String, Object>> allQuestions = quizDAO.getQuestionsByQuizId(quizId);
+            String servedIdsParam = request.getParameter("servedQuestionIds");
+            List<Map<String, Object>> questions = new java.util.ArrayList<>();
+            if (servedIdsParam != null && !servedIdsParam.isEmpty()) {
+                String[] servedIdsArray = servedIdsParam.split(",");
+                java.util.Set<Integer> servedIdsSet = new java.util.HashSet<>();
+                for (String s : servedIdsArray) {
+                    servedIdsSet.add(Integer.parseInt(s.trim()));
+                }
+                for (Map<String, Object> q : allQuestions) {
+                    if (servedIdsSet.contains(q.get("id"))) {
+                        questions.add(q);
+                    }
+                }
+            } else {
+                questions = allQuestions; // fallback
+            }
             
             int totalPoints = 0;
             int earnedPoints = 0;

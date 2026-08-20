@@ -128,10 +128,16 @@
                                             <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
-                                                    data-course-id="${course.id}"
-                                                    data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
-                                                    onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            <div class="course-footer__actions">
+                                                <button type="button" class="wishlist-heart ${wishlistCourseIds != null and wishlistCourseIds.contains(course.id) ? 'active' : ''}"
+                                                        data-course-id="${course.id}" data-context-path="${pageContext.request.contextPath}" onclick="toggleWishlist(this)" title="Add to wishlist">
+                                                    <i class="${wishlistCourseIds != null and wishlistCourseIds.contains(course.id) ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                                </button>
+                                                <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
+                                                        data-course-id="${course.id}"
+                                                        data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                                        onclick="submitAddToCart(this);">ENROLL NOW</button>
+                                            </div>
                                             <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>₫</span>
                                         </c:otherwise>
                                     </c:choose>
@@ -173,6 +179,7 @@
             
         </main>
     </form>
+
     <form id="addToCartForm" action="${pageContext.request.contextPath}/cart" method="post" style="display:none;">
         <input type="hidden" name="action" value="add">
         <input type="hidden" name="courseId" id="cartCourseId">

@@ -113,7 +113,7 @@
                     <div class="nav-dropdown-menu">
                         <a href="<%= ctx %>/course-dashboard">Dashboard Home</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
-                        <a href="<%= ctx %>/dashboard-quiz">Dashboard Quiz</a>
+                        <a href="<%= ctx %>/dashboard-quiz">Question Bank</a>
                         <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>
@@ -205,3 +205,7 @@
     });
 })();
 </script>
+
+
+
+

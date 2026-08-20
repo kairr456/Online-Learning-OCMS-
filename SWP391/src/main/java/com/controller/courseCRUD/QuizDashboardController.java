@@ -1,9 +1,10 @@
 package com.controller.courseCRUD;
 
 import com.DAO.CourseDAO;
-import com.DAO.QuizDAO;
+import com.DAO.QuestionGroupDAO;
 import com.entity.Account;
 import com.entity.Course;
+import com.entity.QuestionGroup;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,6 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,42 +28,48 @@ public class QuizDashboardController extends HttpServlet {
         HttpSession session = request.getSession();
         Account account = (Account) session.getAttribute("account");
 
-        if (account == null || account.getRoleId() != 2) { // Assuming Role 2 is Teacher/Instructor
+        if (account == null || account.getRoleId() != 2) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
         int teacherId = account.getId();
-        QuizDAO quizDAO = new QuizDAO();
         CourseDAO courseDAO = new CourseDAO();
+        QuestionGroupDAO groupDAO = new QuestionGroupDAO();
+        com.DAO.QuizDAO quizDAO = new com.DAO.QuizDAO();
 
-        // 1. Get Summary KPIs
-        Map<String, Object> summary = quizDAO.getQuizSummary(teacherId);
-        request.setAttribute("summary", summary);
-
-        // 2. Handle Filters
-        String search = request.getParameter("search");
-        String courseId = request.getParameter("courseId");
-        String status = request.getParameter("status");
-
-        // Set attributes back to form so they don't reset
-        request.setAttribute("search", search);
-        request.setAttribute("selectedCourseId", courseId);
-        request.setAttribute("selectedStatus", status);
-
-        // 3. Get Course List for Dropdown
+        // Get teacher's courses
         List<Course> courses = courseDAO.findByCreator(teacherId);
-        request.setAttribute("courses", courses);
+        
+        List<Map<String, Object>> courseBankStats = new ArrayList<>();
+        int totalQuestions = 0;
+        int totalGroups = 0;
+        
+        for (Course c : courses) {
+            Map<String, Object> stat = new HashMap<>();
+            stat.put("courseId", c.getId());
+            stat.put("courseName", c.getName());
+            stat.put("thumbnail", c.getThumbnail());
+            
+            List<QuestionGroup> groups = groupDAO.getGroupsByCourseId(c.getId());
+            int courseQCount = 0;
+            for (QuestionGroup g : groups) {
+                courseQCount += quizDAO.getQuestionsByGroupId(g.getId()).size();
+            }
+            stat.put("groupCount", groups.size());
+            stat.put("questionCount", courseQCount);
+            
+            totalGroups += groups.size();
+            totalQuestions += courseQCount;
+            
+            courseBankStats.add(stat);
+        }
+        
+        request.setAttribute("courseBankStats", courseBankStats);
+        request.setAttribute("totalCourses", courses.size());
+        request.setAttribute("totalGroups", totalGroups);
+        request.setAttribute("totalQuestions", totalQuestions);
 
-        // 4. Get Quiz Data Table List
-        List<Map<String, Object>> quizzes = quizDAO.getQuizzesByTeacher(teacherId, search, courseId, status);
-        request.setAttribute("quizzes", quizzes);
-
-        // 5. Get Recent Attempts
-        List<Map<String, Object>> recentAttempts = quizDAO.getRecentAttempts(teacherId, 5); // Limit 5
-        request.setAttribute("recentAttempts", recentAttempts);
-
-        // Forward to JSP
         request.getRequestDispatcher("/view/courseCRUD/dashboard-quiz.jsp").forward(request, response);
     }
 }

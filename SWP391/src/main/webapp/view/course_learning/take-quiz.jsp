@@ -48,6 +48,7 @@
             <form id="quizForm">
                 <input type="hidden" name="quizId" value="${lessonQuiz.id}">
                 <input type="hidden" name="lessonId" value="${lesson.id}">
+                <input type="hidden" name="servedQuestionIds" value="${servedQuestionIds}">
                 
                 <c:forEach var="question" items="${questions}" varStatus="status">
                     <div class="question-card">
