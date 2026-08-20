@@ -190,7 +190,10 @@ public class LessonController extends HttpServlet {
                             lesson.setId(lessonId);
                             lesson.setSectionId(sectionId);
                             lesson.setTitle(lesTitle);
-                            lesson.setType(type);
+                            String dbType = type;
+                            if ("script".equals(type) || "text_image".equals(type)) dbType = "text";
+                            if ("video_image".equals(type)) dbType = "video";
+                            lesson.setType(dbType);
                             lesson.setOrderNumber(l + 1);
                             lesson.setDurationMinutes(0);
                             lesson.setStatus("active");
@@ -306,3 +309,4 @@ public class LessonController extends HttpServlet {
         }
     }
 }
+

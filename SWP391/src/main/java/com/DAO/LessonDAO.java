@@ -8,15 +8,13 @@ import java.sql.Statement;
 public class LessonDAO extends DBContext {
 
     public int insertSection(Section section) {
-        String sql = "INSERT INTO section (course_id, title, description, order_number, status) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO section (course_id, title, order_number) VALUES (?, ?, ?)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1, section.getCourseId());
             statement.setString(2, section.getTitle());
-            statement.setString(3, section.getDescription());
-            statement.setInt(4, section.getOrderNumber());
-            statement.setString(5, section.getStatus());
+            statement.setInt(3, section.getOrderNumber());
             
             int affected = statement.executeUpdate();
             if (affected > 0) {
@@ -34,7 +32,7 @@ public class LessonDAO extends DBContext {
     }
 
     public int insertLesson(Lesson lesson) {
-        String sql = "INSERT INTO lesson (section_id, title, type, order_number, duration_minutes, status) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO lesson (section_id, title, type, order_number, status) VALUES (?, ?, ?, ?, ?)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -42,8 +40,7 @@ public class LessonDAO extends DBContext {
             statement.setString(2, lesson.getTitle());
             statement.setString(3, lesson.getType());
             statement.setInt(4, lesson.getOrderNumber());
-            statement.setInt(5, lesson.getDurationMinutes());
-            statement.setString(6, lesson.getStatus());
+            statement.setString(5, lesson.getStatus());
             
             int affected = statement.executeUpdate();
             if (affected > 0) {
@@ -359,3 +356,4 @@ public class LessonDAO extends DBContext {
         }
     }
 }
+
