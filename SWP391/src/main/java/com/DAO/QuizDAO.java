@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.entity.QuizQuestion;
 
 public class QuizDAO extends DBContext {
 
@@ -26,7 +27,7 @@ public class QuizDAO extends DBContext {
                      "  COUNT(DISTINCT CASE WHEN qa.passed = 1 THEN qa.id ELSE NULL END) AS passed_attempts " +
                      "FROM lesson l " +
                      "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                     "LEFT JOIN question_bank qb ON l.id = qb.lesson_id " +
+                     "LEFT JOIN question_bank qb ON lq.question_group_id = qb.group_id " +
                      "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
                      "WHERE l.created_by = ? AND l.type = 'quiz'";
 
@@ -64,7 +65,7 @@ public class QuizDAO extends DBContext {
             "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
             "LEFT JOIN section s ON l.section_id = s.id " +
             "LEFT JOIN course c ON s.course_id = c.id " +
-            "LEFT JOIN question_bank qb ON l.id = qb.lesson_id " +
+            "LEFT JOIN question_bank qb ON lq.question_group_id = qb.group_id " +
             "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
             "WHERE l.created_by = ? AND l.type = 'quiz' "
         );
@@ -269,21 +270,22 @@ public class QuizDAO extends DBContext {
         return null;
     }
 
-    public List<Map<String, Object>> getQuestionsByQuizId(int quizId) {
+        public List<Map<String, Object>> getQuestionsByQuizId(int quizId) {
         List<Map<String, Object>> questions = new ArrayList<>();
         String sql = "SELECT qb.* FROM question_bank qb " +
-                     "JOIN lesson_quiz lq ON qb.lesson_id = lq.lesson_id " +
-                     "WHERE lq.id = ? AND qb.status = 'active' ORDER BY qb.id ASC";
+                     "JOIN lesson_quiz lq ON qb.group_id = lq.question_group_id " +
+                     "WHERE lq.id = ? AND qb.status = 'active'";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, quizId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
-                    map.put("quiz_id", quizId); // Backward compatibility
+                    map.put("course_id", rs.getInt("course_id"));
+                    map.put("group_id", rs.getInt("group_id"));
                     map.put("question_text", rs.getString("question_text"));
                     map.put("points", rs.getInt("points"));
-                    map.put("order_number", 1); // Not used
+                    map.put("status", rs.getString("status"));
                     questions.add(map);
                 }
             }
@@ -624,4 +626,70 @@ public class QuizDAO extends DBContext {
         }
         return null;
     }
+
+    public List<QuizQuestion> getQuestionsByGroupId(int groupId) {
+        List<QuizQuestion> questions = new ArrayList<>();
+        String sql = "SELECT * FROM question_bank WHERE group_id = ? ORDER BY id DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    questions.add(new QuizQuestion(
+                        rs.getInt("id"),
+                        rs.getInt("course_id"),
+                        rs.getInt("lesson_id"),
+                        rs.getInt("group_id"),
+                        rs.getString("question_text"),
+                        rs.getInt("points"),
+                        rs.getString("status"),
+                        rs.getTimestamp("created_date")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return questions;
+    }
+
+    public int insertQuestion(int courseId, int groupId, String questionText, int points) throws SQLException {
+        String sql = "INSERT INTO question_bank (course_id, group_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, courseId);
+            ps.setInt(2, groupId);
+            ps.setString(3, questionText);
+            ps.setInt(4, points);
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public void updateQuestion(int questionId, String questionText, int points) throws SQLException {
+        String sql = "UPDATE question_bank SET question_text = ?, points = ? WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, questionText);
+            ps.setInt(2, points);
+            ps.setInt(3, questionId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteQuestion(int questionId) throws SQLException {
+        String sql1 = "DELETE FROM question_bank_answer WHERE question_bank_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql1)) {
+            ps.setInt(1, questionId);
+            ps.executeUpdate();
+        }
+        String sql2 = "DELETE FROM question_bank WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql2)) {
+            ps.setInt(1, questionId);
+            ps.executeUpdate();
+        }
+    }
 }
+
+
+

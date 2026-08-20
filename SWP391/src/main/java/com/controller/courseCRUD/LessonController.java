@@ -64,6 +64,9 @@ public class LessonController extends HttpServlet {
                     
                     request.setAttribute("sections", sections);
                     request.setAttribute("lessonsMap", lessonsMap);
+                    
+                    java.util.List<com.entity.QuestionGroup> questionGroups = new com.DAO.QuestionGroupDAO().getGroupsByCourseId(courseId);
+                    request.setAttribute("questionGroups", questionGroups);
                 }
             }
         } catch (Exception e) {
@@ -135,6 +138,18 @@ public class LessonController extends HttpServlet {
                 if (courseId > 0) {
                     new com.DAO.CourseApprovalDAO().insertLog(courseId, "SUBMIT", "draft", "pending",
                             account.getId(), "", request.getRemoteAddr());
+                            
+                    // Automatically enroll the teacher in their own course
+                    try {
+                        String enrollSql = "INSERT INTO registration (account_id, course_id, status) VALUES (?, ?, 'Active')";
+                        try (java.sql.PreparedStatement ps = new com.DAO.DBContext().getConnection().prepareStatement(enrollSql)) {
+                            ps.setInt(1, account.getId());
+                            ps.setInt(2, courseId);
+                            ps.executeUpdate();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -290,11 +305,25 @@ public class LessonController extends HttpServlet {
                                         lessonDAO.upsertLessonVideo(lessonId, videoId);
                                     }
                                 } else if ("quiz".equals(type)) {
-                                    String quizId = request.getParameter("lessonQuiz_" + s + "_" + l);
-                                    if (quizId != null) {
-                                        lessonDAO.upsertLessonText(lessonId, "Quiz ID: " + quizId); // Placeholder
+                                    String qGroupStr = request.getParameter("lessonQuizGroup_" + s + "_" + l);
+                                    String qNumStr = request.getParameter("lessonQuizNum_" + s + "_" + l);
+                                    String qTimeStr = request.getParameter("lessonQuizTime_" + s + "_" + l);
+                                    String qRetakeStr = request.getParameter("lessonQuizRetake_" + s + "_" + l);
+                                    String qPassStr = request.getParameter("lessonQuizPass_" + s + "_" + l);
+                                    
+                                    if (qGroupStr != null && !qGroupStr.isEmpty()) {
+                                        try {
+                                            int qGroup = Integer.parseInt(qGroupStr);
+                                            int qNum = Integer.parseInt(qNumStr);
+                                            int qTime = Integer.parseInt(qTimeStr);
+                                            int qRetake = Integer.parseInt(qRetakeStr);
+                                            int qPass = Integer.parseInt(qPassStr);
+                                            lessonDAO.upsertLessonQuiz(lessonId, qNum, qTime, qRetake, qPass, qGroup);
+                                        } catch (NumberFormatException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
-                                }
+                        }
                             }
                         }
                     }
@@ -304,9 +333,15 @@ public class LessonController extends HttpServlet {
                     lessonDAO.cleanupRemovedSectionsAndLessons(courseId, keptSectionIds, keptLessonIds);
                 }
                 
-                session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course created successfully!");
+                String submitAction = request.getParameter("submitAction");
+                session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course saved successfully!");
                 session.setAttribute("messageType", "success");
-                response.sendRedirect(request.getContextPath() + (isUpdate ? "/course-dashboard" : "/courses"));
+                
+                if ("continue".equals(submitAction)) {
+                    response.sendRedirect(request.getContextPath() + "/lesson?courseId=" + courseId);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/course-dashboard");
+                }
             } else {
                 throw new Exception("Failed to save course.");
             }
@@ -318,4 +353,9 @@ public class LessonController extends HttpServlet {
         }
     }
 }
+
+
+
+
+
 
