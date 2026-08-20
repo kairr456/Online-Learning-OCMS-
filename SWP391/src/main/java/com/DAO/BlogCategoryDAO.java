@@ -2,6 +2,8 @@ package com.DAO;
 
 import com.entity.BlogCategory;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,36 +12,56 @@ import java.util.List;
 
 /**
  * Data Access Object cho bảng blog_category.
- * Hỗ trợ các thao tác CRUD, tìm kiếm, phân trang và đếm bài viết thuộc danh mục.
+ * Hỗ trợ các thao tác CRUD, tìm kiếm, phân trang, kiểm tra số lượng bài viết và Xóa mềm (Soft Delete).
  */
 public class BlogCategoryDAO extends DBContext {
 
-    /**
-     * Lấy toàn bộ danh sách danh mục blog kèm số lượng bài viết
-     */
-    public List<BlogCategory> getAllBlogCategories() {
-        List<BlogCategory> list = new ArrayList<>();
-        String sql = "SELECT bc.id, bc.name, bc.description, bc.created_at, bc.updated_at, "
-                + "       (SELECT COUNT(*) FROM blog b WHERE b.category_id = bc.id) AS blog_count "
-                + "FROM blog_category bc "
-                + "ORDER BY bc.id DESC";
+    @Override
+    public Connection getConnection() {
         try {
-            connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                list.add(mapResultSetToCategory(resultSet));
+            if (connection == null || connection.isClosed()) {
+                connection = new DBContext().getConnection();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeResources();
+            connection = new DBContext().getConnection();
         }
-        return list;
+        return connection;
+    }
+
+    public BlogCategoryDAO() {
+        super();
+        ensureDeletedColumn();
     }
 
     /**
-     * Tìm kiếm và phân trang danh mục blog
+     * Tự động thêm cột is_deleted vào bảng blog_category nếu chưa có
+     */
+    private void ensureDeletedColumn() {
+        Statement st = null;
+        try {
+            Connection conn = getConnection();
+            if (conn != null) {
+                st = conn.createStatement();
+                st.executeUpdate("ALTER TABLE blog_category ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0");
+            }
+        } catch (Exception ignored) {
+            // Cột đã tồn tại
+        } finally {
+            if (st != null) {
+                try { st.close(); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    /**
+     * Lấy toàn bộ danh sách danh mục blog chưa bị xóa mềm
+     */
+    public List<BlogCategory> getAllBlogCategories() {
+        return searchBlogCategories(null, 1, 1000);
+    }
+
+    /**
+     * Tìm kiếm và phân trang danh mục blog chưa bị xóa mềm
      *
      * @param keyword  Từ khóa tìm kiếm theo tên hoặc mô tả (có thể null hoặc rỗng)
      * @param page     Số trang hiện tại (>= 1)
@@ -54,8 +76,47 @@ public class BlogCategoryDAO extends DBContext {
                 "SELECT bc.id, bc.name, bc.description, bc.created_at, bc.updated_at, "
                 + "       (SELECT COUNT(*) FROM blog b WHERE b.category_id = bc.id) AS blog_count "
                 + "FROM blog_category bc "
+                + "WHERE (bc.is_deleted = 0 OR bc.is_deleted IS NULL) "
         );
 
+        if (hasKeyword) {
+            sql.append("AND (bc.name LIKE ? OR bc.description LIKE ?) ");
+        }
+        sql.append("ORDER BY bc.id DESC LIMIT ? OFFSET ?");
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            if (hasKeyword) {
+                String searchPattern = "%" + keyword.trim() + "%";
+                statement.setString(idx++, searchPattern);
+                statement.setString(idx++, searchPattern);
+            }
+            statement.setInt(idx++, pageSize);
+            statement.setInt(idx, offset);
+
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                list.add(mapResultSetToCategory(resultSet));
+            }
+        } catch (SQLException e) {
+            System.err.println("[BlogCategoryDAO] Lỗi searchBlogCategories: " + e.getMessage());
+            // Fallback nếu cột is_deleted chưa tồn tại trong MySQL
+            list = searchBlogCategoriesFallback(keyword, offset, pageSize, hasKeyword);
+        } finally {
+            closeResources();
+        }
+        return list;
+    }
+
+    private List<BlogCategory> searchBlogCategoriesFallback(String keyword, int offset, int pageSize, boolean hasKeyword) {
+        List<BlogCategory> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT bc.id, bc.name, bc.description, bc.created_at, bc.updated_at, "
+                + "       (SELECT COUNT(*) FROM blog b WHERE b.category_id = bc.id) AS blog_count "
+                + "FROM blog_category bc "
+        );
         if (hasKeyword) {
             sql.append("WHERE (bc.name LIKE ? OR bc.description LIKE ?) ");
         }
@@ -77,8 +138,8 @@ public class BlogCategoryDAO extends DBContext {
             while (resultSet.next()) {
                 list.add(mapResultSetToCategory(resultSet));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         } finally {
             closeResources();
         }
@@ -86,13 +147,13 @@ public class BlogCategoryDAO extends DBContext {
     }
 
     /**
-     * Đếm tổng số danh mục theo từ khóa tìm kiếm
+     * Đếm tổng số danh mục chưa bị xóa mềm theo từ khóa tìm kiếm
      */
     public int countBlogCategories(String keyword) {
         boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blog_category ");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blog_category WHERE (is_deleted = 0 OR is_deleted IS NULL) ");
         if (hasKeyword) {
-            sql.append("WHERE (name LIKE ? OR description LIKE ?) ");
+            sql.append("AND (name LIKE ? OR description LIKE ?) ");
         }
 
         try {
@@ -108,7 +169,33 @@ public class BlogCategoryDAO extends DBContext {
                 return resultSet.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("[BlogCategoryDAO] Lỗi countBlogCategories: " + e.getMessage());
+            return countBlogCategoriesFallback(keyword, hasKeyword);
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    private int countBlogCategoriesFallback(String keyword, boolean hasKeyword) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blog_category ");
+        if (hasKeyword) {
+            sql.append("WHERE (name LIKE ? OR description LIKE ?) ");
+        }
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql.toString());
+            if (hasKeyword) {
+                String searchPattern = "%" + keyword.trim() + "%";
+                statement.setString(1, searchPattern);
+                statement.setString(2, searchPattern);
+            }
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         } finally {
             closeResources();
         }
@@ -140,7 +227,7 @@ public class BlogCategoryDAO extends DBContext {
     }
 
     /**
-     * Kiểm tra xem tên danh mục đã tồn tại hay chưa (dùng khi Add hoặc Edit)
+     * Kiểm tra xem tên danh mục đã tồn tại hay chưa trong các danh mục chưa bị xóa mềm
      *
      * @param name      Tên danh mục cần kiểm tra
      * @param excludeId ID danh mục bỏ qua kiểm tra (truyền 0 hoặc -1 nếu là Add mới)
@@ -217,10 +304,10 @@ public class BlogCategoryDAO extends DBContext {
     }
 
     /**
-     * Xóa danh mục blog theo ID
+     * XÓA MỀM (Soft Delete) danh mục blog theo ID: cập nhật is_deleted = 1
      */
     public boolean deleteBlogCategory(int id) {
-        String sql = "DELETE FROM blog_category WHERE id = ?";
+        String sql = "UPDATE blog_category SET is_deleted = 1, updated_at = NOW() WHERE id = ?";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
@@ -228,7 +315,23 @@ public class BlogCategoryDAO extends DBContext {
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            // Fallback nếu không có cột is_deleted
+            System.err.println("[BlogCategoryDAO] Lỗi soft delete: " + e.getMessage());
+            return deleteBlogCategoryFallback(id);
+        } finally {
+            closeResources();
+        }
+    }
+
+    private boolean deleteBlogCategoryFallback(int id) {
+        String sql = "DELETE FROM blog_category WHERE id = ?";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         } finally {
             closeResources();
         }

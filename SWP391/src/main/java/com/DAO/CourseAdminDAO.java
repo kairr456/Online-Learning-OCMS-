@@ -27,10 +27,16 @@ public class CourseAdminDAO extends DBContext {
     public List<Course> searchCourses(String keyword, String status, Integer categoryId, int page, int pageSize) {
         List<Course> courses = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT c.*, a.full_name AS teacher_name, cat.name AS category_name "
+                "SELECT c.*, a.full_name AS teacher_name, cat.name AS category_name, COALESCE(r.avg_rating, c.rating, 0) AS real_rating "
                 + "FROM course c "
                 + "JOIN account a ON c.created_by = a.id "
-                + "JOIN category cat ON c.category_id = cat.id WHERE 1=1");
+                + "JOIN category cat ON c.category_id = cat.id "
+                + "LEFT JOIN ("
+                + "    SELECT course_id, ROUND(AVG(rating)) AS avg_rating "
+                + "    FROM review "
+                + "    GROUP BY course_id"
+                + ") r ON c.id = r.course_id "
+                + "WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         // Tìm theo từ khóa: khớp tên hoặc mô tả khóa học
@@ -67,8 +73,7 @@ public class CourseAdminDAO extends DBContext {
             }
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                // Dùng lại mapper chung của CourseDAO (đã đổi thành static)
-                Course course = mapCourse( resultSet);
+                Course course = mapCourse(resultSet);
                 course.setCategoryName(resultSet.getString("category_name"));
                 course.setTeacherName(resultSet.getString("teacher_name"));
                 courses.add(course);
@@ -158,7 +163,15 @@ public class CourseAdminDAO extends DBContext {
         course.setName(rs.getString("name"));
         course.setDescription(rs.getString("description"));
         course.setThumbnail(rs.getString("thumbnail"));
-        course.setRating(rs.getInt("rating"));
+        int rating = 0;
+        try {
+            rating = rs.getInt("real_rating");
+        } catch (Exception e) {
+            try {
+                rating = rs.getInt("rating");
+            } catch (Exception ignored) {}
+        }
+        course.setRating(rating);
         course.setPrice(rs.getFloat("price"));
         course.setStatus(rs.getString("status"));
         course.setCreatedDate(cDate != null ? cDate.toLocalDateTime() : null);

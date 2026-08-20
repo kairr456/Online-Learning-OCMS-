@@ -137,6 +137,7 @@ public class AccountDAO extends DBContext {
         java.util.Map<Integer, String> authors = new java.util.HashMap<>();
         String sql = "SELECT id, username, full_name FROM account";
         try {
+            connection = getConnection();
             statement = connection.prepareStatement(sql);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
