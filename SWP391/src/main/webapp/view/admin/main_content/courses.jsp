@@ -25,12 +25,14 @@
         </div>
 
         <div class="filter-group">
-            <!-- Lọc theo trạng thái (active / inactive / draft) -->
+            <!-- Lọc theo trạng thái (active / inactive / draft / pending / cancelled) -->
             <select name="status" class="filter-select" onchange="submitFilter()">
                 <option value="">All Status</option>
                 <option value="active" ${param.status == 'active' ? 'selected' : ''}>Active</option>
                 <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Inactive</option>
                 <option value="draft" ${param.status == 'draft' ? 'selected' : ''}>Draft</option>
+                <option value="pending" ${param.status == 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="cancelled" ${param.status == 'cancelled' ? 'selected' : ''}>Cancelled</option>
             </select>
 
             <!-- Lọc theo danh mục (lấy từ CategoryDAO.findAll()) -->
@@ -80,6 +82,12 @@
                                 <c:when test="${course.status == 'inactive'}">
                                     <span class="badge inactive">Inactive</span>
                                 </c:when>
+                                <c:when test="${course.status == 'pending'}">
+                                    <span class="badge pending">Pending</span>
+                                </c:when>
+                                <c:when test="${course.status == 'cancelled'}">
+                                    <span class="badge cancelled">Cancelled</span>
+                                </c:when>
                                 <c:otherwise>
                                     <span class="badge draft">Draft</span>
                                 </c:otherwise>
@@ -109,6 +117,21 @@
                                title="Deactivate">
                                 <i class="fa-regular fa-trash-can"></i>
                             </a>
+
+                            <c:if test="${course.status == 'pending'}">
+                                <a href="${pageContext.request.contextPath}/admin/courses?action=approve&id=${course.id}"
+                                   class="btn-action approve"
+                                   onclick="return confirm('Approve this course?')"
+                                   title="Approve">
+                                    <i class="fa-solid fa-check"></i>
+                                </a>
+
+                                <button type="button" class="btn-action reject"
+                                        title="Reject"
+                                        onclick="openReject(${course.id})">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </c:if>
                         </td>
                     </tr>
                 </c:forEach>
