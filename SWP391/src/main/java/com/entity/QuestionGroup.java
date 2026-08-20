@@ -7,6 +7,7 @@ public class QuestionGroup {
     private Integer courseId;
     private String name;
     private Timestamp createdDate;
+    private int questionCount;
 
     public QuestionGroup() {}
 
@@ -25,4 +26,7 @@ public class QuestionGroup {
     public void setName(String name) { this.name = name; }
     public Timestamp getCreatedDate() { return createdDate; }
     public void setCreatedDate(Timestamp createdDate) { this.createdDate = createdDate; }
+    public int getQuestionCount() { return questionCount; }
+    public void setQuestionCount(int questionCount) { this.questionCount = questionCount; }
 }
+

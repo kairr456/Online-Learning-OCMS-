@@ -16,8 +16,6 @@ import java.util.logging.Logger;
 public class ReviewDAO extends DBContext {
 
     public ReviewDAO() {
-        // Tự động đồng bộ số sao trung bình của tất cả khóa học từ bảng review vào bảng course
-        syncAllCourseRatings();
     }
 
     /**
@@ -97,19 +95,6 @@ public class ReviewDAO extends DBContext {
             updateCourseRating(review.getCourseId());
         }
         return success;
-    }
-
-    private void updateCourseAverageRating(int courseId) {
-        String sql = "UPDATE course SET rating = (SELECT ROUND(AVG(rating), 1) FROM review WHERE course_id = ?) WHERE id = ?";
-        try {
-            java.sql.PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, courseId);
-            ps.setInt(2, courseId);
-            ps.executeUpdate();
-            ps.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(ReviewDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     public List<Review> getReviewsByCourseId(int courseId) {

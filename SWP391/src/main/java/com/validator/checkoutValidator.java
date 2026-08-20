@@ -16,17 +16,17 @@ public class checkoutValidator {
     private static final Pattern NAME_PATTERN =
             Pattern.compile("^[\\p{L}\\s'-]+$");
 
-    // Regex kiểm tra số thẻ 16 chữ số
+    // Regex kiểm tra số thẻ 12 đến 20 chữ số
     private static final Pattern CARD_NUMBER_PATTERN =
-            Pattern.compile("^\\d{16}$");
+            Pattern.compile("^\\d{12,20}$");
 
     // Regex kiểm tra ngày hết hạn MM/YY
     private static final Pattern EXPIRY_PATTERN =
             Pattern.compile("^(0[1-9]|1[0-2])\\/?([0-9]{2})$");
 
-    // Regex kiểm tra CVC/CVV 3-4 chữ số
+    // Regex kiểm tra CVC/CVV gồm đúng 3 chữ số
     private static final Pattern CVC_PATTERN =
-            Pattern.compile("^\\d{3,4}$");
+            Pattern.compile("^\\d{3}$");
 
     private checkoutValidator() {
     }
@@ -80,7 +80,7 @@ public class checkoutValidator {
 
         // 3. Validate Email
         if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
-            return "Email liên hệ không đúng định dạng.";
+            return "Email liên hệ không đúng định dạng vd:user01@gmai.com";
         }
 
         // 4. Validate thông tin thanh toán theo phương thức
@@ -100,13 +100,13 @@ public class checkoutValidator {
                 return "Thiếu trường chưa điền: Vui lòng nhập Tên in trên thẻ.";
             }
 
-            // Validate Số thẻ: đúng 16 chữ số sau khi bỏ khoảng trắng
+            // Validate Số thẻ: từ 12 đến 20 chữ số sau khi bỏ khoảng trắng
             String cleanCardNumber = cardNumber.replaceAll("\\s+", "");
             if (!cleanCardNumber.matches("\\d+")) {
                 return "Số thẻ chỉ được chứa các chữ số.";
             }
-            if (cleanCardNumber.length() != 16 || !CARD_NUMBER_PATTERN.matcher(cleanCardNumber).matches()) {
-                return "Số thẻ phải gồm đúng 16 chữ số.";
+            if (cleanCardNumber.length() < 12 || cleanCardNumber.length() > 20 || !CARD_NUMBER_PATTERN.matcher(cleanCardNumber).matches()) {
+                return "Số thẻ phải gồm từ 12 đến 20 chữ số.";
             }
 
             // Validate Ngày hết hạn (MM/YY)
@@ -115,10 +115,10 @@ public class checkoutValidator {
                 return "Ngày hết hạn thẻ không hợp lệ (định dạng đúng là MM/YY, ví dụ: 12/28).";
             }
 
-            // Validate CVC (3-4 số)
+            // Validate CVC (đúng 3 số)
             String trimmedCvc = cvc.trim();
             if (!CVC_PATTERN.matcher(trimmedCvc).matches()) {
-                return "Mã CVC / CVV phải gồm 3 hoặc 4 chữ số.";
+                return "Mã CVC / CVV phải gồm đúng 3 chữ số.";
             }
 
             // Validate Tên in trên thẻ (chữ, không được chứa số)

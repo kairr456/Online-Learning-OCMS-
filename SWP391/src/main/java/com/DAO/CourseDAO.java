@@ -11,7 +11,6 @@ import java.sql.Statement;
 public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     public CourseDAO() {
-        new ReviewDAO().syncAllCourseRatings();
     }
 
     @Override
@@ -179,25 +178,6 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
         return null;
     }
 
-    public List<Course> findByCategoryId(int categoryId) {
-        List<Course> courses = new ArrayList<>();
-        String sql = "SELECT * FROM course WHERE category_id = ?";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, categoryId);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                courses.add(getFromResultSet(resultSet));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error finding courses by category ID: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return courses;
-    }
-
     public List<Course> findByCreator(int creatorId) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT * FROM course WHERE created_by = ?";
@@ -215,97 +195,6 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             closeResources();
         }
         return courses;
-    }
-
-    public List<Course> findWithPagination(int pageNumber, int pageSize) {
-        List<Course> courses = new ArrayList<>();
-        String sql = "SELECT * FROM course ORDER BY id LIMIT ? OFFSET ?";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(2, (pageNumber - 1) * pageSize);
-            statement.setInt(1, pageSize);
-            resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                courses.add(getFromResultSet(resultSet));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error in pagination: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return courses;
-    }
-
-    public int getTotalRecords() {
-        String sql = "SELECT COUNT(*) as total FROM course";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt("total");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting total records: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return 0;
-    }
-
-    public int getTotalPages(int pageSize) {
-        int totalRecords = getTotalRecords();
-        return (int) Math.ceil((double) totalRecords / pageSize);
-    }
-
-    public List<Course> searchWithPagination(String keyword, int pageNumber, int pageSize) {
-        List<Course> courses = new ArrayList<>();
-        String sql = "SELECT * FROM course WHERE name LIKE ? OR description LIKE ? "
-                + "ORDER BY id LIMIT ? OFFSET ?";
-        try {
-            // Mở kết nối đến cơ sở dữ liệu
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-
-            // Set các tham số
-            statement.setString(1, "%" + keyword + "%"); // Tìm kiếm từ khóa trong name
-            statement.setString(2, "%" + keyword + "%"); // Tìm kiếm từ khóa trong description
-            statement.setInt(3, pageSize); // Số lượng bản ghi trên mỗi trang (LIMIT)
-            statement.setInt(4, (pageNumber - 1) * pageSize); // OFFSET (bỏ qua số bản ghi)
-
-            // Thực thi câu lệnh truy vấn
-            resultSet = statement.executeQuery();
-
-            // Lặp qua kết quả và chuyển đổi thành đối tượng Course
-            while (resultSet.next()) {
-                courses.add(getFromResultSet(resultSet));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error in search with pagination: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return courses;
-    }
-
-    public int getTotalSearchResults(String keyword) {
-        String sql = "SELECT COUNT(*) as total FROM course WHERE name LIKE ? OR description LIKE ?";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setString(1, "%" + keyword + "%");
-            statement.setString(2, "%" + keyword + "%");
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt("total");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting total search results: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return 0;
     }
 
     public List<Course> findWithFilters(List<Integer> categoryIds, List<Integer> ratings,
@@ -368,17 +257,22 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             params.addAll(ratings);
         }
 
-        // Add teacher name search
+        // Add teacher name / course search (case-insensitive)
         if (teacherName != null && !teacherName.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.username LIKE ?)");
-            params.add("%" + teacherName + "%");
-            params.add("%" + teacherName + "%");
+            sql.append(" AND (LOWER(a.full_name) LIKE LOWER(?) OR LOWER(a.username) LIKE LOWER(?) OR LOWER(c.name) LIKE LOWER(?))");
+            String kw = "%" + teacherName.trim() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
         }
 
-        // Add course name search -- same LIKE pattern as the teacher-name filter above
+        // Add course name search (case-insensitive)
         if (courseName != null && !courseName.trim().isEmpty()) {
-            sql.append(" AND c.name LIKE ?");
-            params.add("%" + courseName + "%");
+            sql.append(" AND (LOWER(c.name) LIKE LOWER(?) OR LOWER(a.full_name) LIKE LOWER(?) OR LOWER(a.username) LIKE LOWER(?))");
+            String kw = "%" + courseName.trim() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
         }
 
         // Add pagination
@@ -446,15 +340,22 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             params.addAll(ratings);
         }
 
+        // Add teacher name / course search (case-insensitive)
         if (teacherName != null && !teacherName.trim().isEmpty()) {
-            sql.append(" AND (a.full_name LIKE ? OR a.username LIKE ?)");
-            params.add("%" + teacherName + "%");
-            params.add("%" + teacherName + "%");
+            sql.append(" AND (LOWER(a.full_name) LIKE LOWER(?) OR LOWER(a.username) LIKE LOWER(?) OR LOWER(c.name) LIKE LOWER(?))");
+            String kw = "%" + teacherName.trim() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
         }
 
+        // Add course name search (case-insensitive)
         if (courseName != null && !courseName.trim().isEmpty()) {
-            sql.append(" AND c.name LIKE ?");
-            params.add("%" + courseName + "%");
+            sql.append(" AND (LOWER(c.name) LIKE LOWER(?) OR LOWER(a.full_name) LIKE LOWER(?) OR LOWER(a.username) LIKE LOWER(?))");
+            String kw = "%" + courseName.trim() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
         }
 
         try {
