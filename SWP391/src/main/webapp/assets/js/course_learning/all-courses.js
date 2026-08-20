@@ -214,11 +214,11 @@ function filterCourses() {
 
     if (sortBy === 'title-asc') {
         visibleCards.sort(function (a, b) {
-            return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'));
+            return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'), undefined, { numeric: true, sensitivity: 'base' });
         });
     } else if (sortBy === 'title-desc') {
         visibleCards.sort(function (a, b) {
-            return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'));
+            return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'), undefined, { numeric: true, sensitivity: 'base' });
         });
     }
 
