@@ -170,7 +170,13 @@ public class MyLearningController extends HttpServlet {
                     }
                 }
                 body.append("\nKeep up the good work!\nOCMS");
-                EmailService.sendEmail("ducduy8000pro@gmail.com", "OCMS - Learning Reminder (Test)", body.toString());
+                try {
+                    EmailService.sendEmail("ducduy8000pro@gmail.com", "OCMS - Learning Reminder (Test)", body.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    out.print("{\"status\":\"error\", \"message\":\"Failed to send email: " + e.getMessage() + "\"}");
+                    return;
+                }
                 out.print("{\"status\":\"success\",\"message\":\"Test reminder email sent\"}");
                 return;
 
