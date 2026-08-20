@@ -620,3 +620,27 @@ body {
 .delete-blog-title {
     color: var(--text-dark);
 }
+
+/* Force light theme colors on search and filter inputs */
+.search-input-wrap .search-input {
+    background-color: #ffffff !important;
+    color: #0F1E33 !important;
+    caret-color: #0F1E33 !important;
+    color-scheme: light !important;
+    -webkit-text-fill-color: #0F1E33 !important;
+    opacity: 1 !important;
+}
+.search-input-wrap .search-input::placeholder {
+    color: #5B6B82 !important;
+    -webkit-text-fill-color: #5B6B82 !important;
+    opacity: 0.85 !important;
+}
+.filter-select {
+    background-color: #ffffff !important;
+    color: #0F1E33 !important;
+    color-scheme: light !important;
+}
+.filter-select option {
+    background-color: #ffffff !important;
+    color: #0F1E33 !important;
+}

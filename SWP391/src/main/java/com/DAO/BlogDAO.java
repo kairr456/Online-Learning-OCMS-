@@ -12,38 +12,26 @@ import java.util.Map;
 
 public class BlogDAO extends DBContext {
 
-    public List<Blog> getAllBlogs() {
-        List<Blog> list = new ArrayList<>();
-        String sql = "SELECT * FROM blog WHERE status = 'Active' ORDER BY created_date DESC";
-        try {
-            connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            resultSet = statement.executeQuery();
-            while (rsNext(resultSet)) {
-                Blog b = new Blog(
-                    resultSet.getInt("id"),
-                    resultSet.getString("title"),
-                    resultSet.getString("thumbnail"),
-                    resultSet.getString("brief_info"),
-                    resultSet.getString("content"),
-                    resultSet.getInt("category_id"),
-                    resultSet.getInt("author"),
-                    resultSet.getTimestamp("updated_date"),
-                    resultSet.getTimestamp("created_date"),
-                    resultSet.getString("status")
-                );
-                list.add(b);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeResources();
-        }
-        return list;
+    /**
+     * Chuyển đổi ResultSet thành Blog entity dùng chung cho tất cả các truy vấn
+     */
+    private Blog mapResultSetToBlog(ResultSet rs) throws SQLException {
+        return new Blog(
+            rs.getInt("id"),
+            rs.getString("title"),
+            rs.getString("thumbnail"),
+            rs.getString("brief_info"),
+            rs.getString("content"),
+            rs.getInt("category_id"),
+            rs.getInt("author"),
+            rs.getTimestamp("updated_date"),
+            rs.getTimestamp("created_date"),
+            rs.getString("status")
+        );
     }
 
-    private boolean rsNext(ResultSet rs) throws SQLException {
-        return rs != null && rs.next();
+    public List<Blog> getAllBlogs() {
+        return getFilteredBlogs(null, 0, "newest");
     }
 
     /**
@@ -94,18 +82,7 @@ public class BlogDAO extends DBContext {
             statement.setInt(1, id);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                return new Blog(
-                    resultSet.getInt("id"),
-                    resultSet.getString("title"),
-                    resultSet.getString("thumbnail"),
-                    resultSet.getString("brief_info"),
-                    resultSet.getString("content"),
-                    resultSet.getInt("category_id"),
-                    resultSet.getInt("author"),
-                    resultSet.getTimestamp("updated_date"),
-                    resultSet.getTimestamp("created_date"),
-                    resultSet.getString("status")
-                );
+                return mapResultSetToBlog(resultSet);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -127,19 +104,7 @@ public class BlogDAO extends DBContext {
             statement.setInt(1, authorId);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                Blog b = new Blog(
-                    resultSet.getInt("id"),
-                    resultSet.getString("title"),
-                    resultSet.getString("thumbnail"),
-                    resultSet.getString("brief_info"),
-                    resultSet.getString("content"),
-                    resultSet.getInt("category_id"),
-                    resultSet.getInt("author"),
-                    resultSet.getTimestamp("updated_date"),
-                    resultSet.getTimestamp("created_date"),
-                    resultSet.getString("status")
-                );
-                list.add(b);
+                list.add(mapResultSetToBlog(resultSet));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -206,7 +171,7 @@ public class BlogDAO extends DBContext {
      */
     public Map<Integer, String> getBlogCategories() {
         Map<Integer, String> map = new HashMap<>();
-        String sql = "SELECT id, name FROM blog_category ORDER BY id ASC";
+        String sql = "SELECT id, name FROM blog_category WHERE COALESCE(is_deleted, 0) = 0 ORDER BY id ASC";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
@@ -220,5 +185,100 @@ public class BlogDAO extends DBContext {
             closeResources();
         }
         return map;
+    }
+
+    /**
+     * Lấy danh sách bài viết liên quan (cùng danh mục)
+     */
+    public List<Blog> getRelatedBlogs(int categoryId, int excludeBlogId, int limit) {
+        List<Blog> list = new ArrayList<>();
+        String sql = "SELECT * FROM blog WHERE category_id = ? AND id != ? AND status = 'Active' ORDER BY created_date DESC LIMIT ?";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, categoryId);
+            statement.setInt(2, excludeBlogId);
+            statement.setInt(3, limit > 0 ? limit : 3);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                list.add(mapResultSetToBlog(resultSet));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return list;
+    }
+
+    /**
+     * Lấy danh sách bài viết mới nhất cho Sidebar
+     */
+    public List<Blog> getRecentBlogs(int limit) {
+        List<Blog> list = new ArrayList<>();
+        String sql = "SELECT * FROM blog WHERE status = 'Active' ORDER BY created_date DESC LIMIT ?";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, limit > 0 ? limit : 4);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                list.add(mapResultSetToBlog(resultSet));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return list;
+    }
+
+    /**
+     * Lấy danh sách bài viết theo bộ lọc tìm kiếm, danh mục và sắp xếp
+     */
+    public List<Blog> getFilteredBlogs(String searchKeyword, int categoryId, String sortParam) {
+        List<Blog> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM blog WHERE status = 'Active'");
+        List<Object> params = new ArrayList<>();
+
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(title) LIKE ? OR LOWER(brief_info) LIKE ?)");
+            String pattern = "%" + searchKeyword.trim().toLowerCase() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+
+        if (categoryId > 0) {
+            sql.append(" AND category_id = ?");
+            params.add(categoryId);
+        }
+
+        if ("oldest".equals(sortParam)) {
+            sql.append(" ORDER BY created_date ASC, id ASC");
+        } else if ("title_asc".equals(sortParam)) {
+            sql.append(" ORDER BY title ASC");
+        } else if ("title_desc".equals(sortParam)) {
+            sql.append(" ORDER BY title DESC");
+        } else {
+            // Mặc định newest (Mới nhất)
+            sql.append(" ORDER BY created_date DESC, id DESC");
+        }
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                list.add(mapResultSetToBlog(resultSet));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return list;
     }
 }

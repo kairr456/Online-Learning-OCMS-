@@ -20,6 +20,8 @@ public class PayoutManagerController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private final WalletDAO walletDAO = new WalletDAO();
 
+    private static final int PAGE_SIZE = 5;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -34,7 +36,24 @@ public class PayoutManagerController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String status = request.getParameter("status");
 
-        List<PayoutRequest> payoutList = walletDAO.getAllPayoutRequests(keyword, status);
+        int page = 1;
+        String pageRaw = request.getParameter("page");
+        if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+            try {
+                page = Integer.parseInt(pageRaw.trim());
+                if (page < 1) page = 1;
+            } catch (NumberFormatException ignored) {
+                page = 1;
+            }
+        }
+
+        int totalRecords = walletDAO.countAllPayoutRequests(keyword, status);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / PAGE_SIZE));
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        List<PayoutRequest> payoutList = walletDAO.getAllPayoutRequests(keyword, status, page, PAGE_SIZE);
 
         // Tính toán thống kê nhanh
         BigDecimal pendingTotal = BigDecimal.ZERO;
@@ -53,7 +72,22 @@ public class PayoutManagerController extends HttpServlet {
             }
         }
 
+        // Xử lý thông báo flash từ session (sau khi approve/reject redirect)
+        String flashMessage = (String) session.getAttribute("message");
+        String flashMessageType = (String) session.getAttribute("messageType");
+        if (flashMessage != null) {
+            request.setAttribute("flashMessage", flashMessage);
+            request.setAttribute("flashType", flashMessageType);
+            session.removeAttribute("message");
+            session.removeAttribute("messageType");
+        }
+
         request.setAttribute("payoutList", payoutList);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalRecords", totalRecords);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("status", status);
         request.setAttribute("pendingTotal", pendingTotal);
         request.setAttribute("completedTotal", completedTotal);
         request.setAttribute("totalRequests", totalRequests);
