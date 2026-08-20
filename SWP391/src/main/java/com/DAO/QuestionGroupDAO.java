@@ -12,17 +12,19 @@ public class QuestionGroupDAO extends DBContext {
 
     public List<QuestionGroup> getGroupsByCourseId(int courseId) {
         List<QuestionGroup> list = new ArrayList<>();
-        String sql = "SELECT * FROM question_group WHERE course_id = ? ORDER BY id DESC";
+        String sql = "SELECT qg.*, (SELECT COUNT(*) FROM question_bank qb WHERE qb.group_id = qg.id) AS q_count FROM question_group qg WHERE qg.course_id = ? ORDER BY qg.id DESC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, courseId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(new QuestionGroup(
+                    QuestionGroup g = new QuestionGroup(
                         rs.getInt("id"),
                         rs.getInt("course_id"),
                         rs.getString("name"),
                         rs.getTimestamp("created_date")
-                    ));
+                    );
+                    g.setQuestionCount(rs.getInt("q_count"));
+                    list.add(g);
                 }
             }
         } catch (SQLException e) {
@@ -56,3 +58,4 @@ public class QuestionGroupDAO extends DBContext {
         }
     }
 }
+

@@ -166,7 +166,7 @@ public class LessonController extends HttpServlet {
                 // 2. Sections
                 for (int s = 0; s < sectionCount; s++) {
                     String secTitle = request.getParameter("sectionTitle_" + s);
-                    if (secTitle == null) continue; // might have been removed via JS
+                    if (secTitle == null || secTitle.trim().isEmpty()) continue; // might have been removed via JS
                     
                     String secIdStr = request.getParameter("sectionId_" + s);
                     boolean isSecUpdate = (secIdStr != null && !secIdStr.isEmpty());
@@ -196,7 +196,7 @@ public class LessonController extends HttpServlet {
                         // 3. Lessons
                         for (int l = 0; l < lessonCount; l++) {
                             String lesTitle = request.getParameter("lessonTitle_" + s + "_" + l);
-                            if (lesTitle == null) continue;
+                            if (lesTitle == null || lesTitle.trim().isEmpty()) continue;
                             
                             String lesIdStr = request.getParameter("lessonId_" + s + "_" + l);
                             boolean isLesUpdate = (lesIdStr != null && !lesIdStr.isEmpty());
@@ -337,7 +337,9 @@ public class LessonController extends HttpServlet {
                 session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course saved successfully!");
                 session.setAttribute("messageType", "success");
                 
-                if ("continue".equals(submitAction)) {
+                if ("goto_qbank".equals(submitAction)) {
+                    response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId);
+                } else if ("continue".equals(submitAction)) {
                     response.sendRedirect(request.getContextPath() + "/lesson?courseId=" + courseId);
                 } else {
                     response.sendRedirect(request.getContextPath() + "/course-dashboard");
@@ -353,6 +355,8 @@ public class LessonController extends HttpServlet {
         }
     }
 }
+
+
 
 
 
