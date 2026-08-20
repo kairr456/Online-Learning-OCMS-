@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Admin Blog Category Management Stylesheet (blog_categories.css)
+   ========================================================================== */
+
+/* Alert Boxes */
+.alert-box {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-box.alert-success {
+    background-color: #E7F6EC;
+    color: #1B8F4A;
+    border: 1px solid #C8F0D4;
+}
+
+.alert-box.alert-danger {
+    background-color: #FDEBEC;
+    color: #D63646;
+    border: 1px solid #F8C8CC;
+}
+
+/* Table Column Widths & Alignments */
+.col-cat-id {
+    width: 60px;
+}
+
+.col-cat-name {
+    width: 200px;
+}
+
+.col-cat-blogs {
+    width: 100px;
+    text-align: center;
+}
+
+.col-cat-date {
+    width: 170px;
+}
+
+.col-cat-actions {
+    width: 110px;
+    text-align: center;
+}
+
+/* Table Cell Content */
+.cat-name-cell {
+    font-weight: 600;
+    color: #161439;
+}
+
+.cat-desc-cell {
+    color: #4B5563;
+    max-width: 350px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cat-no-desc {
+    color: #9CA3AF;
+    font-style: italic;
+}
+
+.cat-badge-count {
+    font-size: 11.5px !important;
+    padding: 3px 10px !important;
+}
+
+.cat-empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #6B7280;
+}
+
+.cat-empty-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+    color: #9CA3AF;
+}
+
+/* Modal Form Styles */
+.cat-modal-title {
+    margin-bottom: 15px;
+    color: #161439;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.cat-textarea {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 4px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.cat-textarea:focus {
+    border-color: #5751E1;
+}
+
+.cat-modal-error {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.cat-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-cat-cancel {
+    margin-top: 0 !important;
+    padding: 10px 18px;
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    color: #555;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-cat-cancel:hover {
+    background: #f8fafc;
+}
+
+.btn-cat-save {
+    margin-top: 0 !important;
+    background: #5751E1 !important;
+    border: none !important;
+    color: #fff !important;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-cat-save:hover {
+    background: #463FC0 !important;
+}
+
+.btn-cat-save:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Disabled Delete Button when posts > 0 */
+.btn-action.delete.disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    pointer-events: auto !important;
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+
+.btn-action.delete.disabled:hover {
+    transform: none !important;
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+}
+

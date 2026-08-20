@@ -19,13 +19,14 @@ import java.util.List;
 /**
  * Controller Quản lý Danh mục Blog (Role: Admin)
  * URL: /admin/blog-categories
- * - GET : Hiển thị bảng danh sách, tìm kiếm, phân trang, xử lý xóa.
+ * - GET : Hiển thị bảng danh sách, tìm kiếm, phân trang, xử lý xóa mềm.
  * - POST: Thêm mới (action=add) / Cập nhật (action=edit) danh mục từ Modal (trả JSON).
  */
-@WebServlet(name = "BlogCategoryController", urlPatterns = {"/admin/blog-categories", "/admin/blog-category"})
+@WebServlet(name = "BlogCategoryController", urlPatterns = {"/admin/blog-categories"})
 public class BlogCategoryController extends HttpServlet {
 
     private static final int PAGE_SIZE = 5;
+    private final BlogCategoryDAO categoryDAO = new BlogCategoryDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -52,14 +53,13 @@ public class BlogCategoryController extends HttpServlet {
         String keyword = registrationValidator.keywordFor(request.getParameter("keyword"));
         int page = registrationValidator.pageFor(request.getParameter("page"));
 
-        BlogCategoryDAO dao = new BlogCategoryDAO();
-        int totalRecords = dao.countBlogCategories(keyword);
+        int totalRecords = categoryDAO.countBlogCategories(keyword);
         int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
         }
 
-        List<BlogCategory> categoryList = new BlogCategoryDAO().searchBlogCategories(keyword, page, PAGE_SIZE);
+        List<BlogCategory> categoryList = categoryDAO.searchBlogCategories(keyword, page, PAGE_SIZE);
 
         // 4. Truyền dữ liệu sang JSP
         request.setAttribute("categoryList", categoryList);
@@ -76,7 +76,7 @@ public class BlogCategoryController extends HttpServlet {
     }
 
     /**
-     * Xử lý xóa danh mục blog
+     * Xử lý xóa danh mục blog (Xóa mềm và chặn xóa khi có bài viết)
      */
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -84,7 +84,13 @@ public class BlogCategoryController extends HttpServlet {
         int id = adminValidator.parseInt(idRaw, -1);
 
         if (id > 0) {
-            boolean ok = new BlogCategoryDAO().deleteBlogCategory(id);
+            int postCount = categoryDAO.countBlogsByCategoryId(id);
+            if (postCount > 0) {
+                response.sendRedirect(request.getContextPath() + "/admin/blog-categories?error=has_posts");
+                return;
+            }
+
+            boolean ok = categoryDAO.deleteBlogCategory(id);
             if (ok) {
                 response.sendRedirect(request.getContextPath() + "/admin/blog-categories?msg=deleted");
             } else {
@@ -136,14 +142,13 @@ public class BlogCategoryController extends HttpServlet {
             return;
         }
 
-        BlogCategoryDAO dao = new BlogCategoryDAO();
-        if (dao.isCategoryNameExists(name, -1)) {
+        if (categoryDAO.isCategoryNameExists(name, -1)) {
             writeJson(response, false, "Category name already exists.");
             return;
         }
 
         BlogCategory category = new BlogCategory(name, description);
-        boolean ok = new BlogCategoryDAO().insertBlogCategory(category);
+        boolean ok = categoryDAO.insertBlogCategory(category);
         writeJson(response, ok, ok ? null : "Failed to insert category.");
     }
 
@@ -170,14 +175,13 @@ public class BlogCategoryController extends HttpServlet {
             return;
         }
 
-        BlogCategoryDAO dao = new BlogCategoryDAO();
-        BlogCategory existing = dao.getBlogCategoryById(id);
+        BlogCategory existing = categoryDAO.getBlogCategoryById(id);
         if (existing == null) {
             writeJson(response, false, "Category not found.");
             return;
         }
 
-        if (new BlogCategoryDAO().isCategoryNameExists(name, id)) {
+        if (categoryDAO.isCategoryNameExists(name, id)) {
             writeJson(response, false, "Category name already exists.");
             return;
         }
@@ -185,7 +189,7 @@ public class BlogCategoryController extends HttpServlet {
         existing.setName(name);
         existing.setDescription(description);
 
-        boolean ok = new BlogCategoryDAO().updateBlogCategory(existing);
+        boolean ok = categoryDAO.updateBlogCategory(existing);
         writeJson(response, ok, ok ? null : "Failed to update category.");
     }
 

@@ -425,7 +425,7 @@
                                     <a href="teacher-detail.jsp?id=${course.createdBy}">${authorNames[course.createdBy]}</a>
                                 </span>
                                 <span class="course-rating">
-                                    rating ${course.rating}
+                                    <i class="fa-solid fa-star" style="color: #ffc107;"></i> rating ${course.rating}
                                 </span>
                             </div>
                             

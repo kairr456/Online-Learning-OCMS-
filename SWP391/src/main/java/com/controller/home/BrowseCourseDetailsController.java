@@ -85,9 +85,48 @@ public class BrowseCourseDetailsController extends HttpServlet {
                         }
                     }
                     
+                    com.DAO.CategoryDAO categoryDAO = new com.DAO.CategoryDAO();
+                    String categoryName = categoryDAO.getCategoryName(course.getCategoryId());
+                    if (categoryName == null || categoryName.trim().isEmpty()) {
+                        categoryName = "General";
+                    }
+
+                    List<java.util.Map<String, Object>> starDistributionList = new java.util.ArrayList<>();
+                    int reviewCount = (reviews != null) ? reviews.size() : 0;
+                    double avgRating = 0.0;
+                    if (reviewCount > 0) {
+                        double sum = 0;
+                        for (Review r : reviews) {
+                            sum += r.getRating();
+                        }
+                        avgRating = Math.round((sum / reviewCount) * 10.0) / 10.0;
+                    }
+
+                    for (int star = 5; star >= 1; star--) {
+                        int count = 0;
+                        if (reviews != null) {
+                            for (Review r : reviews) {
+                                if (r.getRating() == star) {
+                                    count++;
+                                }
+                            }
+                        }
+                        int percent = reviewCount > 0 ? (count * 100 / reviewCount) : 0;
+                        java.util.Map<String, Object> item = new java.util.HashMap<>();
+                        item.put("star", star);
+                        item.put("count", count);
+                        item.put("percent", percent);
+                        starDistributionList.add(item);
+                    }
+                    course.setRating((int) Math.round(avgRating));
+
                     request.setAttribute("course", course);
                     request.setAttribute("authorName", authorNames.get(course.getCreatedBy()));
+                    request.setAttribute("categoryName", categoryName);
                     request.setAttribute("reviews", reviews);
+                    request.setAttribute("avgRating", avgRating);
+                    request.setAttribute("reviewCount", reviewCount);
+                    request.setAttribute("starDistributionList", starDistributionList);
                     request.setAttribute("sections", sections);
                     request.setAttribute("lessonsMap", lessonsMap);
                     request.setAttribute("lessonVideosMap", lessonVideosMap);

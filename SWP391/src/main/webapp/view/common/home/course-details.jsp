@@ -355,64 +355,105 @@
             color: var(--accent-yellow);
             font-size: 12px;
         }
-          .list-wrap {
-              list-style: none;
-              padding: 0;
-          }
-          
-          /* Review form CSS */
-          .review-form-title {
-              margin-top: 30px;
-              margin-bottom: 20px;
-          }
-          .rating-selection {
-              display: flex;
-              gap: 5px;
-              margin-bottom: 15px;
-              margin-top: 5px;
-          }
-          .rating-selection label {
-              cursor: pointer;
-          }
-          .rating-input {
-              display: none;
-          }
-          .rating-star {
-              color: #ccc;
-              font-size: 20px;
-          }
-          .rating-star.fas {
-              color: var(--accent-yellow);
-          }
-          .review-textarea {
-              width: 100%;
-              border: 1px solid var(--border-color);
-              border-radius: 8px;
-              padding: 15px;
-              margin-bottom: 20px;
-              font-family: inherit;
-              background-color: #fff;
-              color: var(--text-main);
-              margin-top: 5px;
-          }
-          .review-textarea::placeholder {
-              color: #aaa;
-          }
-          .review-submit-btn {
-              background-color: var(--primary-color);
-              color: white;
-              border: none;
-              padding: 10px 25px;
-              border-radius: 20px;
-              font-weight: 600;
-          }
-          .review-submit-btn:hover {
-              background-color: #4832a8;
-              color: white;
-          }
-          .review-form-label {
-              font-weight: 600;
-          }
+        .list-wrap {
+            list-style: none;
+            padding: 0;
+        }
+        .rating-selection {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .rating-selection label {
+            cursor: pointer;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+        }
+        .rating-selection input[type="radio"],
+        .rating-input {
+            display: none !important;
+        }
+        .rating-star {
+            font-size: 24px;
+            color: var(--accent-yellow);
+            transition: transform 0.2s, color 0.2s;
+        }
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+        .review-item {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .review-author-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        .review-date {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .review-rating {
+            color: var(--accent-yellow);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .review-comment {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .review-form-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+        }
+        .review-form-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .review-textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+        .review-textarea:focus {
+            border-color: var(--primary-color);
+        }
+        .review-submit-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+        .review-submit-btn:hover {
+            background-color: #4a2ec2;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -436,9 +477,9 @@
                         <div class="courses__details-content">
                             <ul class="courses__item-meta list-wrap">
                                 <li class="courses__item-tag">
-                                    <a href="#">${course.categoryId}</a>
+                                    <a href="${pageContext.request.contextPath}/courses?category=${course.categoryId}">${not empty categoryName ? categoryName : 'General'}</a>
                                 </li>
-                                <li class="avg-rating"><i class="fas fa-star"></i> (${course.rating} Reviews)</li>
+                                <li class="avg-rating"><i class="fas fa-star"></i> ${avgRating > 0 ? avgRating : '0.0'} (${reviewCount} ${reviewCount == 1 ? 'Review' : 'Reviews'})</li>
                             </ul>
                             <h2 class="title">${course.name}</h2>
                             <div class="courses__details-meta">
@@ -533,6 +574,42 @@
                                     <div class="courses__rating-wrap">
                                         <h2 class="title">Reviews</h2>
                                         
+                                        <!-- Overall Rating Summary -->
+                                        <div class="course-rate">
+                                            <div class="course-rate__summary">
+                                                <div class="course-rate__summary-value">${avgRating > 0 ? avgRating : '0.0'}</div>
+                                                <div class="course-rate__summary-stars">
+                                                    <c:forEach begin="1" end="5" var="s">
+                                                        <c:choose>
+                                                            <c:when test="${s <= avgRating}">
+                                                                <i class="fas fa-star"></i>
+                                                            </c:when>
+                                                            <c:when test="${s - 0.5 <= avgRating}">
+                                                                <i class="fas fa-star-half-alt"></i>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <i class="far fa-star"></i>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </c:forEach>
+                                                </div>
+                                                <div class="course-rate__summary-text">(${reviewCount} ${reviewCount == 1 ? 'Review' : 'Reviews'})</div>
+                                            </div>
+                                            <div class="course-rate__details">
+                                                <c:forEach var="item" items="${starDistributionList}">
+                                                    <div class="course-rate__details-row">
+                                                        <div class="course-rate__details-row-star">${item.star} <i class="fas fa-star"></i></div>
+                                                        <div class="course-rate__details-row-value">
+                                                            <div class="rating-gray">
+                                                                <div class="rating" style="width: ${item.percent}%;"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="rating-count">${item.count}</div>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
+
                                         <!-- Reviews List -->
                                         <div class="course-reviews-list">
                                             <c:if test="${empty reviews}">
@@ -541,7 +618,7 @@
                                             <c:forEach var="review" items="${reviews}">
                                                 <div class="review-item">
                                                     <div class="review-header">
-                                                        <strong class="review-author-name">${accountNames[review.accountId]}</strong>
+                                                        <strong class="review-author-name">${not empty accountNames[review.accountId] ? accountNames[review.accountId] : 'Học viên'}</strong>
                                                         <span class="review-date">${review.createdDate}</span>
                                                     </div>
                                                     <div class="review-rating">

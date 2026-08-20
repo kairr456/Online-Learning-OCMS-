@@ -42,6 +42,18 @@
     color: #161439;
 }
 
+.stat-val--pending {
+    color: #B45309 !important;
+}
+
+.stat-val--completed {
+    color: #1B8F4A !important;
+}
+
+.stat-val--total {
+    color: #5751E1 !important;
+}
+
 .payout-stat-icon {
     width: 44px;
     height: 44px;
@@ -67,6 +79,42 @@
     color: #5751E1;
 }
 
+/* Table Typography Helpers */
+.payout-amount-text {
+    color: #DC2626;
+    font-size: 14.5px;
+    font-weight: 700;
+}
+
+.payout-bank-text {
+    color: #5751E1;
+    font-weight: 600;
+}
+
+.payout-stk-text {
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.payout-muted-text {
+    color: #64748b;
+    font-size: 12.5px;
+}
+
+.payout-empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: #64748b;
+}
+
+.payout-empty-icon {
+    font-size: 32px;
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 8px;
+}
+
 /* VietQR Modal Wrapper */
 .vietqr-wrapper {
     text-align: center;
@@ -81,6 +129,12 @@
     max-height: 220px;
     max-width: 100%;
     border-radius: 8px;
+}
+
+.vietqr-help-text {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 8px;
 }
 
 .payout-detail-row {
@@ -134,4 +188,66 @@
 
 .btn-qr-action:hover {
     background: #463FC0;
+}
+
+/* Modal Custom Layouts */
+.payout-modal-content--process {
+    width: 520px;
+    max-width: 95vw;
+}
+
+.payout-modal-content--reject {
+    width: 440px;
+    max-width: 95vw;
+}
+
+.payout-modal-header--process {
+    color: #5751E1;
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.payout-modal-header--reject {
+    color: #DC2626;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.payout-refund-notice {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #B45309;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.modal-action-btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn-modal-confirm-success {
+    flex: 2;
+    background: #1B8F4A !important;
+    border-color: #1B8F4A !important;
+    color: #ffffff !important;
+    cursor: pointer;
+}
+
+.btn-modal-confirm-reject {
+    flex: 2;
+    background: #DC2626 !important;
+    border-color: #DC2626 !important;
+    color: #ffffff !important;
+    cursor: pointer;
+}
+
+.btn-modal-cancel {
+    flex: 1;
+    cursor: pointer;
 }
