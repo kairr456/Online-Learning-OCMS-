@@ -57,5 +57,21 @@ public class QuestionGroupDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
+    public boolean checkGroupNameExists(int courseId, String name) {
+        String sql = "SELECT COUNT(*) FROM question_group WHERE course_id = ? AND LOWER(TRIM(name)) = LOWER(TRIM(?))";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, courseId);
+            ps.setString(2, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 

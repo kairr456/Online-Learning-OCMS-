@@ -40,7 +40,6 @@ public class QuizDashboardController extends HttpServlet {
 
         // Get teacher's courses
         List<Course> courses = courseDAO.findByCreator(teacherId);
-        
         List<Map<String, Object>> courseBankStats = new ArrayList<>();
         int totalQuestions = 0;
         int totalGroups = 0;

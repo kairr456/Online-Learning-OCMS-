@@ -543,6 +543,26 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
         return 0;
     }
 
+    public boolean checkCourseNameExists(int teacherId, String courseName, int excludeCourseId) {
+        String sql = "SELECT COUNT(*) FROM course WHERE created_by = ? AND LOWER(TRIM(name)) = LOWER(TRIM(?)) AND id != ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, teacherId);
+            statement.setString(2, courseName);
+            statement.setInt(3, excludeCourseId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error checking course name duplicate: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         CourseDAO courseDAO = new CourseDAO();
         // List<Course> courses = courseDAO.findAll();

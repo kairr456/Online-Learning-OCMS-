@@ -35,6 +35,9 @@ public class LessonController extends HttpServlet {
             com.DAO.CategoryDAO categoryDAO = new com.DAO.CategoryDAO();
             request.setAttribute("categories", categoryDAO.findAll());
             
+            com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
+            request.setAttribute("teacherCourses", courseDAO.findByCreator(account.getId()));
+            
             // Fetch Quiz Bank
             com.DAO.QuizDAO quizDAO = new com.DAO.QuizDAO();
             request.setAttribute("quizBank", quizDAO.getQuizBankByTeacher(account.getId()));
@@ -42,7 +45,6 @@ public class LessonController extends HttpServlet {
             String courseIdStr = request.getParameter("courseId");
             if (courseIdStr != null && !courseIdStr.isEmpty()) {
                 int courseId = Integer.parseInt(courseIdStr);
-                com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
                 com.entity.Course course = courseDAO.findById(courseId);
                 
                 if (course != null && course.getCreatedBy() == account.getId()) {
@@ -98,23 +100,57 @@ public class LessonController extends HttpServlet {
             int courseId = isUpdate ? Integer.parseInt(courseIdStr) : 0;
             
             String courseName = request.getParameter("courseName");
+            if (courseName == null || courseName.trim().isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng nhập tên khóa học!");
+            }
+            courseName = courseName.trim();
+
+            com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
+            if (courseDAO.checkCourseNameExists(account.getId(), courseName, courseId)) {
+                throw new IllegalArgumentException("Tên khóa học '" + courseName + "' đã tồn tại trong danh sách của bạn! Vui lòng chọn tên khác.");
+            }
+
+            String catIdStr = request.getParameter("categoryId");
+            int categoryId = 0;
+            try {
+                categoryId = Integer.parseInt(catIdStr);
+            } catch (Exception e) {}
+            if (categoryId <= 0) {
+                throw new IllegalArgumentException("Vui lòng chọn danh mục khóa học!");
+            }
+
             String courseDescription = request.getParameter("courseDescription");
-            float coursePrice = Float.parseFloat(request.getParameter("coursePrice"));
-            int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+            if (courseDescription == null || courseDescription.trim().isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng nhập mô tả khóa học!");
+            }
+            courseDescription = courseDescription.trim();
+
+            float coursePrice = 0f;
+            try {
+                coursePrice = Float.parseFloat(request.getParameter("coursePrice"));
+                if (coursePrice < 0) throw new Exception();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Vui lòng nhập giá khóa học hợp lệ (>= 0)!");
+            }
 
             // Thumbnail Upload
             String thumbnailRelPath = "";
             jakarta.servlet.http.Part filePart = request.getPart("courseThumbnail");
             if (filePart != null && filePart.getSize() > 0) {
                 String fileName = java.nio.file.Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                String fNameLower = fileName.toLowerCase();
+                if (!fNameLower.endsWith(".jpg") && !fNameLower.endsWith(".jpeg") && !fNameLower.endsWith(".png")) {
+                    throw new IllegalArgumentException("Ảnh Thumbnail chỉ chấp nhận định dạng JPG, JPEG hoặc PNG!");
+                }
                 String uploadPath = getServletContext().getRealPath("") + java.io.File.separator + "assets" + java.io.File.separator + "css" + java.io.File.separator + "img";
                 java.io.File uploadDir = new java.io.File(uploadPath);
                 if (!uploadDir.exists()) uploadDir.mkdirs();
                 thumbnailRelPath = "assets/css/img/" + fileName;
                 filePart.write(uploadPath + java.io.File.separator + fileName);
+            } else if (!isUpdate) {
+                throw new IllegalArgumentException("Vui lòng tải lên ảnh Thumbnail cho khóa học!");
             }
 
-            com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
             com.entity.Course course = isUpdate ? courseDAO.findById(courseId) : new com.entity.Course();
             
             course.setName(courseName);
@@ -128,6 +164,118 @@ public class LessonController extends HttpServlet {
                 course.setThumbnail(request.getContextPath() + "/" + thumbnailRelPath);
             } else if (!isUpdate) {
                 course.setThumbnail("");
+            }
+
+            // Pre-validate all Sections and Lessons
+            int sectionCount = 0;
+            try {
+                sectionCount = Integer.parseInt(request.getParameter("sectionCount"));
+            } catch (Exception e) {}
+
+            java.util.Set<String> sectionTitles = new java.util.HashSet<>();
+            int validSectionCount = 0;
+
+            for (int s = 0; s < sectionCount; s++) {
+                String secTitle = request.getParameter("sectionTitle_" + s);
+                if (secTitle == null || secTitle.trim().isEmpty()) continue;
+                secTitle = secTitle.trim();
+                validSectionCount++;
+                
+                if (sectionTitles.contains(secTitle.toLowerCase())) {
+                    throw new IllegalArgumentException("Tên Section '" + secTitle + "' bị trùng lặp trong khóa học! Các Section phải có tên khác nhau.");
+                }
+                sectionTitles.add(secTitle.toLowerCase());
+                
+                int lessonCount = 0;
+                try {
+                    lessonCount = Integer.parseInt(request.getParameter("lessonCount_" + s));
+                } catch (Exception e) {}
+                
+                java.util.Set<String> lessonTitles = new java.util.HashSet<>();
+                int validLessonCount = 0;
+                
+                for (int l = 0; l < lessonCount; l++) {
+                    String lesTitle = request.getParameter("lessonTitle_" + s + "_" + l);
+                    if (lesTitle == null || lesTitle.trim().isEmpty()) continue;
+                    lesTitle = lesTitle.trim();
+                    validLessonCount++;
+                    
+                    if (lessonTitles.contains(lesTitle.toLowerCase())) {
+                        throw new IllegalArgumentException("Tên bài học '" + lesTitle + "' bị trùng lặp trong Section '" + secTitle + "'! Các bài học trong cùng một Section phải có tên khác nhau.");
+                    }
+                    lessonTitles.add(lesTitle.toLowerCase());
+                    
+                    String type = request.getParameter("lessonType_" + s + "_" + l);
+                    if (type == null) type = "script";
+                    
+                    if ("script".equals(type) || "text".equals(type) || "text_image".equals(type)) {
+                        int blockCount = 0;
+                        try {
+                            blockCount = Integer.parseInt(request.getParameter("blockCount_" + s + "_" + l));
+                        } catch (Exception e) {}
+                        
+                        int validBlocks = 0;
+                        for (int b = 0; b < blockCount; b++) {
+                            String bType = request.getParameter("blockType_" + s + "_" + l + "_" + b);
+                            if (bType == null) continue;
+                            if ("text".equals(bType)) {
+                                String text = request.getParameter("blockText_" + s + "_" + l + "_" + b);
+                                if (text != null && !text.trim().isEmpty()) validBlocks++;
+                            } else if ("file".equals(bType)) {
+                                String existingFile = request.getParameter("existingFile_" + s + "_" + l + "_" + b);
+                                jakarta.servlet.http.Part fPart = request.getPart("blockFile_" + s + "_" + l + "_" + b);
+                                if ((existingFile != null && !existingFile.trim().isEmpty()) || (fPart != null && fPart.getSize() > 0)) {
+                                    if (fPart != null && fPart.getSize() > 0) {
+                                        String fName = java.nio.file.Paths.get(fPart.getSubmittedFileName()).getFileName().toString().toLowerCase();
+                                        if (!fName.endsWith(".jpg") && !fName.endsWith(".jpeg") && !fName.endsWith(".png")) {
+                                            throw new IllegalArgumentException("Ảnh bài học chỉ chấp nhận định dạng JPG, JPEG hoặc PNG!");
+                                        }
+                                    }
+                                    validBlocks++;
+                                }
+                            }
+                        }
+                        if (validBlocks == 0) {
+                            throw new IllegalArgumentException("Nội dung bài học '" + lesTitle + "' không được để trống (cần ít nhất 1 khối nội dung văn bản hoặc hình ảnh)!");
+                        }
+                    } else if ("video".equals(type) || "video_image".equals(type)) {
+                        String yt = request.getParameter("lessonVideo_" + s + "_" + l);
+                        if (yt == null || yt.trim().isEmpty()) {
+                            throw new IllegalArgumentException("Vui lòng nhập đường dẫn video YouTube cho bài học '" + lesTitle + "'!");
+                        }
+                    } else if ("quiz".equals(type)) {
+                        String qGroupStr = request.getParameter("lessonQuizGroup_" + s + "_" + l);
+                        String qNumStr = request.getParameter("lessonQuizNum_" + s + "_" + l);
+                        String qTimeStr = request.getParameter("lessonQuizTime_" + s + "_" + l);
+                        String qRetakeStr = request.getParameter("lessonQuizRetake_" + s + "_" + l);
+                        String qPassStr = request.getParameter("lessonQuizPass_" + s + "_" + l);
+                        
+                        if (qGroupStr == null || qGroupStr.trim().isEmpty()) {
+                            throw new IllegalArgumentException("Vui lòng chọn Bộ Đề (Question Group) cho bài Quiz '" + lesTitle + "'!");
+                        }
+                        try {
+                            int qNum = Integer.parseInt(qNumStr.trim());
+                            int qTime = Integer.parseInt(qTimeStr.trim());
+                            int qRetake = Integer.parseInt(qRetakeStr.trim());
+                            int qPass = Integer.parseInt(qPassStr.trim());
+                            if (qNum <= 0) throw new IllegalArgumentException("Số câu hỏi xuất ra phải lớn hơn 0 trong bài Quiz '" + lesTitle + "'!");
+                            if (qTime <= 0) throw new IllegalArgumentException("Thời gian làm bài phải lớn hơn 0 phút trong bài Quiz '" + lesTitle + "'!");
+                            if (qRetake < 0) throw new IllegalArgumentException("Số lần làm lại tối đa phải >= 0 trong bài Quiz '" + lesTitle + "'!");
+                            if (qPass < 1 || qPass > 100) throw new IllegalArgumentException("Điểm Pass phải từ 1 đến 100% trong bài Quiz '" + lesTitle + "'!");
+                        } catch (Exception e) {
+                            if (e instanceof IllegalArgumentException) throw e;
+                            throw new IllegalArgumentException("Các thông số cấu hình bài Quiz '" + lesTitle + "' không được để trống và phải là số hợp lệ!");
+                        }
+                    }
+                }
+                
+                if (validLessonCount == 0) {
+                    throw new IllegalArgumentException("Section '" + secTitle + "' phải có ít nhất 1 bài học!");
+                }
+            }
+
+            if (validSectionCount == 0) {
+                throw new IllegalArgumentException("Khóa học phải có ít nhất 1 Section (Chương học)!");
             }
 
             if (isUpdate) {
@@ -158,7 +306,6 @@ public class LessonController extends HttpServlet {
 
             if (courseId > 0) {
                 com.DAO.LessonDAO lessonDAO = new com.DAO.LessonDAO();
-                int sectionCount = 0;
                 try {
                     sectionCount = Integer.parseInt(request.getParameter("sectionCount"));
                 } catch (Exception e) {}

@@ -59,6 +59,11 @@ public class CourseDashboardController extends HttpServlet {
         List<Integer> ratings = new ArrayList<>();
 
         List<Course> courses = courseDAO.findCreatorCoursesWithFilters(account.getId(), categoryIds, ratings, courseName, sort, pageNumber, pageSize);
+/*
+if (courses.size() > 3) {
+    courses = courses.subList(0, 3);
+}
+*/
         int totalRecords = courseDAO.getTotalCreatorFilteredRecords(account.getId(), categoryIds, ratings, courseName);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 

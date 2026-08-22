@@ -7,13 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${currentLesson.title} | ${course.name}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
+    
+    
 </head>
 <body data-ctx="${pageContext.request.contextPath}">
+    
 
     <!-- Top bar -->
     <div class="learn-topbar">
+        <jsp:include page="/view/common/header.jsp" />
+        <p></p>
         <div class="tb-nav">
             <c:choose>
                     <c:when test="${param.from == 'archived'}">

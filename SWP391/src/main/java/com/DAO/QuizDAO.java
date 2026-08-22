@@ -696,6 +696,22 @@ public class QuizDAO extends DBContext {
             ps.executeUpdate();
         }
     }
+
+    public boolean checkQuestionExistsInGroup(int groupId, String questionText) {
+        String sql = "SELECT COUNT(*) FROM question_bank WHERE group_id = ? AND LOWER(TRIM(question_text)) = LOWER(TRIM(?)) AND status = 'active'";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            ps.setString(2, questionText);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 
 

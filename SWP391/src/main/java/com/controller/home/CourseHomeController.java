@@ -46,6 +46,9 @@ public class CourseHomeController extends HttpServlet {
             String teacherName = request.getParameter("teacherName");
             String courseName = request.getParameter("courseName");
             String sort = request.getParameter("sort");
+//            if (sort == null || sort.isEmpty()) {
+//            sort = "Latest"; // Mặc định sắp xếp mới nhất
+//             }
             String pageParam = request.getParameter("page");
 
             // 2. Parse Parameters
@@ -82,7 +85,10 @@ public class CourseHomeController extends HttpServlet {
             // 3. Query Database
             CourseDAO courseDAO = new CourseDAO();
             List<Course> courses = courseDAO.findWithFilters(categoryIds, ratings, teacherName, courseName, sort, currentPage, pageSize);
-            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName, courseName);
+//            if (courses.size()>3){
+//                courses=courses.subList(0, 3);
+//            }
+            int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName, courseName);   
             int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
             // 4. Load Author Names
