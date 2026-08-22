@@ -321,7 +321,39 @@ public class AccountDAO extends DBContext {
         return false;
     }
 
-// Lấy 1 account theo id (đổ vào modal khi Edit)
+public boolean registerPendingTeacher(Account account) {
+        String sql = "INSERT INTO account "
+                + "(username, password, email, phone, full_name, gender, avatar, is_active, role_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, account.getUsername());
+            statement.setString(2, account.getPassword());
+            statement.setString(3, account.getEmail());
+            statement.setString(4, account.getPhone());
+            statement.setString(5, account.getFullName());
+            statement.setBoolean(6, account.isGender());
+            statement.setString(7, account.getAvatar());
+            statement.setBoolean(8, false); // is_active = false for pending teacher
+            statement.setInt(9, account.getRoleId());
+
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                resultSet = statement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    account.setId(resultSet.getInt(1));
+                }
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+    // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {
         String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "
                 + "FROM Account WHERE id = ?";
@@ -396,5 +428,20 @@ public class AccountDAO extends DBContext {
             closeResources();
         }
         return null;
+    }
+
+    // Delete account by ID
+    public boolean deleteAccount(int accountId) {
+        String sql = "DELETE FROM account WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
     }
 }
