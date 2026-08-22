@@ -124,36 +124,15 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
             connection = new DBContext().connection;
             int courseId = course.getId();
             
-            // 1. Clean up lessons and sections
-            LessonDAO lessonDAO = new LessonDAO();
-            lessonDAO.cleanupRemovedSectionsAndLessons(courseId, new java.util.ArrayList<>(), new java.util.ArrayList<>());
-            
-            // Re-establish connection since cleanup closes it
-            connection = new DBContext().connection;
-            
-            // 2. Delete course approval logs
-            String sqlApp = "DELETE FROM course_approval_log WHERE course_id = ?";
-            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlApp)) {
-                ps.setInt(1, courseId);
-                ps.executeUpdate();
-            }
-            
-            // 3. Delete user learning list associations
-            String sqlList = "DELETE FROM user_learning_list_course WHERE course_id = ?";
-            try (java.sql.PreparedStatement ps = connection.prepareStatement(sqlList)) {
-                ps.setInt(1, courseId);
-                ps.executeUpdate();
-            }
-            
-            // 4. Finally, delete the course itself
-            String sql = "DELETE FROM course WHERE id = ?";
+            // Soft delete: Change status to 'inactive' so enrolled students can still study
+            String sql = "UPDATE course SET status = 'inactive' WHERE id = ?";
             try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, courseId);
                 int affectedRows = ps.executeUpdate();
                 return affectedRows > 0;
             }
         } catch (Exception ex) {
-            System.out.println("Error deleting course: " + ex.getMessage());
+            System.out.println("Error soft deleting course: " + ex.getMessage());
             return false;
         } finally {
             closeResources();
@@ -180,7 +159,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     public List<Course> findByCreator(int creatorId) {
         List<Course> courses = new ArrayList<>();
-        String sql = "SELECT * FROM course WHERE created_by = ?";
+        String sql = "SELECT * FROM course WHERE created_by = ? AND (status IS NULL OR status != 'inactive')";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -413,7 +392,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
                 "    FROM review " +
                 "    GROUP BY course_id" +
                 ") r ON c.id = r.course_id " +
-                "WHERE c.created_by = ?"
+                "WHERE c.created_by = ? AND (c.status IS NULL OR c.status != 'inactive')"
         );
         List<Object> params = new ArrayList<>();
         params.add(creatorId);
@@ -495,7 +474,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
                 "    FROM review " +
                 "    GROUP BY course_id" +
                 ") r ON c.id = r.course_id " +
-                "WHERE c.created_by = ?"
+                "WHERE c.created_by = ? AND (c.status IS NULL OR c.status != 'inactive')"
         );
         List<Object> params = new ArrayList<>();
         params.add(creatorId);

@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebServlet("/lesson")
+@WebServlet(name = "LessonController", urlPatterns = {"/lesson"})
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
     maxFileSize = 1024 * 1024 * 50,       // 50MB
@@ -99,9 +99,16 @@ public class LessonController extends HttpServlet {
             boolean isUpdate = (courseIdStr != null && !courseIdStr.trim().isEmpty());
             int courseId = isUpdate ? Integer.parseInt(courseIdStr) : 0;
             
+            String submitAction = request.getParameter("submitAction");
+            boolean isDraft = "continue".equals(submitAction) || "goto_qbank".equals(submitAction);
+
             String courseName = request.getParameter("courseName");
             if (courseName == null || courseName.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng nhập tên khóa học!");
+                if (!isDraft) {
+                    throw new IllegalArgumentException("Vui lòng nhập tên khóa học!");
+                } else {
+                    courseName = "Khóa học nháp (" + java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(java.time.LocalDateTime.now()) + ")";
+                }
             }
             courseName = courseName.trim();
 
@@ -116,21 +123,39 @@ public class LessonController extends HttpServlet {
                 categoryId = Integer.parseInt(catIdStr);
             } catch (Exception e) {}
             if (categoryId <= 0) {
-                throw new IllegalArgumentException("Vui lòng chọn danh mục khóa học!");
+                if (!isDraft) {
+                    throw new IllegalArgumentException("Vui lòng chọn danh mục khóa học!");
+                } else {
+                    try {
+                        java.util.List<com.entity.Category> catList = new com.DAO.CategoryDAO().findAll();
+                        if (catList != null && !catList.isEmpty()) {
+                            categoryId = catList.get(0).getId();
+                        }
+                    } catch (Exception ignored) {}
+                }
             }
 
             String courseDescription = request.getParameter("courseDescription");
             if (courseDescription == null || courseDescription.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng nhập mô tả khóa học!");
+                if (!isDraft) {
+                    throw new IllegalArgumentException("Vui lòng nhập mô tả khóa học!");
+                } else {
+                    courseDescription = "";
+                }
             }
             courseDescription = courseDescription.trim();
 
             float coursePrice = 0f;
             try {
-                coursePrice = Float.parseFloat(request.getParameter("coursePrice"));
-                if (coursePrice < 0) throw new Exception();
+                String priceStr = request.getParameter("coursePrice");
+                if (priceStr != null && !priceStr.trim().isEmpty()) {
+                    coursePrice = Float.parseFloat(priceStr);
+                    if (coursePrice < 0) coursePrice = 0f;
+                }
             } catch (Exception e) {
-                throw new IllegalArgumentException("Vui lòng nhập giá khóa học hợp lệ (>= 0)!");
+                if (!isDraft) {
+                    throw new IllegalArgumentException("Vui lòng nhập giá khóa học hợp lệ (>= 0)!");
+                }
             }
 
             // Thumbnail Upload
@@ -147,7 +172,7 @@ public class LessonController extends HttpServlet {
                 if (!uploadDir.exists()) uploadDir.mkdirs();
                 thumbnailRelPath = "assets/css/img/" + fileName;
                 filePart.write(uploadPath + java.io.File.separator + fileName);
-            } else if (!isUpdate) {
+            } else if (!isUpdate && !isDraft) {
                 throw new IllegalArgumentException("Vui lòng tải lên ảnh Thumbnail cho khóa học!");
             }
 
@@ -235,12 +260,12 @@ public class LessonController extends HttpServlet {
                                 }
                             }
                         }
-                        if (validBlocks == 0) {
+                        if (!isDraft && validBlocks == 0) {
                             throw new IllegalArgumentException("Nội dung bài học '" + lesTitle + "' không được để trống (cần ít nhất 1 khối nội dung văn bản hoặc hình ảnh)!");
                         }
                     } else if ("video".equals(type) || "video_image".equals(type)) {
                         String yt = request.getParameter("lessonVideo_" + s + "_" + l);
-                        if (yt == null || yt.trim().isEmpty()) {
+                        if (!isDraft && (yt == null || yt.trim().isEmpty())) {
                             throw new IllegalArgumentException("Vui lòng nhập đường dẫn video YouTube cho bài học '" + lesTitle + "'!");
                         }
                     } else if ("quiz".equals(type)) {
@@ -250,38 +275,40 @@ public class LessonController extends HttpServlet {
                         String qRetakeStr = request.getParameter("lessonQuizRetake_" + s + "_" + l);
                         String qPassStr = request.getParameter("lessonQuizPass_" + s + "_" + l);
                         
-                        if (qGroupStr == null || qGroupStr.trim().isEmpty()) {
-                            throw new IllegalArgumentException("Vui lòng chọn Bộ Đề (Question Group) cho bài Quiz '" + lesTitle + "'!");
-                        }
-                        try {
-                            int qNum = Integer.parseInt(qNumStr.trim());
-                            int qTime = Integer.parseInt(qTimeStr.trim());
-                            int qRetake = Integer.parseInt(qRetakeStr.trim());
-                            int qPass = Integer.parseInt(qPassStr.trim());
-                            if (qNum <= 0) throw new IllegalArgumentException("Số câu hỏi xuất ra phải lớn hơn 0 trong bài Quiz '" + lesTitle + "'!");
-                            if (qTime <= 0) throw new IllegalArgumentException("Thời gian làm bài phải lớn hơn 0 phút trong bài Quiz '" + lesTitle + "'!");
-                            if (qRetake < 0) throw new IllegalArgumentException("Số lần làm lại tối đa phải >= 0 trong bài Quiz '" + lesTitle + "'!");
-                            if (qPass < 1 || qPass > 100) throw new IllegalArgumentException("Điểm Pass phải từ 1 đến 100% trong bài Quiz '" + lesTitle + "'!");
-                        } catch (Exception e) {
-                            if (e instanceof IllegalArgumentException) throw e;
-                            throw new IllegalArgumentException("Các thông số cấu hình bài Quiz '" + lesTitle + "' không được để trống và phải là số hợp lệ!");
+                        if (!isDraft) {
+                            if (qGroupStr == null || qGroupStr.trim().isEmpty()) {
+                                throw new IllegalArgumentException("Vui lòng chọn Bộ Đề (Question Group) cho bài Quiz '" + lesTitle + "'!");
+                            }
+                            try {
+                                int qNum = Integer.parseInt(qNumStr.trim());
+                                int qTime = Integer.parseInt(qTimeStr.trim());
+                                int qRetake = Integer.parseInt(qRetakeStr.trim());
+                                int qPass = Integer.parseInt(qPassStr.trim());
+                                if (qNum <= 0) throw new IllegalArgumentException("Số câu hỏi xuất ra phải lớn hơn 0 trong bài Quiz '" + lesTitle + "'!");
+                                if (qTime <= 0) throw new IllegalArgumentException("Thời gian làm bài phải lớn hơn 0 phút trong bài Quiz '" + lesTitle + "'!");
+                                if (qRetake < 0) throw new IllegalArgumentException("Số lần làm lại tối đa phải >= 0 trong bài Quiz '" + lesTitle + "'!");
+                                if (qPass < 1 || qPass > 100) throw new IllegalArgumentException("Điểm Pass phải từ 1 đến 100% trong bài Quiz '" + lesTitle + "'!");
+                            } catch (Exception e) {
+                                if (e instanceof IllegalArgumentException) throw e;
+                                throw new IllegalArgumentException("Các thông số cấu hình bài Quiz '" + lesTitle + "' không được để trống và phải là số hợp lệ!");
+                            }
                         }
                     }
                 }
                 
-                if (validLessonCount == 0) {
+                if (!isDraft && validLessonCount == 0) {
                     throw new IllegalArgumentException("Section '" + secTitle + "' phải có ít nhất 1 bài học!");
                 }
             }
 
-            if (validSectionCount == 0) {
+            if (!isDraft && validSectionCount == 0) {
                 throw new IllegalArgumentException("Khóa học phải có ít nhất 1 Section (Chương học)!");
             }
 
             if (isUpdate) {
                 courseDAO.update(course);
             } else {
-                course.setStatus("pending");
+                course.setStatus(isDraft ? "draft" : "pending");
                 course.setRating(0);
                 course.setCreatedDate(java.time.LocalDateTime.now());
                 courseId = courseDAO.insert(course);
@@ -483,8 +510,8 @@ public class LessonController extends HttpServlet {
                     lessonDAO.cleanupRemovedSectionsAndLessons(courseId, keptSectionIds, keptLessonIds);
                 }
                 
-                String submitAction = request.getParameter("submitAction");
-                session.setAttribute("message", isUpdate ? "Course updated successfully!" : "Course saved successfully!");
+                submitAction = request.getParameter("submitAction");
+                session.setAttribute("message", isUpdate ? (isDraft ? "Đã lưu nháp khóa học thành công!" : "Cập nhật khóa học thành công!") : (isDraft ? "Đã tạo và lưu nháp khóa học thành công!" : "Tạo khóa học thành công!"));
                 session.setAttribute("messageType", "success");
                 
                 if ("goto_qbank".equals(submitAction)) {
@@ -492,7 +519,7 @@ public class LessonController extends HttpServlet {
                 } else if ("continue".equals(submitAction)) {
                     response.sendRedirect(request.getContextPath() + "/lesson?courseId=" + courseId);
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/course-dashboard");
+                    response.sendRedirect(request.getContextPath() + "/course-manager?action=dashboard");
                 }
             } else {
                 throw new Exception("Failed to save course.");

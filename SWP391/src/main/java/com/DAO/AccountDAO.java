@@ -323,8 +323,7 @@ public class AccountDAO extends DBContext {
 
 // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {
-        String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "
-                + "FROM Account WHERE id = ?";
+        String sql = "SELECT * FROM account WHERE id = ?";
         try {
             statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
@@ -337,6 +336,9 @@ public class AccountDAO extends DBContext {
                 u.setPhone(resultSet.getString("phone"));
                 u.setFullName(resultSet.getString("full_name"));
                 u.setGender(resultSet.getBoolean("gender"));
+                try {
+                    u.setAvatar(resultSet.getString("avatar"));
+                } catch (Exception ignored) {}
                 u.setActive(resultSet.getBoolean("is_active"));
                 u.setRoleId(resultSet.getInt("role_id"));
                 return u;

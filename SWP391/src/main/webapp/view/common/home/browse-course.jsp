@@ -111,7 +111,7 @@
                         <div class="course-body">
                             <div class="course-meta">
                                 <span class="course-teacher">
-                                    <a href="teacher-detail.jsp?id=${course.createdBy}">${authorNames[course.createdBy]}</a>
+                                    <a href="${pageContext.request.contextPath}/teacher-detail?id=${course.createdBy}">${authorNames[course.createdBy]}</a>
                                 </span>
                                 <span class="course-rating">
                                     <i class="fa-solid fa-star" style="color: #ffc107;"></i> rating ${course.rating}
