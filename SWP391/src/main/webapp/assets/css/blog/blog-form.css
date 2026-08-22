@@ -100,6 +100,31 @@ body {
     gap: 10px;
 }
 
+/* Thông báo lỗi hiển thị dưới từng khung điền */
+.field-error-feedback {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #D64545;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    animation: fadeInError 0.2s ease-in-out;
+}
+.field-error-feedback i {
+    font-size: 13px;
+    flex-shrink: 0;
+    color: #D64545;
+}
+.blog-section-card.has-error {
+    border-color: #D64545 !important;
+}
+@keyframes fadeInError {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .form-group {
     margin-bottom: 22px;
 }
@@ -147,6 +172,29 @@ body {
 textarea.form-control {
     resize: vertical;
     min-height: 100px;
+}
+
+input[type="file"].form-control {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+input[type="file"].form-control::file-selector-button {
+    padding: 6px 14px;
+    margin-right: 12px;
+    background: #0F1E33;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background: #1E3350;
 }
 
 .form-row {

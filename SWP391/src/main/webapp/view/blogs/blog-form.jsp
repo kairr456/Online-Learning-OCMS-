@@ -7,7 +7,7 @@
 <c:set var="formBriefInfo" value="${not empty draft ? draft.briefInfo : (not empty blog ? blog.briefInfo : '')}" />
 <c:set var="formContent" value="${not empty draft ? draft.content : (not empty blog ? blog.content : '')}" />
 <c:set var="formCategoryId" value="${not empty draft ? draft.categoryId : (not empty blog ? blog.categoryId : 0)}" />
-<c:set var="formStatus" value="${not empty draft ? draft.status : (not empty blog ? blog.status : 'Active')}" />
+<c:set var="formStatus" value="${not empty draft ? draft.status : (not empty blog ? blog.status : (sessionScope.account.roleId == 1 ? 'Active' : 'Draft'))}" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-form.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-form.css?v=7">
 </head>
 <body>
 
@@ -64,15 +64,25 @@
     <div class="blogform-container">
         <div class="blogform-card">
             
-            <c:if test="${not empty error}">
-                <div class="alert-danger">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <span><c:out value="${error}" /></span>
+            <c:if test="${isEdit and (blog.status == 'Rejected' or blog.status == 'Reject')}">
+                <div class="alert-danger" style="background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; flex-direction:column; align-items:flex-start; gap:6px;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:700;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#DC2626;"></i>
+                        <span>Bài viết này đã bị Admin từ chối phê duyệt</span>
+                    </div>
+                    <c:if test="${not empty blog.rejectReason}">
+                        <div style="font-size:13.5px; color:#1E293B; margin-left:24px;">
+                            <strong>Lý do từ chối:</strong> <c:out value="${blog.rejectReason}" />
+                        </div>
+                    </c:if>
+                    <div style="font-size:12.5px; color:#7F1D1D; margin-left:24px;">
+                        * Vui lòng chỉnh sửa nội dung bài viết trước khi gửi duyệt lại. Nếu không có thay đổi so với bản cũ, hệ thống sẽ tiếp tục giữ nguyên trạng thái <strong>Bị từ chối</strong>.
+                    </div>
                 </div>
             </c:if>
 
             <!-- Form xử lý chung -->
-            <form action="${pageContext.request.contextPath}${isEdit ? '/blogs-edit' : '/blogs-new'}" method="post">
+            <form id="blogForm" action="${pageContext.request.contextPath}${isEdit ? '/blogs-edit' : '/blogs-new'}" method="post" enctype="multipart/form-data" onsubmit="return compileAndValidateForm(event)" novalidate>
                 <c:if test="${isEdit}">
                     <input type="hidden" name="id" value="${blog.id}">
                 </c:if>
@@ -80,80 +90,99 @@
                 <!-- Tiêu đề bài viết -->
                 <div class="form-group">
                     <label for="title">Tiêu đề bài viết <span class="required">*</span></label>
-                    <input type="text" id="title" name="title" class="form-control" 
+                    <input type="text" id="title" name="title" class="form-control ${not empty errorTitle ? 'has-error' : ''}" 
                            placeholder="Nhập tiêu đề bài viết (ví dụ: Lộ trình học Java từ con số 0)..." 
-                           value="<c:out value='${formTitle}' />" required>
+                           value="<c:out value='${formTitle}' />" required
+                           style="${not empty errorTitle ? 'border-color: #D64545;' : ''}">
+                    <c:if test="${not empty errorTitle}">
+                        <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorTitle}" /></span></div>
+                    </c:if>
                 </div>
 
-                <!-- Danh mục & Trạng thái -->
-                <c:choose>
-                    <c:when test="${sessionScope.account.roleId == 1}">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="categoryId">Danh mục bài viết</label>
-                                <select id="categoryId" name="categoryId" class="form-select">
-                                    <option value="">-- Chọn danh mục --</option>
-                                    <c:if test="${not empty categories}">
-                                        <c:forEach var="entry" items="${categories}">
-                                            <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
-                                        </c:forEach>
-                                    </c:if>
-                                </select>
-                            </div>
+                <!-- Danh mục & Trạng thái bài viết -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="categoryId">Danh mục bài viết <span class="required">*</span></label>
+                        <select id="categoryId" name="categoryId" class="form-select ${not empty errorCategory ? 'has-error' : ''}"
+                                style="${not empty errorCategory ? 'border-color: #D64545;' : ''}">
+                            <option value="">-- Chọn danh mục --</option>
+                            <c:if test="${not empty categories}">
+                                <c:forEach var="entry" items="${categories}">
+                                    <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
+                                </c:forEach>
+                            </c:if>
+                        </select>
+                        <c:if test="${not empty errorCategory}">
+                            <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorCategory}" /></span></div>
+                        </c:if>
+                    </div>
 
-                            <div class="form-group">
-                                <label for="status">Trạng thái bài viết</label>
-                                <select id="status" name="status" class="form-select">
-                                    <option value="Active" ${formStatus == 'Active' ? 'selected' : ''}>Đã duyệt</option>
-                                    <option value="Inactive" ${formStatus == 'Inactive' ? 'selected' : ''}>Chưa phê duyệt</option>
-                                </select>
-                            </div>
+                    <div class="form-group">
+                        <label for="status">Trạng thái bài viết <span class="required">*</span></label>
+                        <select id="status" name="status" class="form-select">
+                            <c:choose>
+                                <c:when test="${sessionScope.account.roleId == 1}">
+                                    <option value="Active" ${formStatus == 'Active' ? 'selected' : ''}>Đã duyệt (Active - Công khai)</option>
+                                    <option value="Inactive" ${formStatus == 'Inactive' ? 'selected' : ''}>Chờ duyệt (Inactive)</option>
+                                    <option value="Draft" ${formStatus == 'Draft' ? 'selected' : ''}>Bản nháp (Draft)</option>
+                                </c:when>
+                                <c:otherwise>
+                                    <option value="Draft" ${formStatus == 'Draft' ? 'selected' : ''}>Bản nháp (Draft - Lưu riêng tư, không gửi Admin duyệt)</option>
+                                    <option value="Inactive" ${formStatus == 'Inactive' || formStatus == 'Rejected' || formStatus == 'Reject' || empty formStatus ? 'selected' : ''}>Chờ phê duyệt (Inactive - Gửi lên Admin duyệt)</option>
+                                </c:otherwise>
+                            </c:choose>
+                        </select>
+                        <div class="form-hint">
+                            <c:choose>
+                                <c:when test="${sessionScope.account.roleId == 1}">
+                                    Chọn trạng thái xuất bản cho bài viết.
+                                </c:when>
+                                <c:otherwise>
+                                    • <strong>Bản nháp (Draft):</strong> Chỉ bạn xem và chỉnh sửa, không đưa lên Admin duyệt.<br>
+                                    • <strong>Chờ phê duyệt (Inactive):</strong> Gửi bài lên hệ thống để Admin kiểm tra và duyệt xuất bản.
+                                </c:otherwise>
+                            </c:choose>
                         </div>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="form-group">
-                            <label for="categoryId">Danh mục bài viết</label>
-                            <select id="categoryId" name="categoryId" class="form-select">
-                                <option value="">-- Chọn danh mục --</option>
-                                <c:if test="${not empty categories}">
-                                    <c:forEach var="entry" items="${categories}">
-                                        <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
-                                    </c:forEach>
-                                </c:if>
-                            </select>
-                            <input type="hidden" name="status" value="Inactive">
-                        </div>
-                    </c:otherwise>
-                </c:choose>
+                    </div>
+                </div>
 
-                <!-- Link ảnh Thumbnail -->
+                <!-- Chọn file ảnh Thumbnail -->
                 <div class="form-group">
-                    <label for="thumbnail">Đường dẫn ảnh Thumbnail (URL)</label>
-                    <input type="text" id="thumbnail" name="thumbnail" class="form-control" 
-                           placeholder="https://example.com/images/blog-thumb.jpg" 
-                           value="<c:out value='${formThumbnail}' />"
-                           oninput="previewThumbnail(this.value)">
-                    <div class="form-hint">Nhập liên kết hình ảnh minh họa cho bài viết.</div>
+                    <label for="thumbnailFile">Ảnh Thumbnail bài viết</label>
+                    <input type="file" id="thumbnailFile" name="thumbnailFile" class="form-control" 
+                           accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" 
+                           onchange="previewThumbnailFile(this)">
+                    <input type="hidden" id="existingThumbnail" name="existingThumbnail" value="<c:out value='${formThumbnail}' />">
+                    <input type="hidden" id="thumbnail" name="thumbnail" value="<c:out value='${formThumbnail}' />">
+                    <div class="form-hint">Chọn file hình ảnh từ thiết bị của bạn (hỗ trợ JPG, PNG, WebP, GIF - tối đa 10MB).</div>
                     
-                    <div class="thumb-preview-wrap" id="previewWrap">
+                    <div class="thumb-preview-wrap" id="previewWrap" style="margin-top: 12px;">
                         <span class="placeholder-text" id="previewPlaceholder"><i class="fa-regular fa-image"></i> Xem trước hình ảnh Thumbnail</span>
-                        <img id="thumbnailPreview" src="" alt="Thumbnail preview" onerror="handleThumbError()">
+                        <img id="thumbnailPreview" src="<c:out value='${formThumbnail}' />" alt="Thumbnail preview" onerror="handleThumbError()">
                     </div>
                 </div>
 
                 <!-- Tóm tắt bài viết -->
                 <div class="form-group">
                     <label for="briefInfo">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
-                    <textarea id="briefInfo" name="briefInfo" class="form-control" rows="3" 
-                              placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu..." required><c:out value="${formBriefInfo}" /></textarea>
+                    <textarea id="briefInfo" name="briefInfo" class="form-control ${not empty errorBrief ? 'has-error' : ''}" rows="3" 
+                              placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu..." required
+                              style="${not empty errorBrief ? 'border-color: #D64545;' : ''}"><c:out value="${formBriefInfo}" /></textarea>
+                    <c:if test="${not empty errorBrief}">
+                        <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorBrief}" /></span></div>
+                    </c:if>
                     <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách.</div>
                 </div>
 
                 <!-- Nội dung chi tiết chính của bài viết -->
                 <div class="form-group">
                     <label for="mainContent">Nội dung chi tiết (Content) <span class="required">*</span></label>
-                    <textarea id="mainContent" class="form-control" rows="8" 
-                              placeholder="Nhập nội dung bài viết tại đây..." required><c:out value="${formContent}" /></textarea>
+                    <textarea id="mainContent" name="mainContent" class="form-control ${not empty errorContent ? 'has-error' : ''}" rows="8" 
+                              placeholder="Nhập nội dung bài viết tại đây..." required
+                              style="${not empty errorContent ? 'border-color: #D64545;' : ''}"><c:out value="${formContent}" /></textarea>
+                    <c:if test="${not empty errorContent}">
+                        <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorContent}" /></span></div>
+                    </c:if>
                 </div>
 
                 <!-- Vùng chứa các khối Ảnh & Nội dung bổ sung được thêm bằng dấu [+] -->
@@ -175,19 +204,9 @@
                 <div class="form-actions">
                     <a href="${pageContext.request.contextPath}/my-blogs" class="btn-cancel">Hủy bỏ</a>
                     
-                    <c:choose>
-                        <c:when test="${sessionScope.account.roleId == 1}">
-                            <button type="submit" name="submitAction" value="save" class="btn-submit" onclick="return compileAndValidateForm()">
-                                <i class="fa-solid fa-check"></i> Lưu bài viết
-                            </button>
-                        </c:when>
-                        <c:otherwise>
-                            <!-- Nút Gửi chờ Admin xác nhận -->
-                            <button type="submit" name="submitAction" value="submit_admin" class="btn-submit" onclick="return compileAndValidateForm()">
-                                <i class="fa-solid fa-paper-plane"></i> Gửi chờ Admin xác nhận
-                            </button>
-                        </c:otherwise>
-                    </c:choose>
+                    <button type="submit" name="submitAction" value="save" class="btn-submit" onclick="return compileAndValidateForm(event)">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu bài viết
+                    </button>
                 </div>
             </form>
 
@@ -197,6 +216,6 @@
     <!-- Footer dùng chung -->
     <jsp:include page="/view/common/footer.jsp" />
     <!-- JS riêng biệt cho Blog Form -->
-    <script src="${pageContext.request.contextPath}/assets/js/blog/blog-form.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/blog/blog-form.js?v=8"></script>
 </body>
 </html>

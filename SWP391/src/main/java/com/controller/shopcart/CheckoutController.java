@@ -58,6 +58,9 @@ public class CheckoutController extends HttpServlet {
             cart = new CartDAO().getOrCreateCart(account.getId());
         }
 
+        // Tự động dọn dẹp các khóa học đã bị deactive trước khi thanh toán
+        new CartItemDAO().cleanupInactiveCartItems(cart.getId());
+
         List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {
             session.setAttribute("message", "Giỏ hàng của bạn đang trống.");
@@ -90,6 +93,9 @@ public class CheckoutController extends HttpServlet {
         if (cart == null) {
             cart = new CartDAO().getOrCreateCart(account.getId());
         }
+
+        // Tự động dọn dẹp các khóa học đã bị deactive trước khi xử lý thanh toán
+        new CartItemDAO().cleanupInactiveCartItems(cart.getId());
 
         List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {

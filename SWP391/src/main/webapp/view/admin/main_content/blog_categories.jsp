@@ -130,17 +130,36 @@
     <!-- ===== Phân trang ===== -->
     <c:if test="${totalPages > 1}">
         <div class="pagination">
+            <!-- Trang đầu (<<) -->
+            <c:if test="${currentPage > 1}">
+                <a href="javascript:void(0)" class="page-link" onclick="goToPage('1')" title="First page">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+            </c:if>
+
+            <!-- Trang trước (<) -->
             <c:if test="${currentPage > 1}">
                 <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage - 1}')" title="Previous page">
                     <i class="fa-solid fa-angle-left"></i>
                 </a>
             </c:if>
+
+            <!-- Danh sách số trang -->
             <c:forEach var="i" begin="1" end="${totalPages}">
                 <a href="javascript:void(0)" class="page-link ${currentPage == i ? 'active' : ''}" onclick="goToPage('${i}')">${i}</a>
             </c:forEach>
+
+            <!-- Trang sau (>) -->
             <c:if test="${currentPage < totalPages}">
                 <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage + 1}')" title="Next page">
                     <i class="fa-solid fa-angle-right"></i>
+                </a>
+            </c:if>
+
+            <!-- Trang cuối (>>) -->
+            <c:if test="${currentPage < totalPages}">
+                <a href="javascript:void(0)" class="page-link" onclick="goToPage('${totalPages}')" title="Last page">
+                    <i class="fa-solid fa-angles-right"></i>
                 </a>
             </c:if>
         </div>

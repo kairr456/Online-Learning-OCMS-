@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css?v=2">
 </head>
 <body>
 
@@ -58,9 +58,35 @@
                         <span><i class="fa-regular fa-user"></i> <strong><c:out value="${authorName}" /></strong></span>
                         <span><i class="fa-regular fa-calendar"></i> <c:out value="${not empty formattedDate ? formattedDate : 'Gần đây'}" /></span>
                         <c:if test="${not empty blog.status}">
-                            <span><i class="fa-solid fa-circle-check"></i> <c:out value="${blog.status}" /></span>
+                            <c:choose>
+                                <c:when test="${blog.status == 'Reject' || blog.status == 'Rejected'}">
+                                    <span class="meta-status-badge meta-status-badge--rejected"><i class="fa-solid fa-circle-xmark"></i> Bị từ chối</span>
+                                </c:when>
+                                <c:when test="${blog.status == 'Active'}">
+                                    <span class="meta-status-badge meta-status-badge--active"><i class="fa-solid fa-circle-check"></i> Đã duyệt</span>
+                                </c:when>
+                                <c:when test="${blog.status == 'Draft'}">
+                                    <span class="meta-status-badge meta-status-badge--draft"><i class="fa-solid fa-file-lines"></i> Bản nháp</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="meta-status-badge meta-status-badge--pending"><i class="fa-solid fa-clock"></i> Chờ phê duyệt</span>
+                                </c:otherwise>
+                            </c:choose>
                         </c:if>
                     </div>
+
+                    <!-- Khung thông báo lý do từ chối (hiển thị ngay bên dưới hàng meta của bài viết) -->
+                    <c:if test="${(blog.status == 'Reject' || blog.status == 'Rejected') && not empty blog.rejectReason}">
+                        <div class="blog-rejection-alert">
+                            <div class="rejection-alert-icon">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="rejection-alert-content">
+                                <h4 class="rejection-alert-title">Lý do bài viết bị từ chối phê duyệt:</h4>
+                                <p class="rejection-alert-text"><c:out value="${blog.rejectReason}" /></p>
+                            </div>
+                        </div>
+                    </c:if>
 
                     <!-- Thumbnail -->
                     <c:if test="${not empty blog.thumbnail}">
@@ -87,7 +113,7 @@
                             <i class="fa-solid fa-arrow-left"></i> Xem tất cả bài viết khác
                         </a>
                         <div class="article-footer-actions">
-                            <c:if test="${not empty sessionScope.account and ((sessionScope.account.id == blog.author and blog.status != 'Active') or sessionScope.account.roleId == 1)}">
+                            <c:if test="${not empty sessionScope.account and ((sessionScope.account.id == blog.author and blog.status == 'Draft') or sessionScope.account.roleId == 1)}">
                                 <a href="${pageContext.request.contextPath}/blogs-edit?id=${blog.id}" class="btn-back-blogs btn-back-blogs--edit">
                                     <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa bài này
                                 </a>

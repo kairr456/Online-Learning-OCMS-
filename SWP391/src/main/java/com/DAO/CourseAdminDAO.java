@@ -142,11 +142,20 @@ public class CourseAdminDAO extends DBContext {
      */
     public boolean deactivateCourse(int id) {
         String sql = "UPDATE course SET status = 'inactive' WHERE id = ?";
+        String sqlCleanCart = "DELETE FROM cart_item WHERE course_id = ?";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
-            return statement.executeUpdate() > 0;
+            int affected = statement.executeUpdate();
+            
+            if (affected > 0) {
+                try (java.sql.PreparedStatement psCart = connection.prepareStatement(sqlCleanCart)) {
+                    psCart.setInt(1, id);
+                    psCart.executeUpdate();
+                }
+            }
+            return affected > 0;
         } catch (SQLException ex) {
             System.out.println("Error deactivating course: " + ex.getMessage());
             return false;

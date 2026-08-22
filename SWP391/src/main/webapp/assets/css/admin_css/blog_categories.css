@@ -179,3 +179,51 @@
     box-shadow: none !important;
 }
 
+/* ==========================================================================
+   Pagination Styling (Dark Navy & White theme matching Image 1)
+   ========================================================================== */
+.account-manager-container .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 28px 0 16px;
+}
+
+.account-manager-container .pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #ffffff;
+    color: #161439;
+    border: 1px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.account-manager-container .pagination .page-link:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #161439;
+    transform: translateY(-1px);
+}
+
+.account-manager-container .pagination .page-link.active {
+    background: #111827 !important; /* Dark Navy / Black matching Ảnh 1 */
+    border-color: #111827 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.25);
+}
+
+.account-manager-container .pagination .page-link i {
+    font-size: 13px;
+    color: #161439;
+}
+

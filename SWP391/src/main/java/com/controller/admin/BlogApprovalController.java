@@ -100,9 +100,10 @@ public class BlogApprovalController extends HttpServlet {
         List<Blog> blogList = new BlogApprovalDAO().searchBlogs(keyword, status, categoryId, page, PAGE_SIZE);
         Map<Integer, String> blogCategories = new BlogDAO().getBlogCategories();
 
-        // 5. Thống kê số lượng bài viết (Inactive, Active, Total)
+        // 5. Thống kê số lượng bài viết (Inactive, Active, Rejected, Total)
         int inactiveCount = new BlogApprovalDAO().countByStatus("Inactive");
         int activeCount = new BlogApprovalDAO().countByStatus("Active");
+        int rejectedCount = new BlogApprovalDAO().countByStatus("Rejected");
         int totalCount = new BlogApprovalDAO().countByStatus("all");
 
         // 6. Truyền dữ liệu sang JSP
@@ -117,6 +118,7 @@ public class BlogApprovalController extends HttpServlet {
 
         request.setAttribute("inactiveCount", inactiveCount);
         request.setAttribute("activeCount", activeCount);
+        request.setAttribute("rejectedCount", rejectedCount);
         request.setAttribute("totalCount", totalCount);
 
         // Đặt nội dung hiển thị trong admin_layout.jsp
@@ -173,21 +175,26 @@ public class BlogApprovalController extends HttpServlet {
     }
 
     /**
-     * Xử lý Từ chối / Ẩn bài viết (Active -> Inactive) qua AJAX POST
+     * Xử lý Từ chối bài viết kèm lý do qua AJAX POST
      */
     private void handleRejectPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int id = adminValidator.parseInt(request.getParameter("id"), -1);
+        String reason = request.getParameter("reason");
         if (id <= 0) {
             writeJsonResponse(response, false, "ID bài viết không hợp lệ.");
             return;
         }
+        if (reason == null || reason.trim().isEmpty()) {
+            writeJsonResponse(response, false, "Vui lòng nhập lý do từ chối bài viết.");
+            return;
+        }
 
-        boolean ok = new BlogApprovalDAO().deactivateBlog(id);
+        boolean ok = new BlogApprovalDAO().rejectBlog(id, reason.trim());
         if (ok) {
-            writeJsonResponse(response, true, "Bài viết đã chuyển sang trạng thái Inactive (Ẩn / Từ chối)!");
+            writeJsonResponse(response, true, "Đã từ chối bài viết và lưu lý do thành công!");
         } else {
-            writeJsonResponse(response, false, "Thao tác thất bại. Vui lòng thử lại!");
+            writeJsonResponse(response, false, "Từ chối bài viết thất bại. Vui lòng thử lại!");
         }
     }
 
@@ -224,6 +231,7 @@ public class BlogApprovalController extends HttpServlet {
             .append("\"authorEmail\": ").append(escapeJson(blog.getAuthorEmail())).append(", ")
             .append("\"categoryName\": ").append(escapeJson(blog.getCategoryName())).append(", ")
             .append("\"status\": ").append(escapeJson(blog.getStatus())).append(", ")
+            .append("\"rejectReason\": ").append(escapeJson(blog.getRejectReason())).append(", ")
             .append("\"createdDate\": ").append(escapeJson(createdStr))
             .append("}");
 
