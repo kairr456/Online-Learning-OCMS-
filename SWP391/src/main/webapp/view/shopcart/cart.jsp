@@ -103,19 +103,28 @@
                                         <c:forEach items="${cartItems}" var="item" varStatus="status">
                                             <div class="cart-item">
                                                 <div class="row align-items-center">
-                                                    <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
+                                                    <c:set var="course" value="${courseMap[item.courseId]}" />
+                                                    <c:set var="courseNameDisplay" value="${not empty course.name ? course.name : 'khóa học này'}" />
                                                     <div class="col-md-2">
-                                                        <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
+                                                        <a href="${pageContext.request.contextPath}/course?id=${item.courseId}">
+                                                            <img src="${not empty course.thumbnail ? course.thumbnail : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120'}" 
+                                                                 alt="${not empty course.name ? course.name : 'Course thumbnail'}" 
+                                                                 class="cart-item-image">
+                                                        </a>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <h5>${course.name}</h5>
-                                                        <small>Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
+                                                        <h5 class="cart-item-title mb-1">
+                                                            <a href="${pageContext.request.contextPath}/course?id=${item.courseId}" class="text-dark text-decoration-none fw-bold">
+                                                                <c:out value="${not empty course.name ? course.name : ('Khóa học #' + item.courseId)}" />
+                                                            </a>
+                                                        </h5>
+                                                        <small class="text-muted d-block">Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
                                                     </div>
                                                     <div class="col-md-2 text-right">
                                                         <span class="price"><fmt:formatNumber value="${item.price}" pattern="#,##0.00"/>₫</span>
                                                     </div>
                                                     <div class="col-md-2 text-right">
-                                                        <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="${course.name}">
+                                                        <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="<c:out value='${courseNameDisplay}' />">
                                                             <input type="hidden" name="action" value="remove">
                                                             <input type="hidden" name="itemId" value="${item.id}">
                                                             <input type="hidden" name="search" value="<c:out value="${search}"/>">
@@ -123,7 +132,7 @@
                                                             <input type="hidden" name="page" value="${currentPage}">
                                                             <button type="button" class="btn btn-sm btn-outline-danger btn-remove-item" 
                                                                     data-item-id="${item.id}" 
-                                                                    data-course-name="${course.name}">
+                                                                    data-course-name="<c:out value='${courseNameDisplay}' />">
                                                                 <i class="fas fa-trash"></i> Remove
                                                             </button>
                                                         </form>

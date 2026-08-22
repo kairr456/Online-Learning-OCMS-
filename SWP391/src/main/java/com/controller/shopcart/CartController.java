@@ -56,6 +56,9 @@ public class CartController extends HttpServlet {
         // Lấy hoặc tạo giỏ hàng cho tài khoản
         Cart cart = cartDAO.getOrCreateCart(account.getId());
 
+        // Tự động dọn dẹp các khóa học đã bị deactivate hoặc không còn active khỏi giỏ hàng
+        cartItemDAO.cleanupInactiveCartItems(cart.getId());
+
         // Lấy tham số tìm kiếm & sắp xếp
         String search = request.getParameter("search");
         String sort = request.getParameter("sort");
@@ -128,6 +131,7 @@ public class CartController extends HttpServlet {
         request.setAttribute("cart", cart);
         request.setAttribute("cartItems", pagedItems);
         request.setAttribute("courseMap", courseMap);
+        request.setAttribute("courseDAO", courseDAO);
         request.setAttribute("cartTotal", cartTotal);
         request.setAttribute("itemCount", totalFilteredItems);
         request.setAttribute("totalCartItems", totalCartItems);

@@ -16,7 +16,7 @@ public class BlogDAO extends DBContext {
      * Chuyển đổi ResultSet thành Blog entity dùng chung cho tất cả các truy vấn
      */
     private Blog mapResultSetToBlog(ResultSet rs) throws SQLException {
-        return new Blog(
+        Blog b = new Blog(
             rs.getInt("id"),
             rs.getString("title"),
             rs.getString("thumbnail"),
@@ -28,6 +28,10 @@ public class BlogDAO extends DBContext {
             rs.getTimestamp("created_date"),
             rs.getString("status")
         );
+        try {
+            b.setRejectReason(rs.getString("reject_reason"));
+        } catch (SQLException ignored) {}
+        return b;
     }
 
     public List<Blog> getAllBlogs() {
@@ -115,10 +119,10 @@ public class BlogDAO extends DBContext {
     }
 
     /**
-     * Cập nhật thông tin bài viết
+     * Cập nhật thông tin bài viết (bao gồm cả trạng thái và lý do từ chối nếu có)
      */
     public boolean updateBlog(Blog blog) {
-        String sql = "UPDATE blog SET title = ?, thumbnail = ?, brief_info = ?, content = ?, category_id = ?, status = ?, updated_date = NOW() "
+        String sql = "UPDATE blog SET title = ?, thumbnail = ?, brief_info = ?, content = ?, category_id = ?, status = ?, reject_reason = ?, updated_date = NOW() "
                    + "WHERE id = ? AND author = ?";
         try {
             connection = getConnection();
@@ -133,13 +137,39 @@ public class BlogDAO extends DBContext {
                 statement.setNull(5, java.sql.Types.INTEGER);
             }
             statement.setString(6, blog.getStatus() != null ? blog.getStatus() : "Active");
-            statement.setInt(7, blog.getId());
-            statement.setInt(8, blog.getAuthor());
+            if (blog.getRejectReason() != null && !blog.getRejectReason().trim().isEmpty()) {
+                statement.setString(7, blog.getRejectReason().trim());
+            } else {
+                statement.setNull(7, java.sql.Types.VARCHAR);
+            }
+            statement.setInt(8, blog.getId());
+            statement.setInt(9, blog.getAuthor());
 
             int rows = statement.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("[BlogDAO] updateBlog error: " + e.getMessage() + ", trying fallback without reject_reason column...");
+            try {
+                if (statement != null) statement.close();
+                String fallbackSql = "UPDATE blog SET title = ?, thumbnail = ?, brief_info = ?, content = ?, category_id = ?, status = ?, updated_date = NOW() "
+                                   + "WHERE id = ? AND author = ?";
+                statement = connection.prepareStatement(fallbackSql);
+                statement.setString(1, blog.getTitle());
+                statement.setString(2, blog.getThumbnail());
+                statement.setString(3, blog.getBriefInfo());
+                statement.setString(4, blog.getContent());
+                if (blog.getCategoryId() > 0) {
+                    statement.setInt(5, blog.getCategoryId());
+                } else {
+                    statement.setNull(5, java.sql.Types.INTEGER);
+                }
+                statement.setString(6, blog.getStatus() != null ? blog.getStatus() : "Active");
+                statement.setInt(7, blog.getId());
+                statement.setInt(8, blog.getAuthor());
+                return statement.executeUpdate() > 0;
+            } catch (SQLException e2) {
+                e2.printStackTrace();
+            }
         } finally {
             closeResources();
         }

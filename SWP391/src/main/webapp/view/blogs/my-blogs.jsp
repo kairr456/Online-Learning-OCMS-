@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=3">
 </head>
 <body>
 
@@ -57,7 +57,7 @@
                     <i class="fa-solid fa-book-open"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>${totalCount}</h3>
+                    <h3>${not empty totalCount ? totalCount : 0}</h3>
                     <p>Tổng số bài viết</p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>${activeCount}</h3>
+                    <h3>${not empty activeCount ? activeCount : 0}</h3>
                     <p>Đã duyệt</p>
                 </div>
             </div>
@@ -75,8 +75,17 @@
                     <i class="fa-solid fa-hourglass-half"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>${inactiveCount}</h3>
-                    <p>Chưa phê duyệt</p>
+                    <h3>${not empty inactiveCount ? inactiveCount : 0}</h3>
+                    <p>Chờ phê duyệt</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--blue" style="background: rgba(100, 116, 139, 0.12); color: #64748B;">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>${not empty draftCount ? draftCount : 0}</h3>
+                    <p>Bản nháp</p>
                 </div>
             </div>
         </div>
@@ -85,7 +94,7 @@
         <c:if test="${param.message == 'draft_saved'}">
             <div class="alert-box alert-box--success" style="background:#F1F5F9; border-color:#CBD5E1; color:#1E293B;">
                 <i class="fa-solid fa-floppy-disk" style="color:#64748B;"></i>
-                <span><strong>Đã lưu bài viết thành công!</strong> Bài viết chưa được duyệt và chỉ có bạn xem được.</span>
+                <span><strong>Đã lưu bản nháp thành công!</strong> Bài viết này chỉ có bạn xem được và không đưa lên Admin duyệt.</span>
             </div>
         </c:if>
         <c:if test="${param.message == 'submitted'}">
@@ -106,16 +115,40 @@
                 <span>Cập nhật bài viết thành công! Các thay đổi đã được lưu.</span>
             </div>
         </c:if>
+        <c:if test="${param.message == 'rejected_unchanged'}">
+            <div class="alert-box alert-box--danger" style="background:#FEF2F2; border-color:#FECACA; color:#B91C1C;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#DC2626;"></i>
+                <span><strong>Nội dung bài viết chưa có thay đổi so với bản cũ!</strong> Vì bài viết đã bị từ chối và chưa được chỉnh sửa nội dung, hệ thống vẫn tiếp tục giữ nguyên trạng thái <strong>Bị từ chối</strong>. Vui lòng chỉnh sửa bài viết trước khi gửi duyệt lại!</span>
+            </div>
+        </c:if>
         <c:if test="${param.message == 'deleted'}">
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
                 <span>Đã xóa bài viết thành công khỏi hệ thống!</span>
             </div>
         </c:if>
+        <c:if test="${param.error == 'pending_approval'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết đang trong hàng đợi chờ Admin phê duyệt, bạn không thể chỉnh sửa trong lúc này!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'pending_approval_delete'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-ban"></i>
+                <span>Bài viết đang trong hàng đợi chờ Admin phê duyệt, bạn không thể xóa bài viết trong lúc này!</span>
+            </div>
+        </c:if>
         <c:if test="${param.error == 'already_approved'}">
             <div class="alert-box alert-box--danger">
                 <i class="fa-solid fa-lock"></i>
                 <span>Bài viết này đã được Admin phê duyệt và xuất bản công khai, bạn không thể chỉnh sửa bài viết đã duyệt!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'rejected_locked'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết này đã bị Admin từ chối phê duyệt nên không thể chỉnh sửa!</span>
             </div>
         </c:if>
         <c:if test="${param.error == 'unauthorized'}">
@@ -147,9 +180,11 @@
                         </c:forEach>
                     </select>
                     <select id="filterStatus" class="filter-select" onchange="filterTable()">
-                        <option value="">Tất cả</option>
+                        <option value="">Tất cả trạng thái</option>
                         <option value="Active">Đã duyệt</option>
-                        <option value="Inactive">Chưa phê duyệt</option>
+                        <option value="Inactive">Chờ phê duyệt</option>
+                        <option value="Draft">Bản nháp</option>
+                        <option value="Rejected">Bị từ chối</option>
                     </select>
                 </div>
             </div>
@@ -223,9 +258,19 @@
                                                         <span class="badge-dot badge-dot--active"></span> Đã duyệt
                                                     </span>
                                                 </c:when>
+                                                <c:when test="${b.status == 'Draft'}">
+                                                    <span class="badge badge--inactive">
+                                                        <span class="badge-dot badge-dot--inactive"></span> Bản nháp
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${b.status == 'Reject' || b.status == 'Rejected'}">
+                                                    <span class="badge badge--rejected">
+                                                        <span class="badge-dot badge-dot--rejected"></span> Bị từ chối
+                                                    </span>
+                                                </c:when>
                                                 <c:otherwise>
                                                     <span class="badge badge--pending">
-                                                        <span class="badge-dot badge-dot--pending"></span> Chưa phê duyệt
+                                                        <span class="badge-dot badge-dot--pending"></span> Chờ phê duyệt
                                                     </span>
                                                 </c:otherwise>
                                             </c:choose>
@@ -237,20 +282,40 @@
                                                 <a href="${pageContext.request.contextPath}/blog-detail?id=${b.id}" class="btn-action btn-action--view" title="Xem chi tiết">
                                                     <i class="fa-regular fa-eye"></i>
                                                 </a>
+
+                                                <!-- Nút Chỉnh sửa: Chỉ cho sửa khi là Admin hoặc Draft. Không cho sửa khi Bị từ chối (Reject/Rejected), Chờ duyệt (Inactive), hoặc Đã duyệt (Active) -->
                                                 <c:choose>
-                                                    <c:when test="${!isActive or sessionScope.account.roleId == 1}">
+                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status == 'Draft'}">
                                                         <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </a>
-                                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
-                                                            <i class="fa-regular fa-trash-can"></i>
-                                                        </button>
+                                                    </c:when>
+                                                    <c:when test="${b.status == 'Reject' || b.status == 'Rejected'}">
+                                                        <span class="btn-action" title="Bài viết đã bị Admin từ chối phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
+                                                    </c:when>
+                                                    <c:when test="${b.status == 'Inactive'}">
+                                                        <span class="btn-action" title="Bài viết đang chờ Admin phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span class="btn-action" title="Bài viết đã được Admin duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
                                                             <i class="fa-solid fa-lock"></i>
                                                         </span>
-                                                        <span class="btn-action" title="Bài viết đã được Admin duyệt nên không thể xóa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                    </c:otherwise>
+                                                </c:choose>
+
+                                                <!-- Nút Xóa: Cho phép xóa khi là Admin, Draft, Đã duyệt (Active), hoặc Bị từ chối. Không cho xóa khi Chờ duyệt (Inactive) -->
+                                                <c:choose>
+                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status != 'Inactive'}">
+                                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
+                                                            <i class="fa-regular fa-trash-can"></i>
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="btn-action" title="Bài viết đang chờ Admin phê duyệt nên không thể xóa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
                                                             <i class="fa-solid fa-ban" style="color: #94A3B8;"></i>
                                                         </span>
                                                     </c:otherwise>

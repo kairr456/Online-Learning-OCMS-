@@ -4,19 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Common CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css?v=2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css?v=5">
     <!-- Common Header CSS (site-header*, dùng cho header admin) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=5">
     <!-- Layout CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=5">
     <!-- Page CSS -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css?v=2">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=2">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_categories.css?v=2">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_approval.css?v=2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_categories.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_approval.css?v=6">
 </head>
 <body>
 

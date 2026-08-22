@@ -18,12 +18,14 @@ public class BlogApprovalDAO extends DBContext {
     }
 
     /**
-     * Đếm tổng số bài viết theo trạng thái ('Active', 'Inactive', hoặc tất cả)
+     * Đếm tổng số bài viết theo trạng thái ('Active', 'Inactive', 'Rejected', hoặc tất cả trừ Draft)
      */
     public int countByStatus(String status) {
         String sql;
         if (status == null || status.trim().isEmpty() || "all".equalsIgnoreCase(status)) {
-            sql = "SELECT COUNT(*) FROM blog";
+            sql = "SELECT COUNT(*) FROM blog WHERE status != 'Draft'";
+        } else if ("Rejected".equalsIgnoreCase(status) || "Reject".equalsIgnoreCase(status)) {
+            sql = "SELECT COUNT(*) FROM blog WHERE status IN ('Rejected', 'Reject')";
         } else {
             sql = "SELECT COUNT(*) FROM blog WHERE status = ?";
         }
@@ -31,7 +33,7 @@ public class BlogApprovalDAO extends DBContext {
         try {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
-            if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+            if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status) && !"Reject".equalsIgnoreCase(status)) {
                 statement.setString(1, status.trim());
             }
             resultSet = statement.executeQuery();
@@ -47,15 +49,21 @@ public class BlogApprovalDAO extends DBContext {
     }
 
     /**
-     * Đếm số bài viết phù hợp với bộ lọc tìm kiếm
+     * Đếm số bài viết phù hợp với bộ lọc tìm kiếm (loại trừ Draft nếu xem tất cả)
      */
     public int countBlogs(String keyword, String status, Integer categoryId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM blog b LEFT JOIN account a ON b.author = a.id WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
-            sql.append(" AND b.status = ?");
-            params.add(status.trim());
+            if ("Rejected".equalsIgnoreCase(status) || "Reject".equalsIgnoreCase(status)) {
+                sql.append(" AND b.status IN ('Rejected', 'Reject')");
+            } else {
+                sql.append(" AND b.status = ?");
+                params.add(status.trim());
+            }
+        } else {
+            sql.append(" AND b.status != 'Draft'");
         }
 
         if (categoryId != null && categoryId > 0) {
@@ -91,7 +99,7 @@ public class BlogApprovalDAO extends DBContext {
     }
 
     /**
-     * Tìm kiếm và phân trang danh sách bài viết duyệt
+     * Tìm kiếm và phân trang danh sách bài viết duyệt (loại trừ Draft khi xem tất cả)
      */
     public List<Blog> searchBlogs(String keyword, String status, Integer categoryId, int page, int pageSize) {
         List<Blog> list = new ArrayList<>();
@@ -105,8 +113,14 @@ public class BlogApprovalDAO extends DBContext {
         List<Object> params = new ArrayList<>();
 
         if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
-            sql.append(" AND b.status = ?");
-            params.add(status.trim());
+            if ("Rejected".equalsIgnoreCase(status) || "Reject".equalsIgnoreCase(status)) {
+                sql.append(" AND b.status IN ('Rejected', 'Reject')");
+            } else {
+                sql.append(" AND b.status = ?");
+                params.add(status.trim());
+            }
+        } else {
+            sql.append(" AND b.status != 'Draft'");
         }
 
         if (categoryId != null && categoryId > 0) {
@@ -156,6 +170,9 @@ public class BlogApprovalDAO extends DBContext {
                 b.setAuthorName(resultSet.getString("author_name"));
                 b.setAuthorEmail(resultSet.getString("author_email"));
                 b.setCategoryName(resultSet.getString("category_name"));
+                try {
+                    b.setRejectReason(resultSet.getString("reject_reason"));
+                } catch (SQLException ignored) {}
 
                 list.add(b);
             }
@@ -197,6 +214,9 @@ public class BlogApprovalDAO extends DBContext {
                 b.setAuthorName(resultSet.getString("author_name"));
                 b.setAuthorEmail(resultSet.getString("author_email"));
                 b.setCategoryName(resultSet.getString("category_name"));
+                try {
+                    b.setRejectReason(resultSet.getString("reject_reason"));
+                } catch (SQLException ignored) {}
                 return b;
             }
         } catch (SQLException e) {
@@ -208,10 +228,10 @@ public class BlogApprovalDAO extends DBContext {
     }
 
     /**
-     * Duyệt bài viết: chuyển status từ Inactive sang Active
+     * Duyệt bài viết: chuyển status từ Inactive/Rejected sang Active và xóa lý do từ chối
      */
     public boolean approveBlog(int blogId) {
-        String sql = "UPDATE blog SET status = 'Active', updated_date = NOW() WHERE id = ?";
+        String sql = "UPDATE blog SET status = 'Active', reject_reason = NULL, updated_date = NOW() WHERE id = ?";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
@@ -226,7 +246,37 @@ public class BlogApprovalDAO extends DBContext {
     }
 
     /**
-     * Hủy duyệt / Ẩn / Từ chối bài viết: chuyển status sang Inactive
+     * Từ chối bài viết: chuyển status sang Rejected (hoặc Reject) và lưu lý do từ chối
+     */
+    public boolean rejectBlog(int blogId, String reason) {
+        String sql = "UPDATE blog SET status = 'Rejected', reject_reason = ?, updated_date = NOW() WHERE id = ?";
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, reason != null ? reason.trim() : "");
+            statement.setInt(2, blogId);
+            int rows = statement.executeUpdate();
+            if (rows > 0) return true;
+        } catch (SQLException e) {
+            System.err.println("[BlogApprovalDAO] rejectBlog ('Rejected') error: " + e.getMessage() + ", trying 'Reject'...");
+            try {
+                if (statement != null) statement.close();
+                String fallbackSql = "UPDATE blog SET status = 'Reject', reject_reason = ?, updated_date = NOW() WHERE id = ?";
+                statement = connection.prepareStatement(fallbackSql);
+                statement.setString(1, reason != null ? reason.trim() : "");
+                statement.setInt(2, blogId);
+                return statement.executeUpdate() > 0;
+            } catch (SQLException e2) {
+                System.err.println("[BlogApprovalDAO] rejectBlog fallback error: " + e2.getMessage());
+            }
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+    /**
+     * Hủy duyệt / Đặt lại Inactive bài viết
      */
     public boolean deactivateBlog(int blogId) {
         String sql = "UPDATE blog SET status = 'Inactive', updated_date = NOW() WHERE id = ?";

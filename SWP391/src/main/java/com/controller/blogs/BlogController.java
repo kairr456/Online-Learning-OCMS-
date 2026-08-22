@@ -6,12 +6,15 @@ import com.entity.Account;
 import com.entity.Blog;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +38,11 @@ import java.util.Map;
     "/blogs-edit",
     "/blogs-delete"
 })
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+    maxFileSize = 1024 * 1024 * 10,      // 10MB
+    maxRequestSize = 1024 * 1024 * 50    // 50MB
+)
 public class BlogController extends HttpServlet {
 
     @Override
@@ -234,10 +242,16 @@ public class BlogController extends HttpServlet {
         int totalCount = myBlogs != null ? myBlogs.size() : 0;
         int activeCount = 0;
         int inactiveCount = 0;
+        int draftCount = 0;
+        int rejectedCount = 0;
         if (myBlogs != null) {
             for (Blog b : myBlogs) {
                 if ("Active".equalsIgnoreCase(b.getStatus())) {
                     activeCount++;
+                } else if ("Draft".equalsIgnoreCase(b.getStatus())) {
+                    draftCount++;
+                } else if ("Rejected".equalsIgnoreCase(b.getStatus()) || "Reject".equalsIgnoreCase(b.getStatus())) {
+                    rejectedCount++;
                 } else {
                     inactiveCount++;
                 }
@@ -249,6 +263,8 @@ public class BlogController extends HttpServlet {
         request.setAttribute("totalCount", totalCount);
         request.setAttribute("activeCount", activeCount);
         request.setAttribute("inactiveCount", inactiveCount);
+        request.setAttribute("draftCount", draftCount);
+        request.setAttribute("rejectedCount", rejectedCount);
 
         request.getRequestDispatcher("/view/blogs/my-blogs.jsp").forward(request, response);
     }
@@ -268,8 +284,9 @@ public class BlogController extends HttpServlet {
         Blog newBlog = extractAndValidateBlogForm(request);
 
         if (newBlog == null) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ Tiêu đề, Tóm tắt và Nội dung bài viết!");
-            request.setAttribute("draft", buildDraftFromRequest(request));
+            Blog draft = buildDraftFromRequest(request);
+            request.setAttribute("draft", draft);
+            request.setAttribute("blog", draft);
             request.setAttribute("categories", new BlogDAO().getBlogCategories());
             request.getRequestDispatcher("/view/blogs/blog-form.jsp").forward(request, response);
             return;
@@ -277,20 +294,24 @@ public class BlogController extends HttpServlet {
 
         newBlog.setAuthor(account.getId());
 
-        String submitAction = request.getParameter("submitAction");
-
-        // Nếu người dùng không phải Admin, bài viết sẽ ở trạng thái Inactive (Chờ duyệt / Bản nháp)
+        String statusParam = getStringParam(request, "status");
         if (account.getRoleId() != 1) {
-            newBlog.setStatus("Inactive");
+            if ("Draft".equalsIgnoreCase(statusParam)) {
+                newBlog.setStatus("Draft");
+            } else {
+                newBlog.setStatus("Inactive");
+            }
+        } else {
+            newBlog.setStatus(!statusParam.isEmpty() ? statusParam : "Active");
         }
 
         boolean success = new BlogDAO().insertBlog(newBlog);
 
         if (success) {
             String msg = "created";
-            if ("draft".equalsIgnoreCase(submitAction)) {
+            if ("Draft".equalsIgnoreCase(newBlog.getStatus())) {
                 msg = "draft_saved";
-            } else if ("submit_admin".equalsIgnoreCase(submitAction)) {
+            } else if ("Inactive".equalsIgnoreCase(newBlog.getStatus())) {
                 msg = "submitted";
             }
             response.sendRedirect(request.getContextPath() + "/my-blogs?message=" + msg);
@@ -333,9 +354,17 @@ public class BlogController extends HttpServlet {
             return;
         }
 
-        // Bài viết đã được duyệt (Active) thì tác giả thường không được phép chỉnh sửa
+        // Bài viết đã được duyệt (Active), đang chờ duyệt (Inactive) hoặc bị từ chối (Rejected) thì tác giả không được phép sửa
         if ("Active".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+            return;
+        }
+        if ("Inactive".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=pending_approval");
+            return;
+        }
+        if (("Reject".equalsIgnoreCase(blog.getStatus()) || "Rejected".equalsIgnoreCase(blog.getStatus())) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=rejected_locked");
             return;
         }
 
@@ -369,20 +398,39 @@ public class BlogController extends HttpServlet {
             return;
         }
 
-        // Bài viết đã được duyệt (Active) thì tác giả thường không được phép chỉnh sửa
+        // Bài viết đã được duyệt (Active), đang chờ duyệt (Inactive) hoặc bị từ chối (Rejected) thì tác giả không được phép sửa
         if ("Active".equalsIgnoreCase(existingBlog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+            return;
+        }
+        if ("Inactive".equalsIgnoreCase(existingBlog.getStatus()) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=pending_approval");
+            return;
+        }
+        if (("Reject".equalsIgnoreCase(existingBlog.getStatus()) || "Rejected".equalsIgnoreCase(existingBlog.getStatus())) && account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/my-blogs?error=rejected_locked");
             return;
         }
 
         Blog updatedData = extractAndValidateBlogForm(request);
         if (updatedData == null) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ Tiêu đề, Tóm tắt và Nội dung bài viết!");
-            request.setAttribute("blog", buildDraftFromRequest(request));
+            Blog draft = buildDraftFromRequest(request);
+            request.setAttribute("draft", draft);
+            request.setAttribute("blog", draft);
             request.setAttribute("categories", new BlogDAO().getBlogCategories());
             request.getRequestDispatcher("/view/blogs/blog-form.jsp").forward(request, response);
             return;
         }
+
+        boolean isPreviouslyRejected = "Reject".equalsIgnoreCase(existingBlog.getStatus()) 
+                                    || "Rejected".equalsIgnoreCase(existingBlog.getStatus());
+
+        // Kiểm tra xem có bất kỳ thay đổi nào về nội dung so với bản cũ không
+        boolean hasChanged = !safeEquals(existingBlog.getTitle(), updatedData.getTitle())
+                || !safeEquals(existingBlog.getThumbnail(), updatedData.getThumbnail())
+                || !safeEquals(existingBlog.getBriefInfo(), updatedData.getBriefInfo())
+                || !safeEquals(existingBlog.getContent(), updatedData.getContent())
+                || existingBlog.getCategoryId() != updatedData.getCategoryId();
 
         existingBlog.setTitle(updatedData.getTitle());
         existingBlog.setThumbnail(updatedData.getThumbnail());
@@ -390,22 +438,36 @@ public class BlogController extends HttpServlet {
         existingBlog.setContent(updatedData.getContent());
         existingBlog.setCategoryId(updatedData.getCategoryId());
 
-        String submitAction = request.getParameter("submitAction");
+        String statusParam = getStringParam(request, "status");
+        boolean noChangeOnRejected = false;
 
-        // Nếu người dùng thông thường sửa bài
         if (account.getRoleId() != 1) {
-            existingBlog.setStatus("Inactive");
+            if (isPreviouslyRejected && !hasChanged) {
+                // Bài viết bị từ chối nhưng không có thay đổi nào so với bản cũ -> Vẫn giữ nguyên trạng thái Bị từ chối
+                existingBlog.setStatus("Rejected");
+                noChangeOnRejected = true;
+            } else {
+                // Đã có chỉnh sửa nội dung -> Xóa lý do từ chối cũ và cập nhật sang Draft hoặc Inactive (Chờ duyệt)
+                existingBlog.setRejectReason(null);
+                if ("Draft".equalsIgnoreCase(statusParam)) {
+                    existingBlog.setStatus("Draft");
+                } else {
+                    existingBlog.setStatus("Inactive");
+                }
+            }
         } else {
-            existingBlog.setStatus(updatedData.getStatus());
+            existingBlog.setStatus(!statusParam.isEmpty() ? statusParam : updatedData.getStatus());
         }
 
         boolean success = new BlogDAO().updateBlog(existingBlog);
 
         if (success) {
             String msg = "updated";
-            if ("draft".equalsIgnoreCase(submitAction)) {
+            if (noChangeOnRejected) {
+                msg = "rejected_unchanged";
+            } else if ("Draft".equalsIgnoreCase(existingBlog.getStatus())) {
                 msg = "draft_saved";
-            } else if ("submit_admin".equalsIgnoreCase(submitAction)) {
+            } else if ("Inactive".equalsIgnoreCase(existingBlog.getStatus())) {
                 msg = "submitted";
             }
             response.sendRedirect(request.getContextPath() + "/my-blogs?message=" + msg);
@@ -438,9 +500,9 @@ public class BlogController extends HttpServlet {
 
         Blog blog = new BlogDAO().getBlogById(blogId);
         if (blog != null) {
-            // Bài viết đã duyệt (Active) không thể bị xóa bởi người dùng thông thường
-            if ("Active".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
-                response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
+            // Bài viết đang trong trạng thái Chờ phê duyệt (Inactive) không cho phép xóa
+            if ("Inactive".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
+                response.sendRedirect(request.getContextPath() + "/my-blogs?error=pending_approval_delete");
                 return;
             }
 
@@ -463,70 +525,165 @@ public class BlogController extends HttpServlet {
     // ==========================================
     // HELPER METHODS
     // ==========================================
-    private Blog extractAndValidateBlogForm(HttpServletRequest request) {
-        String title = request.getParameter("title");
-        String thumbnail = request.getParameter("thumbnail");
-        String briefInfo = request.getParameter("briefInfo");
-        String content = request.getParameter("content");
-        String categoryIdStr = request.getParameter("categoryId");
-        String status = request.getParameter("status");
-
-        if (title == null || title.trim().isEmpty()
-                || content == null || content.trim().isEmpty()
-                || briefInfo == null || briefInfo.trim().isEmpty()) {
-            return null;
+    private String saveThumbnailFile(HttpServletRequest request) {
+        try {
+            Part filePart = request.getPart("thumbnailFile");
+            if (filePart != null && filePart.getSize() > 0) {
+                String submittedFileName = filePart.getSubmittedFileName();
+                if (submittedFileName != null && !submittedFileName.trim().isEmpty()) {
+                    String originalName = new File(submittedFileName).getName();
+                    String cleanName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+                    String fileName = System.currentTimeMillis() + "_" + cleanName;
+                    String uploadPath = getServletContext().getRealPath("") + File.separator
+                            + "assets" + File.separator + "css" + File.separator + "img";
+                    File uploadDir = new File(uploadPath);
+                    if (!uploadDir.exists()) {
+                        uploadDir.mkdirs();
+                    }
+                    filePart.write(uploadPath + File.separator + fileName);
+                    return request.getContextPath() + "/assets/css/img/" + fileName;
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("[BlogThumbnail] Exception saving thumbnail file: " + ex.getMessage());
         }
 
+        // Nếu không upload file mới, kiểm tra ảnh cũ khi sửa
+        String existingThumbnail = getStringParam(request, "existingThumbnail");
+        if (!existingThumbnail.isEmpty()) {
+            return existingThumbnail;
+        }
+        String thumbnail = getStringParam(request, "thumbnail");
+        if (!thumbnail.isEmpty()) {
+            return thumbnail;
+        }
+        return "";
+    }
+
+    private String getStringParam(HttpServletRequest request, String name) {
+        try {
+            String val = request.getParameter(name);
+            if (val != null && !val.trim().isEmpty()) {
+                return val.trim();
+            }
+        } catch (Exception ignored) {}
+
+        // Fallback đọc trực tiếp từ Part nếu multipart request chưa được container giải mã qua getParameter
+        try {
+            Part part = request.getPart(name);
+            if (part != null && part.getSize() > 0) {
+                try (java.io.InputStream is = part.getInputStream();
+                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, java.nio.charset.StandardCharsets.UTF_8))) {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append(line);
+                    }
+                    return sb.toString().trim();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return "";
+    }
+
+    private Blog extractAndValidateBlogForm(HttpServletRequest request) {
+        String title = getStringParam(request, "title");
+        String briefInfo = getStringParam(request, "briefInfo");
+        String content = getStringParam(request, "content");
+        if (content.isEmpty()) {
+            content = getStringParam(request, "mainContent");
+        }
+        String categoryIdStr = getStringParam(request, "categoryId");
+        String status = getStringParam(request, "status");
+        String thumbnail = saveThumbnailFile(request);
+
         int categoryId = 0;
-        if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
+        if (!categoryIdStr.isEmpty()) {
             try {
-                categoryId = Integer.parseInt(categoryIdStr.trim());
+                categoryId = Integer.parseInt(categoryIdStr);
             } catch (NumberFormatException ignored) {}
         }
 
-        if (status == null || status.trim().isEmpty()) {
+        boolean hasError = false;
+        if (title.isEmpty()) {
+            request.setAttribute("errorTitle", "Vui lòng nhập Tiêu đề bài viết!");
+            hasError = true;
+        }
+        if (categoryId <= 0) {
+            request.setAttribute("errorCategory", "Vui lòng chọn Danh mục bài viết!");
+            hasError = true;
+        }
+        if (briefInfo.isEmpty()) {
+            request.setAttribute("errorBrief", "Vui lòng nhập Mô tả tóm tắt của bài viết!");
+            hasError = true;
+        }
+        if (content.isEmpty()) {
+            request.setAttribute("errorContent", "Vui lòng nhập Nội dung chi tiết của bài viết!");
+            hasError = true;
+        }
+
+        if (hasError) {
+            return null;
+        }
+
+        if (status.isEmpty()) {
             status = "Active";
         }
 
         Blog blog = new Blog();
-        blog.setTitle(title.trim());
-        blog.setThumbnail(thumbnail != null ? thumbnail.trim() : "");
-        blog.setBriefInfo(briefInfo.trim());
-        blog.setContent(content.trim());
+        blog.setTitle(title);
+        blog.setThumbnail(thumbnail);
+        blog.setBriefInfo(briefInfo);
+        blog.setContent(content);
         blog.setCategoryId(categoryId);
         blog.setStatus(status);
         return blog;
     }
 
     private Blog buildDraftFromRequest(HttpServletRequest request) {
-        String idStr = request.getParameter("id");
+        String idStr = getStringParam(request, "id");
         int blogId = 0;
-        if (idParamOrStr(idStr)) {
+        if (!idStr.isEmpty()) {
             try {
-                blogId = Integer.parseInt(idStr.trim());
+                blogId = Integer.parseInt(idStr);
             } catch (NumberFormatException ignored) {}
         }
 
-        String categoryIdStr = request.getParameter("categoryId");
+        String categoryIdStr = getStringParam(request, "categoryId");
         int categoryId = 0;
-        if (idParamOrStr(categoryIdStr)) {
+        if (!categoryIdStr.isEmpty()) {
             try {
-                categoryId = Integer.parseInt(categoryIdStr.trim());
+                categoryId = Integer.parseInt(categoryIdStr);
             } catch (NumberFormatException ignored) {}
         }
+
+        String content = getStringParam(request, "content");
+        if (content.isEmpty()) {
+            content = getStringParam(request, "mainContent");
+        }
+
+        String thumb = saveThumbnailFile(request);
 
         Blog draft = new Blog();
         draft.setId(blogId);
-        draft.setTitle(request.getParameter("title"));
-        draft.setThumbnail(request.getParameter("thumbnail"));
-        draft.setBriefInfo(request.getParameter("briefInfo"));
-        draft.setContent(request.getParameter("content"));
+        draft.setTitle(getStringParam(request, "title"));
+        draft.setThumbnail(thumb);
+        draft.setBriefInfo(getStringParam(request, "briefInfo"));
+        draft.setContent(content);
         draft.setCategoryId(categoryId);
-        draft.setStatus(request.getParameter("status"));
+        draft.setStatus(getStringParam(request, "status"));
         return draft;
     }
 
     private boolean idParamOrStr(String s) {
         return s != null && !s.trim().isEmpty();
+    }
+
+    private boolean safeEquals(String a, String b) {
+        if (a == null) a = "";
+        if (b == null) b = "";
+        return a.trim().equals(b.trim());
     }
 }

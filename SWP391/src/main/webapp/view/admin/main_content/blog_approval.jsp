@@ -28,6 +28,16 @@
             </div>
         </a>
 
+        <a href="javascript:void(0)" onclick="filterByStatus('Rejected')" class="blog-stat-box ${currentStatus == 'Rejected' ? 'active-filter' : ''}">
+            <div>
+                <div class="stat-label">Bị từ chối</div>
+                <div class="stat-val" style="color: #DC2626;">${rejectedCount != null ? rejectedCount : 0}</div>
+            </div>
+            <div class="blog-stat-icon" style="background: rgba(220, 38, 38, 0.12); color: #DC2626;">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+        </a>
+
         <a href="javascript:void(0)" onclick="filterByStatus('all')" class="blog-stat-box ${currentStatus == 'all' || empty currentStatus ? 'active-filter' : ''}">
             <div>
                 <div class="stat-label">Tổng bài viết</div>
@@ -57,6 +67,7 @@
                 <option value="all" ${currentStatus == 'all' || empty currentStatus ? 'selected' : ''}>Tất cả</option>
                 <option value="Inactive" ${currentStatus == 'Inactive' ? 'selected' : ''}>Chưa phê duyệt</option>
                 <option value="Active" ${currentStatus == 'Active' ? 'selected' : ''}>Đã duyệt</option>
+                <option value="Rejected" ${currentStatus == 'Rejected' ? 'selected' : ''}>Bị từ chối</option>
             </select>
 
             <!-- Lọc theo Danh mục Blog -->
@@ -90,7 +101,9 @@
                     <c:when test="${not empty blogList}">
                         <c:forEach var="b" items="${blogList}">
                             <fmt:formatDate value="${b.createdDate}" pattern="dd/MM/yyyy HH:mm" var="createdDateStr" />
-                            <c:set var="isActive" value="${'Active' == b.status}" />
+                            <c:set var="statusLower" value="${fn:toLowerCase(b.status)}" />
+                            <c:set var="isActive" value="${statusLower == 'active'}" />
+                            <c:set var="isRejected" value="${statusLower == 'reject' || statusLower == 'rejected'}" />
                             
                             <tr>
                                 <td><strong>#${b.id}</strong></td>
@@ -135,6 +148,11 @@
                                                 <span class="badge-dot active"></span> Đã duyệt
                                             </span>
                                         </c:when>
+                                        <c:when test="${isRejected}">
+                                            <span class="badge-blog-status rejected">
+                                                <span class="badge-dot rejected"></span> Bị từ chối
+                                            </span>
+                                        </c:when>
                                         <c:otherwise>
                                             <span class="badge-blog-status pending">
                                                 <span class="badge-dot pending"></span> Chưa phê duyệt
@@ -149,10 +167,13 @@
                                             <i class="fa-regular fa-eye"></i> Xem
                                         </button>
 
-                                        <!-- Nút Duyệt (chỉ hiện khi bài viết chưa duyệt) -->
-                                        <c:if test="${!isActive}">
+                                        <!-- Nút Duyệt & Nút Từ chối (kèm lý do): Chỉ hiển thị khi bài viết đang chờ phê duyệt (chưa duyệt và chưa bị từ chối) -->
+                                        <c:if test="${!isActive && !isRejected}">
                                             <button type="button" class="btn-blog-action approve" title="Duyệt bài viết" onclick="approveBlog('${b.id}', '${fn:escapeXml(b.title)}')">
                                                 <i class="fa-solid fa-check"></i> Duyệt
+                                            </button>
+                                            <button type="button" class="btn-blog-action reject" title="Từ chối bài viết" onclick="openRejectModal('${b.id}', '${fn:escapeXml(b.title)}')">
+                                                <i class="fa-solid fa-xmark"></i> Từ chối
                                             </button>
                                         </c:if>
                                     </div>
@@ -204,6 +225,11 @@
             <span style="font-size:12.5px; color:#64748B;"><i class="fa-regular fa-clock"></i> <span id="previewDate"></span></span>
         </div>
 
+        <div id="previewRejectReasonBox" class="preview-reject-alert" style="display:none;">
+            <strong><i class="fa-solid fa-circle-exclamation"></i> Lý do từ chối:</strong>
+            <span id="previewRejectReasonText"></span>
+        </div>
+
         <h2 id="previewTitle" class="preview-title">Tiêu đề bài viết</h2>
 
         <div class="preview-author-box">
@@ -232,10 +258,51 @@
             <button type="button" class="btn-blog-action approve" id="btnApproveInPreview" style="padding:10px 20px; font-size:14px;">
                 <i class="fa-solid fa-check"></i> Duyệt bài
             </button>
+            <button type="button" class="btn-blog-action reject" id="btnRejectInPreview" style="padding:10px 20px; font-size:14px;">
+                <i class="fa-solid fa-xmark"></i> Từ chối
+            </button>
             <button type="button" class="btn-modal-close-custom" onclick="closePreview()" style="padding:10px 18px; border-radius:8px; border:none; cursor:pointer; font-weight:600;">
                 Đóng
             </button>
         </div>
+    </div>
+</div>
+
+<!-- ===== MODAL NHẬP LÝ DO TỪ CHỐI BÀI VIẾT ===== -->
+<div id="rejectModal" class="modal modal-hidden" style="display:none; align-items:center; justify-content:center; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000;">
+    <div class="modal-preview-dialog" style="max-width:520px; padding:28px 30px;">
+        <span class="modal-close" onclick="closeRejectModal()" style="position:absolute; top:18px; right:20px; font-size:26px; cursor:pointer; color:#64748B;">&times;</span>
+        
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <div style="width:40px; height:40px; border-radius:50%; background:#FEE2E2; color:#DC2626; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 style="margin:0; font-size:18px; font-weight:700; color:#0F172A;">Từ chối phê duyệt bài viết</h3>
+                <p id="rejectBlogTitle" style="margin:2px 0 0; font-size:13px; color:#64748B;"></p>
+            </div>
+        </div>
+
+        <form id="rejectForm" onsubmit="submitReject(event)">
+            <input type="hidden" id="rejectBlogId" value="">
+            
+            <div style="margin-bottom:18px;">
+                <label for="rejectReasonInput" style="display:block; font-size:13.5px; font-weight:600; color:#1E293B; margin-bottom:6px;">
+                    Lý do từ chối <span style="color:#DC2626;">*</span>
+                </label>
+                <textarea id="rejectReasonInput" rows="4" style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; border-radius:8px; font-family:inherit; font-size:13.5px; color:#0F172A; outline:none; box-sizing:border-box; resize:vertical;" placeholder="Nhập lý do từ chối bài viết để tác giả có thể chỉnh sửa lại (ví dụ: Nội dung chưa đạt chuẩn, hình ảnh lỗi, thiếu nguồn tham khảo...)" required></textarea>
+                <div style="font-size:12px; color:#64748B; margin-top:4px;">Lý do này sẽ hiển thị trực tiếp cho tác giả trên trang quản lý bài viết của họ.</div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeRejectModal()" style="padding:9px 18px; border-radius:8px; border:1px solid #CBD5E1; background:#F8FAFC; color:#475569; font-weight:600; font-size:13.5px; cursor:pointer;">
+                    Hủy
+                </button>
+                <button type="submit" id="btnConfirmReject" style="padding:9px 20px; border-radius:8px; border:none; background:#DC2626; color:#ffffff; font-weight:600; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi lý do &amp; Từ chối
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

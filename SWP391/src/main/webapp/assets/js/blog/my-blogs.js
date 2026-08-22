@@ -29,7 +29,7 @@ function filterTable() {
 
         var matchKeyword = keyword === '' || rowTitle.indexOf(keyword) > -1;
         var matchCategory = category === '' || rowCat === category;
-        var matchStatus = status === '' || rowStatus === status;
+        var matchStatus = status === '' || rowStatus === status || (status === 'Rejected' && rowStatus === 'Reject');
 
         if (matchKeyword && matchCategory && matchStatus) {
             row.style.display = '';
