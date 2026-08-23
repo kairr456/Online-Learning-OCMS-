@@ -322,6 +322,17 @@ function showFormValidationError(el, message) {
     el.addEventListener('change', onInputHandler);
 }
 
+/**
+ * Xử lý khi bấm nút Lưu bài viết (Draft) hoặc Gửi bài viết (Inactive / Active)
+ */
+function handleFormSubmit(e, statusVal) {
+    var statusInput = document.getElementById('blogStatusInput');
+    if (statusInput && statusVal) {
+        statusInput.value = statusVal;
+    }
+    return compileAndValidateForm(e);
+}
+
 function compileAndValidateForm(e) {
     // 1. Kiểm tra Tiêu đề bài viết
     var titleEl = document.getElementById('title');

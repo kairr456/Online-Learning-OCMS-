@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -396,7 +397,14 @@
                                                         <span class="bank-card__badge">Mặc định</span>
                                                     </div>
                                                     <div class="bank-card__number">
-                                                        ${bankAccount.accountNumber}
+                                                        <c:choose>
+                                                            <c:when test="${not empty bankAccount.accountNumber && fn:length(bankAccount.accountNumber) > 4}">
+                                                                ${fn:substring(bankAccount.accountNumber, 0, fn:length(bankAccount.accountNumber) - 4)}****
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                ${not empty bankAccount.accountNumber ? '****' : ''}
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </div>
                                                     <div class="bank-card__bottom">
                                                         <div>
@@ -520,7 +528,7 @@
                                             <i class="fa-solid fa-building-columns fs-4 text-primary"></i>
                                             <div>
                                                 <div class="fw-bold">${bankAccount.bankName}</div>
-                                                <small class="text-muted">STK: ${bankAccount.accountNumber} - ${bankAccount.accountHolder}</small>
+                                                <small class="text-muted">STK: <c:choose><c:when test="${not empty bankAccount.accountNumber && fn:length(bankAccount.accountNumber) > 4}">${fn:substring(bankAccount.accountNumber, 0, fn:length(bankAccount.accountNumber) - 4)}****</c:when><c:otherwise>${not empty bankAccount.accountNumber ? '****' : ''}</c:otherwise></c:choose> - ${bankAccount.accountHolder}</small>
                                             </div>
                                         </div>
                                         <span class="badge bg-success-subtle text-success">Đã liên kết</span>

@@ -629,7 +629,7 @@ public class BlogController extends HttpServlet {
         }
 
         if (status.isEmpty()) {
-            status = "Active";
+            status = "Draft";
         }
 
         Blog blog = new Blog();
