@@ -19,21 +19,19 @@ public class TeacherProfileValidator {
 
     private TeacherProfileValidator() {}
 
-    public static String validate(String headline, String bio, String yearsExperienceStr,
-                                   String education, String certifications,
-                                   String linkedinUrl, String websiteUrl, String avatarUrl,
-                                   Part cvFile) {
+    public static String validate(String specialization, String bio, String experienceYearsStr,
+                                   String portfolioUrl, Part cvFile) {
 
-        // --- headline ---
-        if (isBlank(headline)) {
-            return "Tiêu đề chuyên môn không được để trống.";
+        // --- specialization (required) ---
+        if (isBlank(specialization)) {
+            return "Chuyên môn không được để trống.";
         }
-        String hl = headline.trim();
-        if (hl.length() < 5 || hl.length() > 255) {
-            return "Tiêu đề chuyên môn phải từ 5 đến 255 ký tự.";
+        String spec = specialization.trim();
+        if (spec.length() < 5 || spec.length() > 255) {
+            return "Chuyên môn phải từ 5 đến 255 ký tự.";
         }
 
-        // --- bio ---
+        // --- bio (required) ---
         if (isBlank(bio)) {
             return "Giới thiệu bản thân không được để trống.";
         }
@@ -42,52 +40,25 @@ public class TeacherProfileValidator {
             return "Giới thiệu bản thân phải từ 50 đến 2000 ký tự.";
         }
 
-        // --- yearsExperience ---
-        if (isBlank(yearsExperienceStr)) {
+        // --- experienceYears (required) ---
+        if (isBlank(experienceYearsStr)) {
             return "Số năm kinh nghiệm không được để trống.";
         }
-        int yearsExp;
+        int expYears;
         try {
-            yearsExp = Integer.parseInt(yearsExperienceStr.trim());
+            expYears = Integer.parseInt(experienceYearsStr.trim());
         } catch (NumberFormatException e) {
             return "Số năm kinh nghiệm phải là số nguyên.";
         }
-        if (yearsExp < 0 || yearsExp > 50) {
+        if (expYears < 0 || expYears > 50) {
             return "Số năm kinh nghiệm phải từ 0 đến 50.";
         }
 
-        // --- education (optional) ---
-        if (education != null && education.trim().length() > 255) {
-            return "Trình độ học vấn không quá 255 ký tự.";
-        }
-
-        // --- certifications (optional) ---
-        // no limit
-
-        // --- linkedinUrl (optional) ---
-        if (linkedinUrl != null && !linkedinUrl.trim().isEmpty()) {
-            String u = linkedinUrl.trim();
+        // --- portfolioUrl (optional) ---
+        if (portfolioUrl != null && !portfolioUrl.trim().isEmpty()) {
+            String u = portfolioUrl.trim();
             if (!URL_PATTERN.matcher(u).matches()) {
-                return "Link LinkedIn không đúng định dạng URL.";
-            }
-            if (!u.toLowerCase().contains("linkedin.com")) {
-                return "Link LinkedIn phải là địa chỉ linkedin.com.";
-            }
-        }
-
-        // --- websiteUrl (optional) ---
-        if (websiteUrl != null && !websiteUrl.trim().isEmpty()) {
-            String u = websiteUrl.trim();
-            if (!URL_PATTERN.matcher(u).matches()) {
-                return "Website cá nhân không đúng định dạng URL.";
-            }
-        }
-
-        // --- avatarUrl (optional) ---
-        if (avatarUrl != null && !avatarUrl.trim().isEmpty()) {
-            String u = avatarUrl.trim();
-            if (!URL_PATTERN.matcher(u).matches()) {
-                return "Link ảnh đại diện không đúng định dạng URL.";
+                return "Link Portfolio không đúng định dạng URL.";
             }
         }
 

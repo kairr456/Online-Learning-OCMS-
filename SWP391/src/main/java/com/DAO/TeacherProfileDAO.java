@@ -17,24 +17,19 @@ public class TeacherProfileDAO extends DBContext {
     private static final Logger LOGGER = Logger.getLogger(TeacherProfileDAO.class.getName());
 
     public boolean insert(TeacherProfile profile) {
-        String sql = "INSERT INTO teacher_profile "
-                + "(teacher_id, headline, bio, years_experience, education, certifications, "
-                + "linkedin_url, website_url, avatar_url, cv_file_path, status, created_at, updated_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        String sql = "INSERT INTO teacher_profiles "
+                + "(account_id, specialization, bio, experience_years, cv_url, portfolio_url, approval_status, created_at, updated_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt(1, profile.getTeacherId());
-            ps.setString(2, profile.getHeadline());
+            ps.setInt(1, profile.getAccountId());
+            ps.setString(2, profile.getSpecialization());
             ps.setString(3, profile.getBio());
-            ps.setInt(4, profile.getYearsExperience());
-            ps.setString(5, profile.getEducation());
-            ps.setString(6, profile.getCertifications());
-            ps.setString(7, profile.getLinkedinUrl());
-            ps.setString(8, profile.getWebsiteUrl());
-            ps.setString(9, profile.getAvatarUrl());
-            ps.setString(10, profile.getCvFilePath());
-            ps.setString(11, profile.getStatus());
+            ps.setInt(4, profile.getExperienceYears());
+            ps.setString(5, profile.getCvUrl());
+            ps.setString(6, profile.getPortfolioUrl());
+            ps.setString(7, profile.getApprovalStatus());
 
             int rows = ps.executeUpdate();
             if (rows > 0) {
@@ -46,30 +41,30 @@ public class TeacherProfileDAO extends DBContext {
                 return true;
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Insert teacher_profile failed", ex);
+            LOGGER.log(Level.SEVERE, "Insert teacher_profiles failed", ex);
         }
         return false;
     }
 
-    public TeacherProfile findByTeacherId(int teacherId) {
-        String sql = "SELECT * FROM teacher_profile WHERE teacher_id = ?";
+    public TeacherProfile findByAccountId(int accountId) {
+        String sql = "SELECT * FROM teacher_profiles WHERE account_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, teacherId);
+            ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapRow(rs);
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Find teacher_profile by teacherId failed", ex);
+            LOGGER.log(Level.SEVERE, "Find teacher_profiles by accountId failed", ex);
         }
         return null;
     }
 
     public TeacherProfile findById(int id) {
-        String sql = "SELECT * FROM teacher_profile WHERE id = ?";
+        String sql = "SELECT * FROM teacher_profiles WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -80,56 +75,47 @@ public class TeacherProfileDAO extends DBContext {
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Find teacher_profile by id failed", ex);
+            LOGGER.log(Level.SEVERE, "Find teacher_profiles by id failed", ex);
         }
         return null;
     }
 
     public boolean update(TeacherProfile profile) {
-        String sql = "UPDATE teacher_profile SET "
-                + "headline = ?, bio = ?, years_experience = ?, education = ?, certifications = ?, "
-                + "linkedin_url = ?, website_url = ?, avatar_url = ?, cv_file_path = ?, "
-                + "status = ?, admin_note = ?, reviewed_by = ?, reviewed_at = ?, updated_at = NOW() "
+        String sql = "UPDATE teacher_profiles SET "
+                + "specialization = ?, bio = ?, experience_years = ?, cv_url = ?, portfolio_url = ?, "
+                + "approval_status = ?, rejected_reason = ?, updated_at = NOW() "
                 + "WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, profile.getHeadline());
+            ps.setString(1, profile.getSpecialization());
             ps.setString(2, profile.getBio());
-            ps.setInt(3, profile.getYearsExperience());
-            ps.setString(4, profile.getEducation());
-            ps.setString(5, profile.getCertifications());
-            ps.setString(6, profile.getLinkedinUrl());
-            ps.setString(7, profile.getWebsiteUrl());
-            ps.setString(8, profile.getAvatarUrl());
-            ps.setString(9, profile.getCvFilePath());
-            ps.setString(10, profile.getStatus());
-            ps.setString(11, profile.getAdminNote());
-            ps.setObject(12, profile.getReviewedBy());
-            ps.setObject(13, profile.getReviewedAt());
-            ps.setInt(14, profile.getId());
+            ps.setInt(3, profile.getExperienceYears());
+            ps.setString(4, profile.getCvUrl());
+            ps.setString(5, profile.getPortfolioUrl());
+            ps.setString(6, profile.getApprovalStatus());
+            ps.setString(7, profile.getRejectedReason());
+            ps.setInt(8, profile.getId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Update teacher_profile failed", ex);
+            LOGGER.log(Level.SEVERE, "Update teacher_profiles failed", ex);
         }
         return false;
     }
 
-    public boolean updateStatus(int profileId, String status, Integer reviewedBy, String adminNote) {
-        String sql = "UPDATE teacher_profile SET status = ?, reviewed_by = ?, reviewed_at = NOW(), "
-                + "admin_note = ?, updated_at = NOW() WHERE id = ?";
+    public boolean updateStatus(int profileId, String approvalStatus, String rejectedReason) {
+        String sql = "UPDATE teacher_profiles SET approval_status = ?, rejected_reason = ?, updated_at = NOW() WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, status);
-            ps.setObject(2, reviewedBy);
-            ps.setString(3, adminNote);
-            ps.setInt(4, profileId);
+            ps.setString(1, approvalStatus);
+            ps.setString(2, rejectedReason);
+            ps.setInt(3, profileId);
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Update teacher_profile status failed", ex);
+            LOGGER.log(Level.SEVERE, "Update teacher_profiles status failed", ex);
         }
         return false;
     }
@@ -138,13 +124,13 @@ public class TeacherProfileDAO extends DBContext {
         List<TeacherProfile> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT tp.*, a.username, a.email, a.full_name "
-                + "FROM teacher_profile tp "
-                + "JOIN account a ON tp.teacher_id = a.id "
-                + "WHERE tp.status = 'pending' ");
+                + "FROM teacher_profiles tp "
+                + "JOIN account a ON tp.account_id = a.id "
+                + "WHERE tp.approval_status = 'PENDING' ");
         List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (a.username LIKE ? OR a.email LIKE ? OR a.full_name LIKE ? OR tp.headline LIKE ?) ");
+            sql.append("AND (a.username LIKE ? OR a.email LIKE ? OR a.full_name LIKE ? OR tp.specialization LIKE ?) ");
             String kw = "%" + keyword.trim() + "%";
             params.add(kw);
             params.add(kw);
@@ -180,13 +166,13 @@ public class TeacherProfileDAO extends DBContext {
 
     public int countPending(String keyword) {
         StringBuilder sql = new StringBuilder(
-                "SELECT COUNT(*) FROM teacher_profile tp "
-                + "JOIN account a ON tp.teacher_id = a.id "
-                + "WHERE tp.status = 'pending' ");
+                "SELECT COUNT(*) FROM teacher_profiles tp "
+                + "JOIN account a ON tp.account_id = a.id "
+                + "WHERE tp.approval_status = 'PENDING' ");
         List<Object> params = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (a.username LIKE ? OR a.email LIKE ? OR a.full_name LIKE ? OR tp.headline LIKE ?) ");
+            sql.append("AND (a.username LIKE ? OR a.email LIKE ? OR a.full_name LIKE ? OR tp.specialization LIKE ?) ");
             String kw = "%" + keyword.trim() + "%";
             params.add(kw);
             params.add(kw);
@@ -212,15 +198,15 @@ public class TeacherProfileDAO extends DBContext {
         return 0;
     }
 
-    public boolean deleteByTeacherId(int teacherId) {
-        String sql = "DELETE FROM teacher_profile WHERE teacher_id = ?";
+    public boolean deleteByAccountId(int accountId) {
+        String sql = "DELETE FROM teacher_profiles WHERE account_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, teacherId);
+            ps.setInt(1, accountId);
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Delete teacher_profile by teacherId failed", ex);
+            LOGGER.log(Level.SEVERE, "Delete teacher_profiles by accountId failed", ex);
         }
         return false;
     }
@@ -228,20 +214,14 @@ public class TeacherProfileDAO extends DBContext {
     private TeacherProfile mapRow(ResultSet rs) throws SQLException {
         TeacherProfile tp = new TeacherProfile();
         tp.setId(rs.getInt("id"));
-        tp.setTeacherId(rs.getInt("teacher_id"));
-        tp.setHeadline(rs.getString("headline"));
+        tp.setAccountId(rs.getInt("account_id"));
+        tp.setSpecialization(rs.getString("specialization"));
         tp.setBio(rs.getString("bio"));
-        tp.setYearsExperience(rs.getInt("years_experience"));
-        tp.setEducation(rs.getString("education"));
-        tp.setCertifications(rs.getString("certifications"));
-        tp.setLinkedinUrl(rs.getString("linkedin_url"));
-        tp.setWebsiteUrl(rs.getString("website_url"));
-        tp.setAvatarUrl(rs.getString("avatar_url"));
-        tp.setCvFilePath(rs.getString("cv_file_path"));
-        tp.setStatus(rs.getString("status"));
-        tp.setAdminNote(rs.getString("admin_note"));
-        tp.setReviewedBy((Integer) rs.getObject("reviewed_by"));
-        tp.setReviewedAt(rs.getTimestamp("reviewed_at"));
+        tp.setExperienceYears(rs.getInt("experience_years"));
+        tp.setCvUrl(rs.getString("cv_url"));
+        tp.setPortfolioUrl(rs.getString("portfolio_url"));
+        tp.setApprovalStatus(rs.getString("approval_status"));
+        tp.setRejectedReason(rs.getString("rejected_reason"));
         tp.setCreatedAt(rs.getTimestamp("created_at"));
         tp.setUpdatedAt(rs.getTimestamp("updated_at"));
         // Extra fields from JOIN (if present)

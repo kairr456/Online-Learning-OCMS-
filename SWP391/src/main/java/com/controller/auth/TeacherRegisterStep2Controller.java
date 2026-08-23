@@ -17,14 +17,14 @@ import java.io.File;
 import java.io.IOException;
 
 @WebServlet("/teacher-register-step2")
-@MultipartConfig(
-        fileSizeThreshold = 1024 * 1024, // 1MB
-        maxFileSize = 5 * 1024 * 1024,   // 5MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
+        maxFileSize = 5 * 1024 * 1024, // 5MB
         maxRequestSize = 10 * 1024 * 1024 // 10MB
 )
 public class TeacherRegisterStep2Controller extends HttpServlet {
 
-    private static final String UPLOAD_DIR = "assets/css/uploads/teacher-cv";
+    // Use a fixed upload directory name
+    private static final String UPLOAD_DIR_NAME = "teacher-cv";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,9 +54,9 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
 
         // Check if profile already exists
         TeacherProfileDAO profileDAO = new TeacherProfileDAO();
-        TeacherProfile existing = profileDAO.findByTeacherId(accountId);
+        TeacherProfile existing = profileDAO.findByAccountId(accountId);
         if (existing != null) {
-            request.setAttribute("errorMessage", "Hồ sơ giáo viên đã tồn tại.");
+            request.setAttribute("errorMessage", "Hồ sơ giảng viên đã tồn tại.");
             request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp")
                     .forward(request, response);
             return;
@@ -96,71 +96,67 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
         }
 
         // Get form fields
-        String headline = request.getParameter("headline");
+        String specialization = request.getParameter("specialization");
         String bio = request.getParameter("bio");
-        String yearsExperienceStr = request.getParameter("yearsExperience");
-        String education = request.getParameter("education");
-        String certifications = request.getParameter("certifications");
-        String linkedinUrl = request.getParameter("linkedinUrl");
-        String websiteUrl = request.getParameter("websiteUrl");
-        String avatarUrl = request.getParameter("avatarUrl");
+        String experienceYearsStr = request.getParameter("experienceYears");
+        String portfolioUrl = request.getParameter("portfolioUrl");
 
         Part cvFile = request.getPart("cvFile");
 
         // Validate
         String validationError = TeacherProfileValidator.validate(
-                headline, bio, yearsExperienceStr, education, certifications,
-                linkedinUrl, websiteUrl, avatarUrl, cvFile
-        );
+                specialization, bio, experienceYearsStr, portfolioUrl, cvFile);
 
         if (validationError != null) {
             request.setAttribute("errorMessage", validationError);
             request.setAttribute("account", account);
             // Repopulate form data
-            request.setAttribute("headline", headline);
+            request.setAttribute("specialization", specialization);
             request.setAttribute("bio", bio);
-            request.setAttribute("yearsExperience", yearsExperienceStr);
-            request.setAttribute("education", education);
-            request.setAttribute("certifications", certifications);
-            request.setAttribute("linkedinUrl", linkedinUrl);
-            request.setAttribute("websiteUrl", websiteUrl);
-            request.setAttribute("avatarUrl", avatarUrl);
+            request.setAttribute("experienceYears", experienceYearsStr);
+            request.setAttribute("portfolioUrl", portfolioUrl);
             request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp")
                     .forward(request, response);
             return;
         }
 
-        // Handle CV upload
-        String cvFilePath = null;
+        // Handle CV upload - save to a fixed location
+        String cvUrl = null;
         if (cvFile != null && cvFile.getSize() > 0) {
             String contentType = cvFile.getContentType();
             String ext = getFileExtension(contentType);
             String fileName = "cv_" + accountId + "_" + System.currentTimeMillis() + ext;
 
-            String uploadPath = getServletContext().getRealPath("/") + UPLOAD_DIR;
+            // Use a fixed upload directory under the webapp
+            String webappRoot = getServletContext().getRealPath("/");
+            if (webappRoot == null) {
+                // Fallback: use system temp dir
+                webappRoot = System.getProperty("java.io.tmpdir");
+            }
+            String uploadPath = webappRoot + File.separator + "assets" + File.separator + "css"
+                    + File.separator + "uploads" + File.separator + UPLOAD_DIR_NAME;
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+                if (!uploadDir.mkdirs() && !uploadDir.isDirectory()) {
+                    throw new IOException("Could not create teacher CV upload directory");
+                }
             }
 
             String filePath = uploadPath + File.separator + fileName;
             cvFile.write(filePath);
-            cvFilePath = "/" + UPLOAD_DIR + "/" + fileName;
+            // Store relative URL for serving
+            cvUrl = request.getContextPath() + "/assets/css/uploads/" + UPLOAD_DIR_NAME + "/" + fileName;
         }
 
         // Save teacher profile
         TeacherProfile profile = new TeacherProfile();
-        profile.setTeacherId(accountId);
-        profile.setHeadline(headline.trim());
+        profile.setAccountId(accountId);
+        profile.setSpecialization(specialization.trim());
         profile.setBio(bio.trim());
-        profile.setYearsExperience(Integer.parseInt(yearsExperienceStr.trim()));
-        profile.setEducation(education != null ? education.trim() : null);
-        profile.setCertifications(certifications != null ? certifications.trim() : null);
-        profile.setLinkedinUrl(linkedinUrl != null ? linkedinUrl.trim() : null);
-        profile.setWebsiteUrl(websiteUrl != null ? websiteUrl.trim() : null);
-        profile.setAvatarUrl(avatarUrl != null ? avatarUrl.trim() : null);
-        profile.setCvFilePath(cvFilePath);
-        profile.setStatus("pending");
+        profile.setExperienceYears(Integer.parseInt(experienceYearsStr.trim()));
+        profile.setCvUrl(cvUrl);
+        profile.setPortfolioUrl(portfolioUrl != null ? portfolioUrl.trim() : null);
+        profile.setApprovalStatus("PENDING");
 
         TeacherProfileDAO profileDAO = new TeacherProfileDAO();
         boolean success = profileDAO.insert(profile);
@@ -176,12 +172,17 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
     }
 
     private String getFileExtension(String contentType) {
-        if (contentType == null) return "";
+        if (contentType == null)
+            return "";
         switch (contentType) {
-            case "application/pdf": return ".pdf";
-            case "application/msword": return ".doc";
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": return ".docx";
-            default: return "";
+            case "application/pdf":
+                return ".pdf";
+            case "application/msword":
+                return ".doc";
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                return ".docx";
+            default:
+                return "";
         }
     }
 }

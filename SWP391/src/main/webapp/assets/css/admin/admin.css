@@ -1,3 +1,46 @@
+/* ==========================================================================
+   CSS Variables for Admin Pages (light theme)
+   ========================================================================== */
+
+:root {
+  --color-primary: #d8a24a;
+  --color-primary-light: rgba(216, 162, 74, 0.15);
+  --color-primary-dark: #b9812e;
+
+  --color-success: #2f9e64;
+  --color-success-light: rgba(47, 158, 100, 0.15);
+  --color-success-dark: #1e7a4a;
+
+  --color-danger: #d64545;
+  --color-danger-light: rgba(214, 69, 69, 0.15);
+  --color-danger-dark: #a83232;
+
+  --color-warning: #f0a500;
+  --color-warning-light: rgba(240, 165, 0, 0.15);
+  --color-warning-dark: #c48500;
+
+  --color-white: #ffffff;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
 /* ============================================================
    ADMIN LAYOUT - Base Styles
    ============================================================ */

@@ -8,6 +8,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -47,11 +48,11 @@ public class EmailService {
             }
         });
 
-        Message message = new MimeMessage(mailSession);
+        MimeMessage message = new MimeMessage(mailSession);
         message.setFrom(new InternetAddress(SMTP_USERNAME));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        message.setSubject(subject);
-        message.setText(body);
+        message.setSubject(subject, StandardCharsets.UTF_8.name());
+        message.setText(body, StandardCharsets.UTF_8.name(), "plain");
 
         Transport.send(message);
     }

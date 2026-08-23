@@ -170,21 +170,21 @@
             <input type="hidden" name="accountId" value="<%= request.getAttribute("account") != null ? ((com.entity.Account)request.getAttribute("account")).getId() : request.getParameter("accountId") %>">
 
             <!-- =================================================
-                 HEADLINE
+                 SPECIALIZATION (CHUYÊN MÔN)
             ================================================== -->
 
             <div class="register-field">
 
-                <label for="headline">
-                    Tiêu đề chuyên môn <span class="required">*</span>
+                <label for="specialization">
+                    Chuyên môn / Tiêu đề <span class="required">*</span>
                 </label>
 
                 <input
                     type="text"
-                    id="headline"
-                    name="headline"
+                    id="specialization"
+                    name="specialization"
                     placeholder="Ví dụ: Senior Java Developer, Giảng viên ĐH..."
-                    value="<%= request.getAttribute("headline") != null ? request.getAttribute("headline") : "" %>"
+                    value="<%= request.getAttribute("specialization") != null ? request.getAttribute("specialization") : "" %>"
                     maxlength="255"
                     required
                 >
@@ -218,21 +218,21 @@
 
 
             <!-- =================================================
-                 YEARS EXPERIENCE
+                 EXPERIENCE YEARS
             ================================================== -->
 
             <div class="register-field">
 
-                <label for="yearsExperience">
+                <label for="experienceYears">
                     Số năm kinh nghiệm <span class="required">*</span>
                 </label>
 
                 <input
                     type="number"
-                    id="yearsExperience"
-                    name="yearsExperience"
+                    id="experienceYears"
+                    name="experienceYears"
                     placeholder="Ví dụ: 5"
-                    value="<%= request.getAttribute("yearsExperience") != null ? request.getAttribute("yearsExperience") : "" %>"
+                    value="<%= request.getAttribute("experienceYears") != null ? request.getAttribute("experienceYears") : "" %>"
                     min="0"
                     max="50"
                     required
@@ -244,113 +244,23 @@
 
 
             <!-- =================================================
-                 EDUCATION
+                 PORTFOLIO URL
             ================================================== -->
 
             <div class="register-field">
 
-                <label for="education">
-                    Trình độ học vấn
-                </label>
-
-                <input
-                    type="text"
-                    id="education"
-                    name="education"
-                    placeholder="Ví dụ: Thạc sĩ CNTT - ĐH Bách Khoa HN"
-                    value="<%= request.getAttribute("education") != null ? request.getAttribute("education") : "" %>"
-                    maxlength="255"
-                >
-
-            </div>
-
-
-            <!-- =================================================
-                 CERTIFICATIONS
-            ================================================== -->
-
-            <div class="register-field">
-
-                <label for="certifications">
-                    Chứng chỉ & Giải thưởng
-                </label>
-
-                <textarea
-                    id="certifications"
-                    name="certifications"
-                    rows="3"
-                    placeholder="Các chứng chỉ chuyên nghiệp, giải thưởng đạt được (mỗi dòng một mục)..."
-                ><%= request.getAttribute("certifications") != null ? request.getAttribute("certifications") : "" %></textarea>
-
-            </div>
-
-
-            <!-- =================================================
-                 LINKEDIN URL
-            ================================================== -->
-
-            <div class="register-field">
-
-                <label for="linkedinUrl">
-                    LinkedIn
+                <label for="portfolioUrl">
+                    Portfolio / Website cá nhân
                 </label>
 
                 <input
                     type="url"
-                    id="linkedinUrl"
-                    name="linkedinUrl"
-                    placeholder="https://linkedin.com/in/ten-cua-ban"
-                    value="<%= request.getAttribute("linkedinUrl") != null ? request.getAttribute("linkedinUrl") : "" %>"
+                    id="portfolioUrl"
+                    name="portfolioUrl"
+                    placeholder="https://tenmien.com / https://github.com/ten-cua-ban"
+                    value="<%= request.getAttribute("portfolioUrl") != null ? request.getAttribute("portfolioUrl") : "" %>"
                     maxlength="500"
                 >
-
-                <small class="field-hint">Phải là địa chỉ linkedin.com.</small>
-
-            </div>
-
-
-            <!-- =================================================
-                 WEBSITE URL
-            ================================================== -->
-
-            <div class="register-field">
-
-                <label for="websiteUrl">
-                    Website cá nhân / Portfolio
-                </label>
-
-                <input
-                    type="url"
-                    id="websiteUrl"
-                    name="websiteUrl"
-                    placeholder="https://tenmien.com"
-                    value="<%= request.getAttribute("websiteUrl") != null ? request.getAttribute("websiteUrl") : "" %>"
-                    maxlength="500"
-                >
-
-            </div>
-
-
-            <!-- =================================================
-                 AVATAR URL
-            ================================================== -->
-
-            <div class="register-field">
-
-                <label for="avatarUrl">
-                    Ảnh đại diện chuyên môn (URL)
-                </label>
-
-                <input
-                    type="url"
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    placeholder="https://example.com/avatar.jpg"
-                    value="<%= request.getAttribute("avatarUrl") != null ? request.getAttribute("avatarUrl") : "" %>"
-                    maxlength="500"
-                >
-
-                <small class="field-hint">Link ảnh trực tiếp (jpg, png). Khác với avatar tài khoản.</small>
 
             </div>
 
