@@ -240,6 +240,11 @@ html {
     color: #dc3545;
 }
 
+.btn-action.view:hover {
+    background: rgba(66, 133, 244, 0.12);
+    color: #4285F4;
+}
+
 /* Badge hiển thị trạng thái Status */
 .badge {
     display: inline-block;

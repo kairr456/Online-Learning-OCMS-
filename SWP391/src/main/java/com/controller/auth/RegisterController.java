@@ -135,11 +135,6 @@ public class RegisterController extends HttpServlet {
 
         account.setAvatar(null);
 
-        // No OTP/activation step for now -- account is active as soon as it's created.
-        // (If you bring back email verification later, set this to false again
-        // and gate login on isActive.)
-        account.setActive(true);
-
         account.setRoleId(roleId);
 
 
@@ -196,9 +191,24 @@ public class RegisterController extends HttpServlet {
             // Insert account
             // =================================================
 
-            boolean success = new AccountDAO().register(account);
-            // register() sets account.setId(...) internally via getGeneratedKeys(),
-            // so there's no need for the extra lookup query that used to be here.
+            boolean success;
+            boolean isTeacher = "teacher".equalsIgnoreCase(role);
+
+            if (isTeacher) {
+                // Teacher: save with is_active = false, redirect to step 2
+                account.setActive(false);
+                success = new AccountDAO().registerPendingTeacher(account);
+                if (success) {
+                    response.sendRedirect(
+                            request.getContextPath() + "/teacher-register-step2?accountId=" + account.getId()
+                    );
+                    return;
+                }
+            } else {
+                // Student: normal flow, active immediately
+                account.setActive(true);
+                success = new AccountDAO().register(account);
+            }
 
             if (success) {
 

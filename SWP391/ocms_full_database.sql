@@ -1089,3 +1089,28 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-08-20 16:09:13
+
+DROP TABLE IF EXISTS `teacher_profiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teacher_profiles` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `account_id` INT NOT NULL,
+  `bio` TEXT DEFAULT NULL,
+  `specialization` VARCHAR(255) DEFAULT NULL,
+  `experience_years` INT DEFAULT 0,
+  `cv_url` VARCHAR(500) DEFAULT NULL,
+  `portfolio_url` VARCHAR(500) DEFAULT NULL,
+  `approval_status` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+  `rejected_reason` VARCHAR(500) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_account_id` (`account_id`),
+  CONSTRAINT `fk_instructor_account` 
+    FOREIGN KEY (`account_id`) 
+    REFERENCES `Account` (`id`) 
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
