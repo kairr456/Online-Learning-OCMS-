@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-form.css?v=7">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-form.css?v=9">
 </head>
 <body>
 
@@ -99,52 +99,25 @@
                     </c:if>
                 </div>
 
-                <!-- Danh mục & Trạng thái bài viết -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="categoryId">Danh mục bài viết <span class="required">*</span></label>
-                        <select id="categoryId" name="categoryId" class="form-select ${not empty errorCategory ? 'has-error' : ''}"
-                                style="${not empty errorCategory ? 'border-color: #D64545;' : ''}">
-                            <option value="">-- Chọn danh mục --</option>
-                            <c:if test="${not empty categories}">
-                                <c:forEach var="entry" items="${categories}">
-                                    <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
-                                </c:forEach>
-                            </c:if>
-                        </select>
-                        <c:if test="${not empty errorCategory}">
-                            <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorCategory}" /></span></div>
+                <!-- Danh mục bài viết -->
+                <div class="form-group">
+                    <label for="categoryId">Danh mục bài viết <span class="required">*</span></label>
+                    <select id="categoryId" name="categoryId" class="form-select ${not empty errorCategory ? 'has-error' : ''}"
+                            style="${not empty errorCategory ? 'border-color: #D64545;' : ''}">
+                        <option value="">-- Chọn danh mục --</option>
+                        <c:if test="${not empty categories}">
+                            <c:forEach var="entry" items="${categories}">
+                                <option value="${entry.key}" ${formCategoryId == entry.key ? 'selected' : ''}><c:out value="${entry.value}" /></option>
+                            </c:forEach>
                         </c:if>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status">Trạng thái bài viết <span class="required">*</span></label>
-                        <select id="status" name="status" class="form-select">
-                            <c:choose>
-                                <c:when test="${sessionScope.account.roleId == 1}">
-                                    <option value="Active" ${formStatus == 'Active' ? 'selected' : ''}>Đã duyệt (Active - Công khai)</option>
-                                    <option value="Inactive" ${formStatus == 'Inactive' ? 'selected' : ''}>Chờ duyệt (Inactive)</option>
-                                    <option value="Draft" ${formStatus == 'Draft' ? 'selected' : ''}>Bản nháp (Draft)</option>
-                                </c:when>
-                                <c:otherwise>
-                                    <option value="Draft" ${formStatus == 'Draft' ? 'selected' : ''}>Bản nháp (Draft - Lưu riêng tư, không gửi Admin duyệt)</option>
-                                    <option value="Inactive" ${formStatus == 'Inactive' || formStatus == 'Rejected' || formStatus == 'Reject' || empty formStatus ? 'selected' : ''}>Chờ phê duyệt (Inactive - Gửi lên Admin duyệt)</option>
-                                </c:otherwise>
-                            </c:choose>
-                        </select>
-                        <div class="form-hint">
-                            <c:choose>
-                                <c:when test="${sessionScope.account.roleId == 1}">
-                                    Chọn trạng thái xuất bản cho bài viết.
-                                </c:when>
-                                <c:otherwise>
-                                    • <strong>Bản nháp (Draft):</strong> Chỉ bạn xem và chỉnh sửa, không đưa lên Admin duyệt.<br>
-                                    • <strong>Chờ phê duyệt (Inactive):</strong> Gửi bài lên hệ thống để Admin kiểm tra và duyệt xuất bản.
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
+                    </select>
+                    <c:if test="${not empty errorCategory}">
+                        <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorCategory}" /></span></div>
+                    </c:if>
                 </div>
+
+                <!-- Hidden Input lưu trạng thái bài viết (Draft hoặc Inactive/Active tùy theo nút bấm) -->
+                <input type="hidden" name="status" id="blogStatusInput" value="<c:out value='${formStatus}' />">
 
                 <!-- Chọn file ảnh Thumbnail -->
                 <div class="form-group">
@@ -204,8 +177,12 @@
                 <div class="form-actions">
                     <a href="${pageContext.request.contextPath}/my-blogs" class="btn-cancel">Hủy bỏ</a>
                     
-                    <button type="submit" name="submitAction" value="save" class="btn-submit" onclick="return compileAndValidateForm(event)">
+                    <button type="submit" name="status" value="Draft" class="btn-draft" onclick="return handleFormSubmit(event, 'Draft')">
                         <i class="fa-solid fa-floppy-disk"></i> Lưu bài viết
+                    </button>
+
+                    <button type="submit" name="status" value="${sessionScope.account.roleId == 1 ? 'Active' : 'Inactive'}" class="btn-submit" onclick="return handleFormSubmit(event, '${sessionScope.account.roleId == 1 ? 'Active' : 'Inactive'}')">
+                        <i class="fa-solid fa-paper-plane"></i> Gửi bài viết
                     </button>
                 </div>
             </form>
@@ -216,6 +193,6 @@
     <!-- Footer dùng chung -->
     <jsp:include page="/view/common/footer.jsp" />
     <!-- JS riêng biệt cho Blog Form -->
-    <script src="${pageContext.request.contextPath}/assets/js/blog/blog-form.js?v=8"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/blog/blog-form.js?v=9"></script>
 </body>
 </html>
