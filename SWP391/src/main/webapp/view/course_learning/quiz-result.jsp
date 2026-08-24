@@ -84,9 +84,11 @@
                                 <c:set var="isUserChoice" value="true" />
                             </c:if>
                         </c:forEach>
+                        <%-- Pre-compute isCorrect to avoid Boolean-to-Long coercion error --%>
+                        <c:set var="isCorrect" value="${answer.is_correct == true}" />
                         <c:choose>
                             <%-- User selected this answer, and it is CORRECT --%>
-                            <c:when test="${isUserChoice && answer.is_correct}">
+                            <c:when test="${isUserChoice && isCorrect}">
                                 <div class="answer-option bg-light border-success fw-bold">
                                     <div class="answer-icon text-success"><i class="fas fa-check-circle"></i></div>
                                     <div class="ms-2">${answer.answer_text} <span class="badge bg-success ms-2">Lựa chọn của bạn (Đúng)</span></div>
@@ -94,7 +96,7 @@
                             </c:when>
                             
                             <%-- User selected this answer, and it is INCORRECT --%>
-                            <c:when test="${isUserChoice && !answer.is_correct}">
+                            <c:when test="${isUserChoice && !isCorrect}">
                                 <div class="answer-option bg-light border-danger fw-bold">
                                     <div class="answer-icon text-danger"><i class="fas fa-times-circle"></i></div>
                                     <div class="ms-2">${answer.answer_text} <span class="badge bg-danger ms-2">Lựa chọn của bạn (Sai)</span></div>
@@ -102,7 +104,7 @@
                             </c:when>
                             
                             <%-- User DID NOT select this answer, but it is the CORRECT answer --%>
-                            <c:when test="${!isUserChoice && answer.is_correct}">
+                            <c:when test="${!isUserChoice && isCorrect}">
                                 <div class="answer-option bg-light border-success">
                                     <div class="answer-icon text-success"><i class="fas fa-check"></i></div>
                                     <div class="ms-2">${answer.answer_text} <span class="badge bg-outline-success text-success border border-success ms-2">Đáp án đúng</span></div>
