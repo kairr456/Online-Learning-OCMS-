@@ -59,7 +59,14 @@ public class CheckoutController extends HttpServlet {
         }
 
         // Tự động dọn dẹp các khóa học đã bị deactive trước khi thanh toán
-        new CartItemDAO().cleanupInactiveCartItems(cart.getId());
+        List<String> removedCourses = new CartItemDAO().cleanupAndGetInactiveCourses(cart.getId());
+        if (removedCourses != null && !removedCourses.isEmpty()) {
+            String notice = CartController.formatInactiveCoursesNotification(removedCourses);
+            session.setAttribute("message", notice);
+            session.setAttribute("messageType", "warning");
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
 
         List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {
@@ -95,7 +102,14 @@ public class CheckoutController extends HttpServlet {
         }
 
         // Tự động dọn dẹp các khóa học đã bị deactive trước khi xử lý thanh toán
-        new CartItemDAO().cleanupInactiveCartItems(cart.getId());
+        List<String> postRemovedCourses = new CartItemDAO().cleanupAndGetInactiveCourses(cart.getId());
+        if (postRemovedCourses != null && !postRemovedCourses.isEmpty()) {
+            String notice = CartController.formatInactiveCoursesNotification(postRemovedCourses);
+            session.setAttribute("message", notice);
+            session.setAttribute("messageType", "warning");
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
 
         List<CartItem> cartItems = new CartItemDAO().getCartItemsWithCourseDetails(cart.getId());
         if (cartItems == null || cartItems.isEmpty()) {

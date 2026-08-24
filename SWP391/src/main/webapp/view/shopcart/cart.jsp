@@ -36,8 +36,6 @@
         <div class="container">
             <h1 style="font-size:28px; font-weight:700; margin-bottom:32px;">Shopping Cart</h1>
 
-            <!-- Toast messages will be shown via JavaScript -->
-                
             <div class="row">
                 <div class="col-lg-8">
                     <div class="cart-items-wrapper">

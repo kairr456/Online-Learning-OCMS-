@@ -56,8 +56,12 @@ public class CartController extends HttpServlet {
         // Lấy hoặc tạo giỏ hàng cho tài khoản
         Cart cart = cartDAO.getOrCreateCart(account.getId());
 
-        // Tự động dọn dẹp các khóa học đã bị deactivate hoặc không còn active khỏi giỏ hàng
-        cartItemDAO.cleanupInactiveCartItems(cart.getId());
+        // Tự động dọn dẹp các khóa học đã bị deactivate hoặc không còn active khỏi giỏ hàng và lấy danh sách tên
+        List<String> removedCourses = cartItemDAO.cleanupAndGetInactiveCourses(cart.getId());
+        String removedCourseNotice = null;
+        if (removedCourses != null && !removedCourses.isEmpty()) {
+            removedCourseNotice = formatInactiveCoursesNotification(removedCourses);
+        }
 
         // Lấy tham số tìm kiếm & sắp xếp
         String search = request.getParameter("search");
@@ -125,6 +129,13 @@ public class CartController extends HttpServlet {
             request.setAttribute("toastType", sessionMsgType != null ? sessionMsgType : "info");
             session.removeAttribute("message");
             session.removeAttribute("messageType");
+        } else if (removedCourseNotice != null) {
+            request.setAttribute("toastMessage", removedCourseNotice);
+            request.setAttribute("toastType", "warning");
+        }
+
+        if (removedCourseNotice != null) {
+            request.setAttribute("removedCourseNotice", removedCourseNotice);
         }
 
         // Gán dữ liệu cho JSP hiển thị
@@ -190,8 +201,8 @@ public class CartController extends HttpServlet {
 
                 // Lấy thông tin Course trực tiếp từ DB
                 Course course = courseDAO.findById(courseIdInt);
-                if (course == null) {
-                    session.setAttribute("message", "Course not found.");
+                if (course == null || !"active".equalsIgnoreCase(course.getStatus())) {
+                    session.setAttribute("message", "Khóa học hiện không khả dụng hoặc đã bị ngừng hoạt động.");
                     session.setAttribute("messageType", "error");
                     response.sendRedirect(request.getContextPath() + "/cart");
                     return;
@@ -322,5 +333,42 @@ public class CartController extends HttpServlet {
             finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
         }
         response.sendRedirect(finalUrl);
+    }
+
+    /**
+     * Format clean notification message for inactive courses removed from cart,
+     * protecting against layout breakage if many courses or long titles are removed.
+     */
+    public static String formatInactiveCoursesNotification(List<String> courseNames) {
+        if (courseNames == null || courseNames.isEmpty()) {
+            return "";
+        }
+
+        int totalCount = courseNames.size();
+        int maxDisplayNames = 2; // Hiển thị tối đa 2 tên cụ thể để tránh thông báo quá dài
+
+        List<String> displayNames = new ArrayList<>();
+        for (int i = 0; i < Math.min(totalCount, maxDisplayNames); i++) {
+            String name = courseNames.get(i);
+            if (name == null || name.trim().isEmpty()) {
+                name = "Khóa học";
+            } else {
+                name = name.trim();
+                // Rút gọn nếu tên khóa học dài hơn 35 ký tự
+                if (name.length() > 35) {
+                    name = name.substring(0, 32) + "...";
+                }
+            }
+            displayNames.add("\"" + name + "\"");
+        }
+
+        if (totalCount == 1) {
+            return "Khóa học " + displayNames.get(0) + " đã bị hủy hoặc ngừng hoạt động bởi quản trị viên và đã được tự động gỡ khỏi giỏ hàng.";
+        } else if (totalCount <= maxDisplayNames) {
+            return "Các khóa học " + String.join(", ", displayNames) + " đã bị hủy hoặc ngừng hoạt động và đã được tự động gỡ khỏi giỏ hàng.";
+        } else {
+            int remaining = totalCount - maxDisplayNames;
+            return "Các khóa học " + String.join(", ", displayNames) + " và " + remaining + " khóa học khác đã bị hủy hoặc ngừng hoạt động và đã được tự động gỡ khỏi giỏ hàng.";
+        }
     }
 }

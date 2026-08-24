@@ -101,27 +101,39 @@ function confirmRemove(itemId, courseName) {
  * Hàm hiển thị thông báo Toast đẹp mắt
  */
 function showToast(message, type) {
+    if (!message || message.trim().length === 0) {
+        return;
+    }
+
     if (typeof Toastify === 'undefined') {
         alert(message);
         return;
     }
 
-    let backgroundColor = "#28a745"; // Success (Mặc định)
+    let backgroundStyle = "linear-gradient(135deg, #10b981, #059669)"; // Success (Mặc định)
+    let duration = 4500;
+
     if (type === "error") {
-        backgroundColor = "#dc3545"; // Lỗi
+        backgroundStyle = "linear-gradient(135deg, #ef4444, #b91c1c)"; // Lỗi
+        duration = 6000;
     } else if (type === "info") {
-        backgroundColor = "#17a2b8"; // Thông tin
+        backgroundStyle = "linear-gradient(135deg, #3b82f6, #1d4ed8)"; // Thông tin
+        duration = 5000;
     } else if (type === "warning") {
-        backgroundColor = "#ffc107"; // Cảnh báo
+        backgroundStyle = "linear-gradient(135deg, #f59e0b, #d97706)"; // Cảnh báo
+        duration = 7000; // Cho thêm thời gian để đọc các thông báo nhiều khóa học
     }
 
     Toastify({
         text: message,
-        duration: 4000,
+        duration: duration,
         close: true,
         gravity: "top",
         position: "right",
-        backgroundColor: backgroundColor,
+        style: {
+            background: backgroundStyle,
+            color: "#ffffff"
+        },
         stopOnFocus: true
     }).showToast();
 }

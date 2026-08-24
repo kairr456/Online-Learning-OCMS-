@@ -240,25 +240,57 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     }
 
     /**
-     * Automatically clean up inactive/deactivated items from a cart
+     * Clean up inactive/deactivated items from a cart and return their course names
      * @param cartId The cart ID
-     * @return Number of removed items
+     * @return List of removed course names
      */
-    public int cleanupInactiveCartItems(Integer cartId) {
-        String sql = "DELETE ci FROM cart_item ci " +
-                     "JOIN course c ON ci.course_id = c.id " +
-                     "WHERE ci.cart_id = ? AND c.status != 'active'";
+    public List<String> cleanupAndGetInactiveCourses(Integer cartId) {
+        List<String> removedCourseNames = new ArrayList<>();
+        if (cartId == null) {
+            return removedCourseNames;
+        }
+
+        String selectSql = "SELECT c.name FROM cart_item ci " +
+                           "JOIN course c ON ci.course_id = c.id " +
+                           "WHERE ci.cart_id = ? AND c.status != 'active'";
+        String deleteSql = "DELETE ci FROM cart_item ci " +
+                           "JOIN course c ON ci.course_id = c.id " +
+                           "WHERE ci.cart_id = ? AND c.status != 'active'";
         try {
             connection = new DBContext().getConnection();
-            statement = connection.prepareStatement(sql);
+            statement = connection.prepareStatement(selectSql);
             statement.setInt(1, cartId);
-            return statement.executeUpdate();
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                if (name != null && !name.trim().isEmpty()) {
+                    removedCourseNames.add(name.trim());
+                } else {
+                    removedCourseNames.add("Khóa học");
+                }
+            }
+
+            if (!removedCourseNames.isEmpty()) {
+                statement.close();
+                statement = connection.prepareStatement(deleteSql);
+                statement.setInt(1, cartId);
+                statement.executeUpdate();
+            }
         } catch (SQLException ex) {
             System.out.println("Error cleaning up inactive cart items: " + ex.getMessage());
         } finally {
             closeResources();
         }
-        return 0;
+        return removedCourseNames;
+    }
+
+    /**
+     * Automatically clean up inactive/deactivated items from a cart
+     * @param cartId The cart ID
+     * @return Number of removed items
+     */
+    public int cleanupInactiveCartItems(Integer cartId) {
+        return cleanupAndGetInactiveCourses(cartId).size();
     }
     
     /**
