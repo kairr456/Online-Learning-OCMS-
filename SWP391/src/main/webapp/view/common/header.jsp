@@ -3,6 +3,7 @@
 <%@ page import="com.entity.Category" %>
 <%@ page import="com.DAO.CategoryDAO" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Collections" %>
 <%
     // This fragment is meant to be pulled into other pages with:
     //   <jsp:include page="${pageContext.request.contextPath}/view/common/header.jsp" />
@@ -14,7 +15,12 @@
 
     // Category dropdown options come straight from the database now instead
     // of being hardcoded -- new categories show up here automatically.
-    List<Category> headerCategories = new CategoryDAO().findAll();
+    List<Category> headerCategories = Collections.emptyList();
+    try {
+        headerCategories = new CategoryDAO().findAll();
+    } catch (Exception e) {
+        e.printStackTrace(); // Check Tomcat logs for DB errors
+    }
 %>
 <style>
 .site-header__nav-dropdown {

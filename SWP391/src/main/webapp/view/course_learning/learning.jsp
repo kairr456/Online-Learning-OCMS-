@@ -10,10 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
     
     
@@ -139,7 +136,6 @@
                                                 </c:choose>
                                             </div>
                                         </c:if>
->>>>>>> Stashed changes
                                     </c:forEach>
                                 </c:if>
                                 <c:if test="${empty lessonVideos}">
@@ -233,7 +229,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning.js"></script>
 </body>
 </html>

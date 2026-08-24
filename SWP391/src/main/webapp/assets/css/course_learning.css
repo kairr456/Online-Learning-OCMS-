@@ -783,11 +783,7 @@ body {
 .learn-topbar .tb-nav { display: flex; gap: 16px; align-items: center; }
 
 /* Layout */
-<<<<<<< Updated upstream
-.learn-wrap { display: flex; min-height: 100vh; }
-=======
 .learn-wrap { display: flex; margin-top: 116px; min-height: calc(100vh - 116px); }
->>>>>>> Stashed changes
 
 /* Sidebar */
 .learn-sidebar {
