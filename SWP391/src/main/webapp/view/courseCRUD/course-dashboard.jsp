@@ -15,11 +15,12 @@
 <body>
     <jsp:include page="/view/common/header.jsp" />
     
-    <c:if test="${not empty sessionScope.msg}">
+    <c:if test="${not empty sessionScope.msg || not empty sessionScope.message}">
         <script>
-            alert('${sessionScope.msg}');
+            alert('${not empty sessionScope.msg ? sessionScope.msg : sessionScope.message}');
         </script>
         <c:remove var="msg" scope="session"/>
+        <c:remove var="message" scope="session"/>
     </c:if>
 
     <form id="filterForm" action="${pageContext.request.contextPath}/course-dashboard" method="get" class="dashboard-container">
@@ -95,7 +96,7 @@
                             
                             <div class="course-footer">
                                 <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="${pageContext.request.contextPath}/course-delete-preview?id=${course.id}" class="action-btn btn-delete"><i class="fas fa-trash"></i> Delete</a>
+                                <a href="${pageContext.request.contextPath}/course-manager?action=deletePreview&id=${course.id}" class="action-btn btn-delete"><i class="fas fa-trash"></i> Delete</a>
                             </div>
                         </div>
                     </div>

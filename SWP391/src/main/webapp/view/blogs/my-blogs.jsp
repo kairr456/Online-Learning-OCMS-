@@ -1,48 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.entity.Blog" %>
-<%@ page import="com.entity.Account" %>
-<%@ page import="com.DAO.BlogDAO" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.HashMap" %>
-<%
-    String ctx = request.getContextPath();
-    Account account = (Account) session.getAttribute("account");
-    if (account == null) {
-        response.sendRedirect(ctx + "/login");
-        return;
-    }
-
-    List<Blog> myBlogs = (List<Blog>) request.getAttribute("myBlogs");
-    if (myBlogs == null) {
-        BlogDAO bDAO = new BlogDAO();
-        myBlogs = bDAO.getBlogsByAuthor(account.getId());
-    }
-
-    Map<Integer, String> categories = (Map<Integer, String>) request.getAttribute("categories");
-    if (categories == null || categories.isEmpty()) {
-        BlogDAO bDAO = new BlogDAO();
-        categories = bDAO.getBlogCategories();
-    }
-
-    String message = request.getParameter("message");
-    String error = request.getParameter("error");
-
-    int totalCount = myBlogs.size();
-    int activeCount = 0;
-    int inactiveCount = 0;
-    for (Blog b : myBlogs) {
-        if ("Active".equalsIgnoreCase(b.getStatus())) {
-            activeCount++;
-        } else {
-            inactiveCount++;
-        }
-    }
-
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -58,32 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=<%= System.currentTimeMillis() %>">
-    <style>
-        /* Force light theme colors on search and filter inputs */
-        .search-input-wrap .search-input {
-            background-color: #ffffff !important;
-            color: #0F1E33 !important;
-            caret-color: #0F1E33 !important;
-            color-scheme: light !important;
-            -webkit-text-fill-color: #0F1E33 !important;
-            opacity: 1 !important;
-        }
-        .search-input-wrap .search-input::placeholder {
-            color: #5B6B82 !important;
-            -webkit-text-fill-color: #5B6B82 !important;
-            opacity: 0.85 !important;
-        }
-        .filter-select {
-            background-color: #ffffff !important;
-            color: #0F1E33 !important;
-            color-scheme: light !important;
-        }
-        .filter-select option {
-            background-color: #ffffff !important;
-            color: #0F1E33 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=3">
 </head>
 <body>
 
@@ -95,9 +28,9 @@
         <div class="myblog-hero__inner">
             <div>
                 <div class="myblog-breadcrumb">
-                    <a href="<%= ctx %>/"><i class="fa-solid fa-house"></i> Trang chủ</a>
+                    <a href="${pageContext.request.contextPath}/"><i class="fa-solid fa-house"></i> Trang chủ</a>
                     <span>/</span>
-                    <a href="<%= ctx %>/blogs">Blogs & Tin Tức</a>
+                    <a href="${pageContext.request.contextPath}/blogs">Blogs & Tin Tức</a>
                     <span>/</span>
                     <span>Bài viết của tôi</span>
                 </div>
@@ -107,7 +40,7 @@
                 <p class="myblog-hero__desc">Xem, chỉnh sửa, xóa và quản lý tất cả các bài viết do bạn tạo trên nền tảng OCMS.</p>
             </div>
             <div>
-                <a href="<%= ctx %>/blogs-new" class="btn-create-post">
+                <a href="${pageContext.request.contextPath}/blogs-new" class="btn-create-post">
                     <i class="fa-solid fa-plus"></i> Viết bài mới
                 </a>
             </div>
@@ -124,7 +57,7 @@
                     <i class="fa-solid fa-book-open"></i>
                 </div>
                 <div class="stat-content">
-                    <h3><%= totalCount %></h3>
+                    <h3>${not empty totalCount ? totalCount : 0}</h3>
                     <p>Tổng số bài viết</p>
                 </div>
             </div>
@@ -133,48 +66,103 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div class="stat-content">
-                    <h3><%= activeCount %></h3>
-                    <p>Đang hoạt động</p>
+                    <h3>${not empty activeCount ? activeCount : 0}</h3>
+                    <p>Đã duyệt</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon stat-icon--orange">
-                    <i class="fa-solid fa-eye-slash"></i>
+                <div class="stat-icon stat-icon--amber">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
                 <div class="stat-content">
-                    <h3><%= inactiveCount %></h3>
-                    <p>Bản nháp / Đang ẩn</p>
+                    <h3>${not empty inactiveCount ? inactiveCount : 0}</h3>
+                    <p>Chờ phê duyệt</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon--blue" style="background: rgba(100, 116, 139, 0.12); color: #64748B;">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>${not empty draftCount ? draftCount : 0}</h3>
+                    <p>Bản nháp</p>
                 </div>
             </div>
         </div>
 
         <!-- Alert Notification -->
-        <% if ("created".equals(message)) { %>
+        <c:if test="${param.message == 'draft_saved'}">
+            <div class="alert-box alert-box--success" style="background:#F1F5F9; border-color:#CBD5E1; color:#1E293B;">
+                <i class="fa-solid fa-floppy-disk" style="color:#64748B;"></i>
+                <span><strong>Đã lưu bản nháp thành công!</strong> Bài viết này chỉ có bạn xem được và không đưa lên Admin duyệt.</span>
+            </div>
+        </c:if>
+        <c:if test="${param.message == 'submitted'}">
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
-                <span>Tạo bài viết mới thành công! Bài viết đã được thêm vào danh sách của bạn.</span>
+                <span><strong>Gửi bài viết thành công!</strong> Bài viết đã được đưa vào hàng đợi chờ Admin phê duyệt.</span>
             </div>
-        <% } else if ("updated".equals(message)) { %>
+        </c:if>
+        <c:if test="${param.message == 'created'}">
+            <div class="alert-box alert-box--success">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Lưu bài viết thành công!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.message == 'updated'}">
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
                 <span>Cập nhật bài viết thành công! Các thay đổi đã được lưu.</span>
             </div>
-        <% } else if ("deleted".equals(message)) { %>
+        </c:if>
+        <c:if test="${param.message == 'rejected_unchanged'}">
+            <div class="alert-box alert-box--danger" style="background:#FEF2F2; border-color:#FECACA; color:#B91C1C;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#DC2626;"></i>
+                <span><strong>Nội dung bài viết chưa có thay đổi so với bản cũ!</strong> Vì bài viết đã bị từ chối và chưa được chỉnh sửa nội dung, hệ thống vẫn tiếp tục giữ nguyên trạng thái <strong>Bị từ chối</strong>. Vui lòng chỉnh sửa bài viết trước khi gửi duyệt lại!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.message == 'deleted'}">
             <div class="alert-box alert-box--success">
                 <i class="fa-solid fa-circle-check"></i>
                 <span>Đã xóa bài viết thành công khỏi hệ thống!</span>
             </div>
-        <% } else if ("unauthorized".equals(error)) { %>
+        </c:if>
+        <c:if test="${param.error == 'pending_approval'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết đang trong hàng đợi chờ Admin phê duyệt, bạn không thể chỉnh sửa trong lúc này!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'pending_approval_delete'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-ban"></i>
+                <span>Bài viết đang trong hàng đợi chờ Admin phê duyệt, bạn không thể xóa bài viết trong lúc này!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'already_approved'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết này đã được Admin phê duyệt và xuất bản công khai, bạn không thể chỉnh sửa bài viết đã duyệt!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'rejected_locked'}">
+            <div class="alert-box alert-box--danger">
+                <i class="fa-solid fa-lock"></i>
+                <span>Bài viết này đã bị Admin từ chối phê duyệt nên không thể chỉnh sửa!</span>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'unauthorized'}">
             <div class="alert-box alert-box--danger">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>Bạn không có quyền thực hiện thao tác trên bài viết này!</span>
             </div>
-        <% } else if ("notfound".equals(error)) { %>
+        </c:if>
+        <c:if test="${param.error == 'notfound'}">
             <div class="alert-box alert-box--danger">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>Không tìm thấy bài viết yêu cầu!</span>
             </div>
-        <% } %>
+        </c:if>
 
         <!-- Table Card -->
         <div class="main-card">
@@ -187,107 +175,160 @@
                     </div>
                     <select id="filterCategory" class="filter-select" onchange="filterTable()">
                         <option value="">Tất cả danh mục</option>
-                        <% for (Map.Entry<Integer, String> entry : categories.entrySet()) { %>
-                            <option value="<%= entry.getValue() %>"><%= entry.getValue() %></option>
-                        <% } %>
+                        <c:forEach var="entry" items="${categories}">
+                            <option value="${entry.value}"><c:out value="${entry.value}" /></option>
+                        </c:forEach>
                     </select>
                     <select id="filterStatus" class="filter-select" onchange="filterTable()">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="Active">Hoạt động (Active)</option>
-                        <option value="Inactive">Đang ẩn (Inactive)</option>
+                        <option value="Active">Đã duyệt</option>
+                        <option value="Inactive">Chờ phê duyệt</option>
+                        <option value="Draft">Bản nháp</option>
+                        <option value="Rejected">Bị từ chối</option>
                     </select>
                 </div>
             </div>
 
             <!-- Table of Posts -->
-            <% if (myBlogs == null || myBlogs.isEmpty()) { %>
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fa-regular fa-folder-open"></i>
+            <c:choose>
+                <c:when test="${empty myBlogs}">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                        <h4>Bạn chưa có bài viết nào</h4>
+                        <p>Hãy bắt đầu chia sẻ kiến thức và kinh nghiệm của bạn với cộng đồng học viên OCMS ngay hôm nay.</p>
+                        <a href="${pageContext.request.contextPath}/blogs-new" class="btn-create-post">
+                            <i class="fa-solid fa-plus"></i> Tạo bài viết đầu tiên
+                        </a>
                     </div>
-                    <h4>Bạn chưa có bài viết nào</h4>
-                    <p>Hãy bắt đầu chia sẻ kiến thức và kinh nghiệm của bạn với cộng đồng học viên OCMS ngay hôm nay.</p>
-                    <a href="<%= ctx %>/blogs-new" class="btn-create-post">
-                        <i class="fa-solid fa-plus"></i> Tạo bài viết đầu tiên
-                    </a>
-                </div>
-            <% } else { %>
-                <div class="table-responsive">
-                    <table class="blog-table" id="myBlogTable">
-                        <thead>
-                            <tr>
-                                <th class="col-stt">STT</th>
-                                <th>Bài Viết</th>
-                                <th>Danh Mục</th>
-                                <th>Trạng Thái</th>
-                                <th>Ngày Tạo</th>
-                                <th>Cập Nhật</th>
-                                <th class="col-action-head">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% int index = 1; for (Blog b : myBlogs) { 
-                                String catName = categories.getOrDefault(b.getCategoryId(), "Chung");
-                                String createdStr = b.getCreatedDate() != null ? sdf.format(b.getCreatedDate()) : "N/A";
-                                String updatedStr = b.getUpdatedDate() != null ? sdf.format(b.getUpdatedDate()) : createdStr;
-                                boolean isActive = "Active".equalsIgnoreCase(b.getStatus());
-                            %>
-                            <tr data-title="<%= b.getTitle().toLowerCase() %>" data-cat="<%= catName %>" data-status="<%= b.getStatus() %>">
-                                <td class="td-index"><%= index++ %></td>
-                                <td>
-                                    <div class="post-cell">
-                                        <% if (b.getThumbnail() != null && !b.getThumbnail().trim().isEmpty()) { %>
-                                            <img src="<%= b.getThumbnail() %>" alt="<%= b.getTitle() %>" class="post-thumb" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'post-fallback-thumb\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
-                                        <% } else { %>
-                                            <div class="post-fallback-thumb">
-                                                <i class="fa-regular fa-newspaper"></i>
+                </c:when>
+                <c:otherwise>
+                    <div class="table-responsive">
+                        <table class="blog-table" id="myBlogTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-stt">STT</th>
+                                    <th>Bài Viết</th>
+                                    <th>Danh Mục</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Ngày Tạo</th>
+                                    <th>Cập Nhật</th>
+                                    <th class="col-action-head">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="b" items="${myBlogs}" varStatus="loop">
+                                    <c:set var="catName" value="${not empty categories[b.categoryId] ? categories[b.categoryId] : 'Chung'}" />
+                                    <fmt:formatDate value="${b.createdDate}" pattern="dd/MM/yyyy HH:mm" var="createdStr" />
+                                    <fmt:formatDate value="${b.updatedDate}" pattern="dd/MM/yyyy HH:mm" var="updatedStr" />
+                                    <c:set var="isActive" value="${'Active' == b.status}" />
+
+                                    <tr data-title="${b.title}" data-cat="${catName}" data-status="${b.status}">
+                                        <td class="td-index">${loop.count}</td>
+                                        <td>
+                                            <div class="post-cell">
+                                                <c:choose>
+                                                    <c:when test="${not empty b.thumbnail}">
+                                                        <img src="${b.thumbnail}" alt="${b.title}" class="post-thumb" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'post-fallback-thumb\'><i class=\'fa-regular fa-newspaper\'></i></div>';">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="post-fallback-thumb">
+                                                            <i class="fa-regular fa-newspaper"></i>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                <div>
+                                                    <a href="${pageContext.request.contextPath}/blog-detail?id=${b.id}" class="post-title-link" title="${b.title}">
+                                                        <c:out value="${b.title}" />
+                                                    </a>
+                                                    <div class="post-brief"><c:out value="${b.briefInfo}" /></div>
+                                                </div>
                                             </div>
-                                        <% } %>
-                                        <div>
-                                            <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= b.getId() %>" class="post-title-link" target="_blank" title="<%= b.getTitle() %>">
-                                                <%= b.getTitle() %>
-                                            </a>
-                                            <div class="post-brief"><%= b.getBriefInfo() != null ? b.getBriefInfo() : "" %></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge badge--category">
-                                        <i class="fa-solid fa-tag"></i> <%= catName %>
-                                    </span>
-                                </td>
-                                <td>
-                                    <% if (isActive) { %>
-                                        <span class="badge badge--active">
-                                            <span class="badge-dot badge-dot--active"></span> Hoạt động
-                                        </span>
-                                    <% } else { %>
-                                        <span class="badge badge--inactive">
-                                            <span class="badge-dot badge-dot--inactive"></span> Đang ẩn
-                                        </span>
-                                    <% } %>
-                                </td>
-                                <td class="td-date"><%= createdStr %></td>
-                                <td class="td-date"><%= updatedStr %></td>
-                                <td class="td-center">
-                                    <div class="action-btns action-btns--center">
-                                        <a href="<%= ctx %>/view/blogs/blog-detail.jsp?id=<%= b.getId() %>" target="_blank" class="btn-action btn-action--view" title="Xem chi tiết">
-                                            <i class="fa-regular fa-eye"></i>
-                                        </a>
-                                        <a href="<%= ctx %>/blogs-edit?id=<%= b.getId() %>" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
-                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(<%= b.getId() %>, '<%= b.getTitle().replace("'", "\\'").replace("\"", "&quot;") %>')">
-                                            <i class="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                </div>
-            <% } %>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge--category">
+                                                <i class="fa-solid fa-tag"></i> <c:out value="${catName}" />
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${isActive}">
+                                                    <span class="badge badge--active">
+                                                        <span class="badge-dot badge-dot--active"></span> Đã duyệt
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${b.status == 'Draft'}">
+                                                    <span class="badge badge--inactive">
+                                                        <span class="badge-dot badge-dot--inactive"></span> Bản nháp
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${b.status == 'Reject' || b.status == 'Rejected'}">
+                                                    <span class="badge badge--rejected">
+                                                        <span class="badge-dot badge-dot--rejected"></span> Bị từ chối
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge badge--pending">
+                                                        <span class="badge-dot badge-dot--pending"></span> Chờ phê duyệt
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="td-date"><c:out value="${not empty createdStr ? createdStr : 'N/A'}" /></td>
+                                        <td class="td-date"><c:out value="${not empty updatedStr ? updatedStr : (not empty createdStr ? createdStr : 'N/A')}" /></td>
+                                        <td class="td-center">
+                                            <div class="action-btns action-btns--center">
+                                                <a href="${pageContext.request.contextPath}/blog-detail?id=${b.id}" class="btn-action btn-action--view" title="Xem chi tiết">
+                                                    <i class="fa-regular fa-eye"></i>
+                                                </a>
+
+                                                <!-- Nút Chỉnh sửa: Chỉ cho sửa khi là Admin hoặc Draft. Không cho sửa khi Bị từ chối (Reject/Rejected), Chờ duyệt (Inactive), hoặc Đã duyệt (Active) -->
+                                                <c:choose>
+                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status == 'Draft'}">
+                                                        <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </a>
+                                                    </c:when>
+                                                    <c:when test="${b.status == 'Reject' || b.status == 'Rejected'}">
+                                                        <span class="btn-action" title="Bài viết đã bị Admin từ chối phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
+                                                    </c:when>
+                                                    <c:when test="${b.status == 'Inactive'}">
+                                                        <span class="btn-action" title="Bài viết đang chờ Admin phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="btn-action" title="Bài viết đã được Admin duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-lock"></i>
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+
+                                                <!-- Nút Xóa: Cho phép xóa khi là Admin, Draft, Đã duyệt (Active), hoặc Bị từ chối. Không cho xóa khi Chờ duyệt (Inactive) -->
+                                                <c:choose>
+                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status != 'Inactive'}">
+                                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
+                                                            <i class="fa-regular fa-trash-can"></i>
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="btn-action" title="Bài viết đang chờ Admin phê duyệt nên không thể xóa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
+                                                            <i class="fa-solid fa-ban" style="color: #94A3B8;"></i>
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
 
     </div>
@@ -312,45 +353,7 @@
     <!-- Footer chung -->
     <jsp:include page="/view/common/footer.jsp" />
 
-    <script>
-        function filterTable() {
-            var keyword = document.getElementById('filterKeyword').value.toLowerCase().trim();
-            var category = document.getElementById('filterCategory').value;
-            var status = document.getElementById('filterStatus').value;
-
-            var table = document.getElementById('myBlogTable');
-            if (!table) return;
-            var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var rowTitle = row.getAttribute('data-title') || '';
-                var rowCat = row.getAttribute('data-cat') || '';
-                var rowStatus = row.getAttribute('data-status') || '';
-
-                var matchKeyword = keyword === '' || rowTitle.indexOf(keyword) > -1;
-                var matchCategory = category === '' || rowCat === category;
-                var matchStatus = status === '' || rowStatus === status;
-
-                if (matchKeyword && matchCategory && matchStatus) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        }
-
-        function confirmDelete(blogId, title) {
-            document.getElementById('deleteBlogTitle').innerText = '"' + title + '"';
-            document.getElementById('btnConfirmDelete').href = '<%= ctx %>/blogs-delete?id=' + blogId;
-            document.getElementById('deleteModal').style.display = 'flex';
-        }
-
-        function closeDeleteModal(e) {
-            if (!e || e.target.id === 'deleteModal' || e.target.classList.contains('btn-modal-cancel')) {
-                document.getElementById('deleteModal').style.display = 'none';
-            }
-        }
-    </script>
+    <!-- JS riêng biệt cho My Blogs -->
+    <script src="${pageContext.request.contextPath}/assets/js/blog/my-blogs.js"></script>
 </body>
 </html>

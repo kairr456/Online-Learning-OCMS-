@@ -54,7 +54,6 @@
                             <th>Package</th>
                             <th>Total Cost</th>
                             <th>Transaction Time</th>
-                            <th>Expires</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -65,7 +64,6 @@
                                 <td>${p.packages}</td>
                                 <td><fmt:formatNumber value="${p.totalCost}" minFractionDigits="2" maxFractionDigits="2"/>₫</td>
                                 <td><fmt:formatDate value="${p.registrationTime}" pattern="dd/MM/yyyy"/></td>
-                                <td><fmt:formatDate value="${p.validTo}" pattern="dd/MM/yyyy"/></td>
                                 <td>${p.status}</td>
                             </tr>
                         </c:forEach>

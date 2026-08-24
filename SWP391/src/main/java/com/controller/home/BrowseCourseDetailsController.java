@@ -5,12 +5,21 @@
 package com.controller.home;
 
 import com.DAO.AccountDAO;
+import com.DAO.CategoryDAO;
 import com.DAO.CourseDAO;
+import com.DAO.CourseRegistrationDAO;
+import com.DAO.LessonDAO;
 import com.DAO.ReviewDAO;
 import com.DAO.WishlistDAO;
+import com.entity.Account;
+import com.entity.Category;
 import com.entity.Course;
+import com.entity.Lesson;
 import com.entity.Review;
+import com.entity.Section;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.servlet.ServletException;
@@ -43,15 +52,15 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     ReviewDAO reviewDAO = new ReviewDAO();
                     List<Review> reviews = reviewDAO.getReviewsByCourseId(courseId);
                     
-                    com.DAO.LessonDAO lessonDAO = new com.DAO.LessonDAO();
-                    java.util.List<com.entity.Section> sections = lessonDAO.getSectionsByCourseId(courseId);
-                    java.util.Map<Integer, java.util.List<com.entity.Lesson>> lessonsMap = new java.util.HashMap<>();
-                    java.util.Map<Integer, String> lessonVideosMap = new java.util.HashMap<>();
+                    LessonDAO lessonDAO = new LessonDAO();
+                    List<Section> sections = lessonDAO.getSectionsByCourseId(courseId);
+                    Map<Integer, List<Lesson>> lessonsMap = new HashMap<>();
+                    Map<Integer, String> lessonVideosMap = new HashMap<>();
                     
-                    for (com.entity.Section s : sections) {
-                        java.util.List<com.entity.Lesson> ls = lessonDAO.getLessonsBySectionId(s.getId());
+                    for (Section s : sections) {
+                        List<Lesson> ls = lessonDAO.getLessonsBySectionId(s.getId());
                         lessonsMap.put(s.getId(), ls);
-                        for (com.entity.Lesson l : ls) {
+                        for (Lesson l : ls) {
                             if ("video".equals(l.getType())) {
                                 lessonVideosMap.put(l.getId(), lessonDAO.getLessonYoutube(l.getId()));
                             }
@@ -60,34 +69,71 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     
                     boolean isEnrolled = false;
                     boolean isWishlisted = false;
-                    com.entity.Account account = (com.entity.Account) request.getSession().getAttribute("account");
+                    Account account = (Account) request.getSession().getAttribute("account");
                     if (account != null) {
                         if (course.getCreatedBy() == account.getId()) {
                             isEnrolled = true;
                         } else {
-                            com.DAO.CourseRegistrationDAO regDAO = new com.DAO.CourseRegistrationDAO();
-                            java.util.List<Course> enrolledCourses = regDAO.getCoursesByAccountId(account.getId());
-                            for (Course c : enrolledCourses) {
-                                if (c.getId() == courseId) {
-                                    isEnrolled = true;
-                                    break;
-                                }
-                            }
+                            CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
+                            isEnrolled = regDAO.isEnrolled(account.getId(), courseId);
                         }
                         isWishlisted = new WishlistDAO().isWishlisted(account.getId(), courseId);
                     }
                     
                     int firstLessonId = -1;
                     if (!sections.isEmpty()) {
-                        java.util.List<com.entity.Lesson> firstSectionLessons = lessonsMap.get(sections.get(0).getId());
+                        List<Lesson> firstSectionLessons = lessonsMap.get(sections.get(0).getId());
                         if (firstSectionLessons != null && !firstSectionLessons.isEmpty()) {
                             firstLessonId = firstSectionLessons.get(0).getId();
                         }
                     }
                     
+                    CategoryDAO categoryDAO = new CategoryDAO();
+                    String categoryName = categoryDAO.getCategoryName(course.getCategoryId());
+                    if (categoryName == null || categoryName.trim().isEmpty()) {
+                        categoryName = "General";
+                    }
+
+                    List<Map<String, Object>> starDistributionList = new ArrayList<>();
+                    int reviewCount = (reviews != null) ? reviews.size() : 0;
+                    double avgRating = 0.0;
+                    if (reviewCount > 0) {
+                        double sum = 0;
+                        for (Review r : reviews) {
+                            sum += r.getRating();
+                        }
+                        avgRating = Math.round((sum / reviewCount) * 10.0) / 10.0;
+                    }
+
+                    for (int star = 5; star >= 1; star--) {
+                        int count = 0;
+                        if (reviews != null) {
+                            for (Review r : reviews) {
+                                if (r.getRating() == star) {
+                                    count++;
+                                }
+                            }
+                        }
+                        int percent = reviewCount > 0 ? (count * 100 / reviewCount) : 0;
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("star", star);
+                        item.put("count", count);
+                        item.put("percent", percent);
+                        starDistributionList.add(item);
+                    }
+                    Account instructor = accountDAO.getAccountById(course.getCreatedBy());
+                    List<Course> instructorCourses = courseDAO.findByCreator(course.getCreatedBy());
+                    int instructorCourseCount = instructorCourses != null ? instructorCourses.size() : 0;
+
                     request.setAttribute("course", course);
                     request.setAttribute("authorName", authorNames.get(course.getCreatedBy()));
+                    request.setAttribute("instructor", instructor);
+                    request.setAttribute("instructorCourseCount", instructorCourseCount);
+                    request.setAttribute("categoryName", categoryName);
                     request.setAttribute("reviews", reviews);
+                    request.setAttribute("avgRating", avgRating);
+                    request.setAttribute("reviewCount", reviewCount);
+                    request.setAttribute("starDistributionList", starDistributionList);
                     request.setAttribute("sections", sections);
                     request.setAttribute("lessonsMap", lessonsMap);
                     request.setAttribute("lessonVideosMap", lessonVideosMap);

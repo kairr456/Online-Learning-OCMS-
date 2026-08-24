@@ -638,3 +638,14 @@ body {
     font-size: 14px !important;
     color: inherit !important;
 }
+
+/* Revenue Policy Info */
+.wallet-panel__title--sm {
+    font-size: 16px;
+}
+
+.wallet-policy-list {
+    font-size: 13.5px;
+    line-height: 1.8;
+}
+

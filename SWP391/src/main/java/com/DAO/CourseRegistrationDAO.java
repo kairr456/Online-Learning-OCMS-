@@ -6,10 +6,55 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CourseRegistrationDAO extends DBContext implements I_DAO<Registration> {
+
+    /**
+     * Lấy danh sách ID các khóa học học viên đã đăng ký thành công (Active, Approved, Success)
+     */
+    public Set<Integer> getEnrolledCourseIds(int accountId) {
+        Set<Integer> courseIds = new HashSet<>();
+        String sql = "SELECT course_id FROM registration WHERE account_id = ? AND status IN ('Active', 'Approved', 'Success')";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    courseIds.add(rs.getInt("course_id"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching enrolled course IDs: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return courseIds;
+    }
+
+    /**
+     * Kiểm tra nhanh học viên đã sở hữu/đăng ký khóa học cụ thể hay chưa
+     */
+    public boolean isEnrolled(int accountId, int courseId) {
+        String sql = "SELECT COUNT(*) FROM registration WHERE account_id = ? AND course_id = ? AND status IN ('Active', 'Approved', 'Success')";
+        try (Connection connection = getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ps.setInt(2, courseId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking isEnrolled: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // Chèn hàm này vào bên trong class RegistrationDAO
     public List<Course> getCoursesByAccountId(int accountId) {
         List<Course> courses = new ArrayList<>();

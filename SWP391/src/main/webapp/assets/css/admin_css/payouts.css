@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Admin Payout Management Stylesheet (payouts.css)
+   Admin Payout Management — Updated to match new design tokens
    ========================================================================== */
 
-/* Quick Stats Grid */
+/* ── Quick Stats Grid ─────────────────────────── */
 .payout-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -11,104 +11,150 @@
 }
 
 .payout-stat-box {
-    background: #fff;
-    border: 1px solid #E7E7E7;
-    border-radius: 12px;
-    padding: 18px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--r-lg);
+    padding: 20px 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--card-shadow);
+    transition: transform .22s ease, box-shadow .22s ease;
+    text-decoration: none;
+    color: inherit;
 }
 
 .payout-stat-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow-hover);
 }
 
+/* Border accents */
+.payout-stat-box:nth-child(1) { border-top: 3px solid #f59e0b; }
+.payout-stat-box:nth-child(2) { border-top: 3px solid var(--color-green); }
+.payout-stat-box:nth-child(3) { border-top: 3px solid var(--admin-amber); }
+
 .payout-stat-box .stat-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #64748b;
-    letter-spacing: 0.5px;
+    letter-spacing: .6px;
+    color: var(--ink-mute);
 }
 
 .payout-stat-box .stat-val {
     font-size: 22px;
-    font-weight: 700;
-    margin-top: 4px;
-    color: #161439;
+    font-weight: 800;
+    margin-top: 5px;
+    color: var(--ink);
+    font-family: var(--font-display);
 }
 
+.stat-val--pending   { color: #b45309 !important; }
+.stat-val--completed { color: var(--color-green) !important; }
+.stat-val--total     { color: var(--admin-amber) !important; }
+.stat-val--active    { color: var(--color-green) !important; }
+
 .payout-stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 19px;
+    flex-shrink: 0;
 }
 
-.payout-stat-icon.pending {
-    background: #FEF3C7;
-    color: #B45309;
+.payout-stat-icon.pending { background: #fef9c3; color: #b45309; }
+.payout-stat-icon.success { background: #dcfce7; color: var(--color-green); }
+.payout-stat-icon.total   { background: var(--admin-amber-light); color: var(--admin-amber); }
+
+/* Active filter card highlight */
+.payout-stat-box.active-filter,
+.blog-stat-box.active-filter {
+    outline: 2px solid var(--admin-amber);
+    background: var(--admin-amber-light);
 }
 
-.payout-stat-icon.success {
-    background: #E7F6EC;
-    color: #1B8F4A;
+/* ── Typography Helpers ─────────────────────── */
+.payout-amount-text {
+    color: var(--color-green);
+    font-size: 14.5px;
+    font-weight: 700;
 }
 
-.payout-stat-icon.total {
-    background: #EEF2FF;
-    color: #5751E1;
+.payout-bank-text {
+    color: var(--color-blue);
+    font-weight: 600;
+    font-size: 13px;
 }
 
-/* VietQR Modal Wrapper */
+.payout-stk-text {
+    font-family: monospace;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.payout-muted-text {
+    color: var(--ink-mute);
+    font-size: 12px;
+}
+
+.payout-empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--ink-mute);
+}
+
+.payout-empty-icon {
+    font-size: 32px;
+    opacity: .3;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ── VietQR Modal ─────────────────────────── */
 .vietqr-wrapper {
     text-align: center;
-    background: #F8FAFC;
+    background: #f8fafc;
     padding: 16px;
-    border-radius: 10px;
-    border: 1px solid #E2E8F0;
+    border-radius: var(--r-sm);
+    border: 1px solid #e2e8f0;
     margin-bottom: 16px;
 }
 
 .vietqr-wrapper img {
     max-height: 220px;
     max-width: 100%;
-    border-radius: 8px;
+    border-radius: var(--r-sm);
+}
+
+.vietqr-help-text {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-top: 8px;
 }
 
 .payout-detail-row {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid #F1F5F9;
+    border-bottom: 1px solid #f1f5f9;
     font-size: 13.5px;
 }
 
-.payout-detail-row:last-child {
-    border-bottom: none;
-}
-
-.payout-detail-row .label {
-    color: #64748b;
-}
-
-.payout-detail-row .val {
-    font-weight: 600;
-    color: #0f172a;
-}
+.payout-detail-row:last-child { border-bottom: none; }
+.payout-detail-row .label { color: var(--ink-mute); }
+.payout-detail-row .val   { font-weight: 600; color: var(--ink); }
 
 .payout-amount-highlight {
-    background: #FEF2F2;
-    color: #DC2626;
+    background: #fff7e6;
+    color: var(--admin-amber-dark);
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: var(--r-sm);
+    border: 1px solid rgba(216,162,74,.25);
     font-weight: 700;
     font-size: 18px;
     display: flex;
@@ -117,21 +163,80 @@
     margin: 12px 0;
 }
 
+/* ── Buttons ─────────────────────────────── */
 .btn-qr-action {
-    background: #5751E1;
+    background: linear-gradient(135deg, var(--admin-amber) 0%, var(--admin-amber-dark) 100%);
     color: #fff;
     border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
+    padding: 7px 14px;
+    border-radius: var(--r-sm);
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: all 0.2s;
+    box-shadow: 0 3px 8px rgba(216,162,74,.28);
+    transition: opacity .18s, transform .18s;
 }
 
-.btn-qr-action:hover {
-    background: #463FC0;
+.btn-qr-action:hover { opacity: .9; transform: translateY(-1px); }
+
+/* Modal sizes */
+.payout-modal-content--process { width: 520px; max-width: 95vw; }
+.payout-modal-content--reject  { width: 440px; max-width: 95vw; }
+
+.payout-modal-header--process {
+    color: var(--admin-amber);
+    margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-display);
 }
+
+.payout-modal-header--reject {
+    color: var(--color-red);
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-display);
+}
+
+.payout-refund-notice {
+    background: #fef9c3;
+    border: 1px solid #fde68a;
+    color: #b45309;
+    padding: 10px 12px;
+    border-radius: var(--r-sm);
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-action-btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn-modal-confirm-success {
+    flex: 2;
+    background: var(--color-green) !important;
+    border-color: var(--color-green) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+.btn-modal-confirm-reject {
+    flex: 2;
+    background: var(--color-red) !important;
+    border-color: var(--color-red) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+.btn-modal-cancel { flex: 1; cursor: pointer; }

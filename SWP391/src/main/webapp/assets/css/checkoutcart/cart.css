@@ -15,6 +15,19 @@
     object-fit: cover;
     border-radius: 5px;
 }
+.cart-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+.cart-item-title a {
+    color: #1e293b;
+    transition: color 0.2s ease;
+}
+.cart-item-title a:hover {
+    color: #4361ee !important;
+}
 .cart-summary {
     background-color: #f8f9fa;
     padding: 20px;

@@ -2,30 +2,27 @@ package com.controller.shopcart;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import com.ocms.config.GlobalConfig;
 import com.DAO.CartDAO;
 import com.DAO.CartItemDAO;
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
-import com.DAO.WalletDAO;
+import com.entity.Account;
 import com.entity.Cart;
 import com.entity.CartItem;
 import com.entity.Course;
-import com.entity.Account;
-import com.entity.Registration;
-import jakarta.servlet.http.HttpSession;
-import java.util.List;
-import java.util.Calendar;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 
 @WebServlet("/cart")
 public class CartController extends HttpServlet {
@@ -35,10 +32,8 @@ public class CartController extends HttpServlet {
     private CartItemDAO cartItemDAO;
     private CourseDAO courseDAO;
     private CourseRegistrationDAO registrationDAO;
-    private WalletDAO walletDAO;
 
     private static final String CART_JSP = "/view/shopcart/cart.jsp";
-    private static final String CHECKOUT_JSP = "/view/shopcart/checkout.jsp";
 
     @Override
     public void init() throws ServletException {
@@ -46,9 +41,9 @@ public class CartController extends HttpServlet {
         cartItemDAO = new CartItemDAO();
         courseDAO = new CourseDAO();
         registrationDAO = new CourseRegistrationDAO();
-        walletDAO = new WalletDAO();
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
@@ -58,35 +53,29 @@ public class CartController extends HttpServlet {
             return;
         }
 
-        // Check if this is a return from VNPAY payment
-        String action = request.getParameter("action");
-        if (action != null && action.equals("complete-checkout")) {
-            // Handle VNPAY return - process the checkout
-            completeCheckout(request, response);
-            return;
-        }
-
-        // Normal cart display logic
-        // Get the user's cart
+        // Lấy hoặc tạo giỏ hàng cho tài khoản
         Cart cart = cartDAO.getOrCreateCart(account.getId());
 
-        // Get filter & sort parameters
+        // Tự động dọn dẹp các khóa học đã bị deactivate hoặc không còn active khỏi giỏ hàng
+        cartItemDAO.cleanupInactiveCartItems(cart.getId());
+
+        // Lấy tham số tìm kiếm & sắp xếp
         String search = request.getParameter("search");
         String sort = request.getParameter("sort");
         if (sort == null || sort.trim().isEmpty()) {
             sort = "newest";
         }
 
-        // Get filtered and sorted cart items with course details
+        // Lấy danh sách khóa học trong giỏ có lọc và sắp xếp
         List<CartItem> cartItems = cartItemDAO.getCartItemsWithFilters(cart.getId(), search, sort);
 
-        // Count total unfiltered items in cart
+        // Đếm tổng số khóa học thực tế trong giỏ
         int totalCartItems = cartItemDAO.countCartItems(cart.getId());
 
-        // Calculate cart total
+        // Tính tổng tiền giỏ hàng
         BigDecimal cartTotal = cartItemDAO.getCartTotal(cart.getId());
 
-        // Pagination: max 4 items per page
+        // Phân trang: tối đa 4 khóa học mỗi trang
         int pageSize = 4;
         int totalFilteredItems = (cartItems != null) ? cartItems.size() : 0;
         int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
@@ -119,7 +108,7 @@ public class CartController extends HttpServlet {
             pagedItems = new ArrayList<>();
         }
 
-        // Build a map of courses for the cart items to avoid EL method calls in the JSP
+        // Tạo Map thông tin Course để hiển thị trên JSP mà không cần gọi DAO trong view
         Map<Integer, Course> courseMap = new HashMap<>();
         for (CartItem ci : pagedItems) {
             Course c = courseDAO.findById(ci.getCourseId());
@@ -128,10 +117,21 @@ public class CartController extends HttpServlet {
             }
         }
 
-        // Set attributes for the JSP
+        // Xử lý flash message từ session trực tiếp trong controller
+        String sessionMsg = (String) session.getAttribute("message");
+        String sessionMsgType = (String) session.getAttribute("messageType");
+        if (sessionMsg != null) {
+            request.setAttribute("toastMessage", sessionMsg);
+            request.setAttribute("toastType", sessionMsgType != null ? sessionMsgType : "info");
+            session.removeAttribute("message");
+            session.removeAttribute("messageType");
+        }
+
+        // Gán dữ liệu cho JSP hiển thị
         request.setAttribute("cart", cart);
         request.setAttribute("cartItems", pagedItems);
         request.setAttribute("courseMap", courseMap);
+        request.setAttribute("courseDAO", courseDAO);
         request.setAttribute("cartTotal", cartTotal);
         request.setAttribute("itemCount", totalFilteredItems);
         request.setAttribute("totalCartItems", totalCartItems);
@@ -139,22 +139,18 @@ public class CartController extends HttpServlet {
         request.setAttribute("sort", sort);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("courseDAO", courseDAO);
 
         request.getRequestDispatcher(CART_JSP).forward(request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
 
         if (action != null) {
-
             switch (action) {
-
                 case "add":
                     addToCart(request, response);
                     break;
@@ -164,22 +160,15 @@ public class CartController extends HttpServlet {
                     break;
 
                 case "checkout":
-                    response.sendRedirect(
-                        request.getContextPath() + "/checkout"
-                    );
+                    response.sendRedirect(request.getContextPath() + "/checkout");
                     break;
 
                 default:
-                    response.sendRedirect(
-                        request.getContextPath() + "/cart"
-                    );
+                    response.sendRedirect(request.getContextPath() + "/cart");
                     break;
             }
-
         } else {
-            response.sendRedirect(
-                request.getContextPath() + "/cart"
-            );
+            response.sendRedirect(request.getContextPath() + "/cart");
         }
     }
 
@@ -189,7 +178,6 @@ public class CartController extends HttpServlet {
         Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
 
         if (account == null) {
-            // Redirect to login if not logged in
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -200,7 +188,7 @@ public class CartController extends HttpServlet {
             try {
                 int courseIdInt = Integer.parseInt(courseId.trim());
 
-                // Lấy thông tin Course trực tiếp từ DB (SELECT * FROM course WHERE id = ?)
+                // Lấy thông tin Course trực tiếp từ DB
                 Course course = courseDAO.findById(courseIdInt);
                 if (course == null) {
                     session.setAttribute("message", "Course not found.");
@@ -209,10 +197,9 @@ public class CartController extends HttpServlet {
                     return;
                 }
 
-                // Lấy giá chuẩn trực tiếp từ thông tin Course trong Database
                 BigDecimal price = BigDecimal.valueOf(course.getPrice());
 
-                // Check if the user has already registered for or enrolled in this course
+                // Kiểm tra xem người dùng đã sở hữu khóa học này chưa
                 boolean alreadyRegistered = registrationDAO.isAlreadyRegistered(account.getId(), courseIdInt);
                 
                 if (alreadyRegistered) {
@@ -222,7 +209,7 @@ public class CartController extends HttpServlet {
                     return;
                 }
 
-                // Get or create cart for the user
+                // Lấy hoặc tạo giỏ hàng cho tài khoản
                 Cart cart = cartDAO.getOrCreateCart(account.getId());
                 if (cart == null || cart.getId() == null) {
                     session.setAttribute("message", "Could not initialize cart.");
@@ -231,15 +218,13 @@ public class CartController extends HttpServlet {
                     return;
                 }
 
-                // Check if course is already in cart
+                // Kiểm tra xem khóa học đã nằm trong giỏ chưa
                 if (!cartItemDAO.isInCart(cart.getId(), courseIdInt)) {
-                    // Create new cart item
                     CartItem cartItem = new CartItem();
                     cartItem.setCartId(cart.getId());
                     cartItem.setCourseId(courseIdInt);
                     cartItem.setPrice(price);
 
-                    // Add to cart
                     int result = cartItemDAO.insert(cartItem);
 
                     if (result > 0) {
@@ -266,7 +251,6 @@ public class CartController extends HttpServlet {
             session.setAttribute("messageType", "error");
         }
 
-        // Redirect back to cart page
         response.sendRedirect(request.getContextPath() + "/cart");
     }
 
@@ -280,22 +264,18 @@ public class CartController extends HttpServlet {
             return;
         }
 
-        // Get the item ID from the request
         String itemId = request.getParameter("itemId");
 
         if (itemId != null && !itemId.isEmpty()) {
             try {
                 int itemIdInt = Integer.parseInt(itemId);
 
-                // Get user's cart
                 Cart cart = cartDAO.findByAccountId(account.getId());
 
                 if (cart != null) {
-                    // Get the cart item to verify it belongs to this user's cart
                     CartItem cartItem = cartItemDAO.getById(itemIdInt);
 
                     if (cartItem != null && cartItem.getCartId().equals(cart.getId())) {
-                        // Remove item from cart
                         boolean removed = cartItemDAO.delete(cartItem);
 
                         if (removed) {
@@ -322,7 +302,7 @@ public class CartController extends HttpServlet {
             session.setAttribute("messageType", "error");
         }
 
-        // Redirect back to cart page with preserved filter/sort params
+        // Giữ lại tham số phân trang, tìm kiếm và sắp xếp khi redirect về trang giỏ hàng
         String search = request.getParameter("search");
         String sort = request.getParameter("sort");
         String page = request.getParameter("page");
@@ -335,269 +315,12 @@ public class CartController extends HttpServlet {
             redirectUrl.append("sort=").append(sort.trim()).append("&");
         }
         if (search != null && !search.trim().isEmpty()) {
-            redirectUrl.append("search=").append(java.net.URLEncoder.encode(search.trim(), "UTF-8")).append("&");
+            redirectUrl.append("search=").append(URLEncoder.encode(search.trim(), "UTF-8")).append("&");
         }
         String finalUrl = redirectUrl.toString();
         if (finalUrl.endsWith("?") || finalUrl.endsWith("&")) {
             finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
         }
         response.sendRedirect(finalUrl);
-    }
-
-    private void processCheckout(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
-        
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        
-        // Get user's cart
-        Cart cart = cartDAO.findByAccountId(account.getId());
-        
-        if (cart == null || cartItemDAO.countCartItems(cart.getId()) == 0) {
-            session.setAttribute("message", "Your cart is empty. Please add courses before checkout.");
-            session.setAttribute("messageType", "warning");
-            response.sendRedirect(request.getContextPath() + "/cart");
-            return;
-        }
-        
-        // Get all items in the cart
-        List<CartItem> cartItems = cartItemDAO.getCartItemsWithCourseDetails(cart.getId());
-        
-        // Check for already registered courses
-        List<CartItem> duplicateItems = new ArrayList<>();
-        
-        // Check if any cart items are already registered
-        for (CartItem item : cartItems) {
-            if (registrationDAO.isAlreadyRegistered(account.getId(), item.getCourseId())) {
-                duplicateItems.add(item);
-            }
-        }
-        
-        // If there are duplicate items, notify the user and remove them from cart
-        if (!duplicateItems.isEmpty()) {
-            for (CartItem item : duplicateItems) {
-                cartItemDAO.delete(item);
-                cartItems.remove(item);
-            }
-            
-            if (cartItems.isEmpty()) {
-                session.setAttribute("message", "All courses in your cart are already registered. Your cart has been cleared.");
-                session.setAttribute("messageType", "warning");
-                response.sendRedirect(request.getContextPath() + "/cart");
-                return;
-            } else {
-                session.setAttribute("message", "Some courses were already registered and have been removed from your cart.");
-                session.setAttribute("messageType", "warning");
-            }
-        }
-        
-        // Recalculate cart total after possible removals
-        BigDecimal cartTotal = BigDecimal.ZERO;
-        for (CartItem item : cartItems) {
-            cartTotal = cartTotal.add(item.getPrice());
-        }
-        
-        // Store cart information in session for checkout page
-        session.setAttribute("checkoutCartItems", cartItems);
-        session.setAttribute("checkoutCartTotal", cartTotal);
-        session.setAttribute("checkoutItemCount", cartItems.size());
-        request.setAttribute("courseDAO", courseDAO);
-        
-        // Redirect to checkout page
-        request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
-    }
-
-    private void completeCheckout(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        Account account = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
-        
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        
-        // Get checkout information from session
-        @SuppressWarnings("unchecked")
-        List<CartItem> cartItems = (List<CartItem>) session.getAttribute("checkoutCartItems");
-        
-        if (cartItems == null || cartItems.isEmpty()) {
-            session.setAttribute("message", "Your checkout session has expired. Please try again.");
-            session.setAttribute("messageType", "error");
-            response.sendRedirect(request.getContextPath() + "/cart");
-            return;
-        }
-
-        // Get VNPAY payment response parameters
-        String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
-        String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
-        String vnp_TxnRef = request.getParameter("vnp_TxnRef");
-        String vnp_Amount = request.getParameter("vnp_Amount");
-        String vnp_PayDate = request.getParameter("vnp_PayDate");
-        String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
-        
-        // Check for courses that were registered between checkout and payment
-        List<CartItem> itemsToRemove = new ArrayList<>();
-        
-        for (CartItem item : cartItems) {
-            if (registrationDAO.isAlreadyRegistered(account.getId(), item.getCourseId())) {
-                itemsToRemove.add(item);
-            }
-        }
-        
-        // Remove any items that were already registered
-        if (!itemsToRemove.isEmpty()) {
-            cartItems.removeAll(itemsToRemove);
-            
-            if (cartItems.isEmpty()) {
-                session.setAttribute("message", "All courses have already been registered. No payment was processed.");
-                session.setAttribute("messageType", "warning");
-                response.sendRedirect(request.getContextPath() + "/my-courses");
-                return;
-            }
-        }
-        
-        // Verify the transaction was started by this session
-        String sessionTxnRef = (String) session.getAttribute("vnp_TxnRef");
-        String sessionAmount = (String) session.getAttribute("vnp_Amount");
-        
-        // Only proceed if we have a response from VNPAY or we're processing directly
-        if (vnp_ResponseCode != null && vnp_TransactionStatus != null) {
-            
-            if ("00".equals(vnp_ResponseCode) && "00".equals(vnp_TransactionStatus)) {
-                // Verify transaction matches what we sent
-                if (sessionTxnRef != null && sessionAmount != null) {
-                    if (!sessionTxnRef.equals(vnp_TxnRef) || !sessionAmount.equals(vnp_Amount)) {
-                        session.setAttribute("message", "Payment verification failed. Transaction details do not match.");
-                        session.setAttribute("messageType", "error");
-                        response.sendRedirect(request.getContextPath() + "/cart");
-                        return;
-                    }
-                }
-                
-                // Payment successful - process the order
-                processSuccessfulOrder(account, cartItems, session, response, request);
-            } else {
-                // Payment failed
-                session.setAttribute("message", "Payment was not successful. Response code: " + vnp_ResponseCode);
-                session.setAttribute("messageType", "error");
-                response.sendRedirect(request.getContextPath() + "/cart");
-            }
-        } else {
-            // Direct checkout without VNPAY (for testing or alternative payment methods)
-            processSuccessfulOrder(account, cartItems, session, response, request);
-        }
-    }
-    
-    /**
-     * Helper method to process a successful order
-     */
-    private void processSuccessfulOrder(Account account, List<CartItem> cartItems, 
-                                       HttpSession session, HttpServletResponse response, 
-                                       HttpServletRequest request) throws ServletException, IOException {
-        // Current timestamp for registration
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        
-        // Calculate valid from and valid to dates (1 year validity)
-        Calendar calendar = Calendar.getInstance();
-        Timestamp validFrom = new Timestamp(calendar.getTimeInMillis());
-        
-        calendar.add(Calendar.YEAR, 1);
-        Timestamp validTo = new Timestamp(calendar.getTimeInMillis());
-        
-        boolean allSuccess = true;
-        
-        try {
-            // Process each cart item as a registration
-            for (CartItem item : cartItems) {
-                Registration registration = new Registration();
-                registration.setEmail(account.getEmail());
-                registration.setAccountId(account.getId());
-                registration.setRegistrationTime(currentTime);
-                registration.setCourseId(item.getCourseId());
-                registration.setPackages("Standard"); // Default package
-                registration.setTotalCost(item.getPrice());
-                registration.setStatus("Approved"); // Set as Approved since payment is confirmed and activated
-                registration.setValidFrom(validFrom);
-                registration.setValidTo(validTo);
-                registration.setLastUpdateByPerson(account.getId());
-                
-                // Insert registration
-                int registrationId = registrationDAO.insert(registration);
-                
-                if (registrationId <= 0) {
-                    allSuccess = false;
-                    break;
-                } else {
-                    // Tự động cộng 70% doanh thu khóa học vào ví giảng viên
-                    try {
-                        walletDAO.creditTeacherForCourseSale(registrationId, item.getCourseId(), item.getPrice());
-                    } catch (Exception ex) {
-                        System.err.println("Lỗi cộng hoa hồng cho giảng viên: " + ex.getMessage());
-                    }
-                }
-            }
-        } catch (Exception e) {
-            session.setAttribute("message", "An error occurred while processing your order: " + e.getMessage());
-            session.setAttribute("messageType", "error");
-            request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
-            return;
-        }
-        
-        if (allSuccess) {
-            // Get user's cart
-            Cart cart = cartDAO.findByAccountId(account.getId());
-            
-            // Clear the cart after successful checkout
-            if (cart != null) {
-                try {
-                    // Use the efficient clearCart method to remove all items at once
-                    boolean cartCleared = cartItemDAO.clearCart(cart.getId());
-                    
-                    if (!cartCleared) {
-                        System.out.println("Warning: Failed to clear cart items");
-                    } else {
-                        System.out.println("Cart items successfully cleared");
-                    }
-
-                    //remove cart in DB
-                    boolean cartRemoved = cartDAO.delete(cart);
-                    if (!cartRemoved) {
-                        System.out.println("Warning: Failed to remove cart");
-                    } else {
-                        System.out.println("Cart successfully removed");
-                    }
-                    
-                } catch (Exception e) {
-                    System.out.println("Error updating cart after checkout: " + e.getMessage());
-                    // Continue with checkout process even if cart update fails
-                    // The items have already been processed into registrations
-                    //set message
-                    session.setAttribute("message", "There was an error processing your order. Please contact support.");
-                    session.setAttribute("messageType", "error");
-                    request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
-                    return;
-                }
-            }
-            
-            // Clear checkout session attributes
-            session.removeAttribute("checkoutCartItems");
-            session.removeAttribute("checkoutCartTotal");
-            session.removeAttribute("checkoutItemCount");
-            session.removeAttribute("vnp_TxnRef");
-            session.removeAttribute("vnp_Amount");
-            
-            session.setAttribute("message", "Payment successful! You can now access your courses.");
-            session.setAttribute("messageType", "success");
-            response.sendRedirect(request.getContextPath() + "/my-courses"); // Redirect to my courses page
-        } else {
-            session.setAttribute("message", "There was an error processing your order. Please contact support.");
-            session.setAttribute("messageType", "error");
-            request.getRequestDispatcher(CHECKOUT_JSP).forward(request, response);
-        }
     }
 }

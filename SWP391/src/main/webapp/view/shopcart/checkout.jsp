@@ -1,41 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="com.entity.Account, com.entity.Cart, com.entity.CartItem, com.DAO.CartDAO, com.DAO.CartItemDAO, com.DAO.CourseDAO, com.ocms.config.GlobalConfig, java.util.List, java.math.BigDecimal"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%
-    // Đảm bảo dữ liệu giỏ hàng luôn được nạp đầy đủ kể cả khi truy cập trực tiếp qua checkout.jsp
-    Account acc = (Account) session.getAttribute(GlobalConfig.SESSION_ACCOUNT);
-    if (acc == null) {
-        acc = (Account) session.getAttribute("account");
-    }
-    if (acc == null) {
-        response.sendRedirect(request.getContextPath() + "/view/authen/login.jsp");
-        return;
-    }
-    
-    if (request.getAttribute("cartItems") == null && acc != null) {
-        CartDAO cartDAO = new CartDAO();
-        CartItemDAO cartItemDAO = new CartItemDAO();
-        CourseDAO courseDAO = new CourseDAO();
-        
-        Cart userCart = cartDAO.findByAccountId(acc.getId());
-        if (userCart == null) {
-            userCart = cartDAO.getOrCreateCart(acc.getId());
-        }
-        
-        if (userCart != null && userCart.getId() != null) {
-            List<CartItem> items = cartItemDAO.getCartItemsWithCourseDetails(userCart.getId());
-            BigDecimal total = cartItemDAO.getCartTotal(userCart.getId());
-            
-            request.setAttribute("cart", userCart);
-            request.setAttribute("cartItems", items);
-            request.setAttribute("cartTotal", total != null ? total : BigDecimal.ZERO);
-            request.setAttribute("itemCount", items != null ? items.size() : 0);
-            request.setAttribute("courseDAO", courseDAO);
-        }
-    }
-%>
-
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -89,7 +54,7 @@
                     <input type="hidden" name="action" value="pay">
                     
                     <!-- Selected Payment Method Value -->
-                    <input type="hidden" name="paymentMethod" id="selectedPaymentMethodInput" value="Card">
+                    <input type="hidden" name="paymentMethod" id="selectedPaymentMethodInput" value="${not empty paramPaymentMethod ? paramPaymentMethod : 'Card'}">
 
                     <!-- 1. BILLING ADDRESS -->
                     <div class="section-box">
@@ -146,7 +111,7 @@
 
                         <!-- OPTION 1: CREDIT / DEBIT CARD -->
                         <div class="payment-option-card active" id="cardOptionBox">
-                            <div class="payment-option-header" onclick="selectPaymentMethod('Card')">
+                            <div class="payment-option-header" id="cardHeaderClick">
                                 <div class="payment-radio-wrap">
                                     <input type="radio" name="paymentTypeRadio" id="radioCard" value="Card" checked>
                                     <label for="radioCard" class="mb-0" style="cursor:pointer;">
@@ -164,14 +129,14 @@
                             <div class="payment-option-body" id="cardBody">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <label class="form-label mb-0">Số thẻ (Card Number) <span class="text-danger">*</span></label>
-                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 12px;" onclick="fillTestCard()">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fill-test-btn" id="btnFillTestCard">
                                         <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Điền thẻ test
                                     </button>
                                 </div>
                                 <div class="mb-3">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
-                                               placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" 
+                                               placeholder="4242 4242 4242 4242" maxlength="24" inputmode="numeric" 
                                                value="${not empty paramCardNumber ? paramCardNumber : '4242 4242 4242 4242'}">
                                         <span class="input-group-text bg-white"><i class="fa-regular fa-credit-card"></i></span>
                                     </div>
@@ -189,37 +154,25 @@
                                     <div class="col-6">
                                         <label class="form-label">Mã CVC / CVV <span class="text-danger">*</span></label>
                                         <input type="password" class="form-control" id="cvc" name="cvc" 
-                                               placeholder="123" maxlength="4" inputmode="numeric" 
+                                               placeholder="123" maxlength="3" inputmode="numeric" 
                                                value="${not empty paramCvc ? paramCvc : '123'}">
                                         <div class="field-error" id="cvcError"></div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
+                                <div class="mb-0">
                                     <label class="form-label">Tên in trên thẻ (Name on Card) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
                                            placeholder="NGUYEN VAN A" 
                                            value="${not empty paramCardName ? paramCardName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A')}">
                                     <div class="field-error" id="cardNameError"></div>
                                 </div>
-
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="saveCard" name="saveCard" checked>
-                                    <label class="form-check-label text-muted" for="saveCard" style="font-size:13px;">
-                                        Lưu thông tin thẻ an toàn cho lần thanh toán sau
-                                    </label>
-                                </div>
-
-                                <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit" style="background: #6f2bd9; font-size: 16px; margin-top: 10px;">
-                                    <i class="fa-solid fa-lock me-2"></i>
-                                    <span>Thanh toán ngay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
-                                </button>
                             </div>
                         </div>
 
                         <!-- OPTION 2: QR CODE / VIETQR -->
                         <div class="payment-option-card" id="qrOptionBox">
-                            <div class="payment-option-header" onclick="selectPaymentMethod('QR_CODE')">
+                            <div class="payment-option-header" id="qrHeaderClick">
                                 <div class="payment-radio-wrap">
                                     <input type="radio" name="paymentTypeRadio" id="radioQR" value="QR_CODE">
                                     <label for="radioQR" class="mb-0" style="cursor:pointer;">
@@ -257,7 +210,7 @@
                                             <span class="bank-info-label">Số tài khoản:</span>
                                             <span class="bank-info-value">
                                                 <span id="bankAccNo">0357899999</span>
-                                                <button type="button" class="btn-copy" onclick="copyText('0357899999', 'Đã sao chép số tài khoản!')">
+                                                <button type="button" class="btn-copy" id="btnCopyAccNo">
                                                     <i class="fa-regular fa-copy"></i> Sao chép
                                                 </button>
                                             </span>
@@ -272,24 +225,12 @@
                                             <span class="bank-info-label">Nội dung CK:</span>
                                             <span class="bank-info-value">
                                                 <span id="transferContent" class="text-uppercase">OCMS DH${sessionScope.account != null ? sessionScope.account.id : '0'}</span>
-                                                <button type="button" class="btn-copy" onclick="copyText(document.getElementById('transferContent').innerText, 'Đã sao chép nội dung!')">
+                                                <button type="button" class="btn-copy" id="btnCopyTransferContent">
                                                     <i class="fa-regular fa-copy"></i> Sao chép
                                                 </button>
                                             </span>
                                         </div>
                                     </div>
-
-                                    <!-- Notice -->
-                                    <div class="qr-instruction-alert mb-3">
-                                        <i class="fa-solid fa-circle-info me-1"></i>
-                                        Quét mã QR bằng App ngân hàng bất kỳ để thanh toán. Bấm nút bên dưới để <strong>Xác nhận mua ngay</strong>.
-                                    </div>
-
-                                    <!-- Direct Confirm Button inside QR Box -->
-                                    <button type="submit" onclick="selectPaymentMethod('QR_CODE')" class="btn-pay-submit" style="background: #16a34a; font-size: 16px; margin-top: 12px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);">
-                                        <i class="fa-solid fa-circle-check me-2"></i>
-                                        <span>Xác nhận đã chuyển khoản (Kích hoạt khóa học ngay)</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -312,7 +253,7 @@
                         <div class="mb-3" style="max-height: 220px; overflow-y: auto; padding-right: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
                             <c:forEach var="item" items="${cartItems}">
                                 <div class="course-item-summary">
-                                    <c:set var="cObj" value="${courseDAO != null ? courseDAO.findById(item.courseId) : null}" />
+                                    <c:set var="cObj" value="${courseMap[item.courseId]}" />
                                     <img src="${not empty cObj.thumbnail ? cObj.thumbnail : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120'}" 
                                          class="course-thumb-mini" alt="${not empty cObj.name ? cObj.name : 'Course'}">
                                     <div class="course-info-mini">
@@ -336,6 +277,9 @@
                         By completing your purchase, you agree to these <a href="#" style="color: #6f2bd9; text-decoration: none;">Terms of Use</a>.
                     </p>
 
+                    <!-- Hidden input for total text used in JS -->
+                    <input type="hidden" id="orderTotalHiddenDisplay" value="<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫">
+
                     <!-- Pay Submit Button (Main) -->
                     <button type="submit" form="checkoutForm" class="btn-pay-submit" id="btnSubmitPayment" style="background: #6f2bd9; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: 700; box-shadow: none;">
                         <i class="fa-solid fa-lock me-2"></i>
@@ -351,223 +295,11 @@
     <!-- FOOTER -->
     <jsp:include page="/view/common/footer.jsp"></jsp:include>
 
-    <!-- Scripts -->
+    <!-- JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <script>
-        // Switch between Card and QR Code methods
-        function selectPaymentMethod(method) {
-            const cardBox = document.getElementById('cardOptionBox');
-            const qrBox = document.getElementById('qrOptionBox');
-            const radioCard = document.getElementById('radioCard');
-            const radioQR = document.getElementById('radioQR');
-            const paymentInput = document.getElementById('selectedPaymentMethodInput');
-            const btnSubmit = document.getElementById('btnSubmitPayment');
-
-            paymentInput.value = method;
-
-            if (method === 'Card') {
-                cardBox.classList.add('active');
-                qrBox.classList.remove('active');
-                radioCard.checked = true;
-                btnSubmit.style.background = '#6f2bd9';
-                btnSubmit.innerHTML = '<i class="fa-solid fa-lock me-2"></i> <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>';
-            } else if (method === 'QR_CODE') {
-                qrBox.classList.add('active');
-                cardBox.classList.remove('active');
-                radioQR.checked = true;
-                btnSubmit.style.background = '#16a34a';
-                btnSubmit.innerHTML = '<i class="fa-solid fa-qrcode me-2"></i> <span>Xác nhận đã chuyển khoản</span>';
-            }
-        }
-
-        // Fill Test Card helper
-        function fillTestCard() {
-            const fullName = document.getElementById('fullName').value.trim() || 'NGUYEN VAN A';
-            document.getElementById('cardNumber').value = '4242 4242 4242 4242';
-            document.getElementById('expiry').value = '12/28';
-            document.getElementById('cvc').value = '123';
-            document.getElementById('cardName').value = fullName.toUpperCase();
-            Toastify({
-                text: "Đã điền thông tin thẻ test!",
-                duration: 2000,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#6f2bd9"
-            }).showToast();
-        }
-
-        // Copy text to clipboard helper
-        function copyText(text, successMsg) {
-            navigator.clipboard.writeText(text).then(function() {
-                Toastify({
-                    text: successMsg || "Đã sao chép thành công!",
-                    duration: 3000,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#16a34a"
-                }).showToast();
-            }).catch(function(err) {
-                console.error('Không thể sao chép: ', err);
-            });
-        }
-
-        // Format Card Number (adds space every 4 digits)
-        document.getElementById('cardNumber')?.addEventListener('input', function() {
-            let val = this.value.replace(/\D/g, '').substring(0, 16);
-            let formatted = '';
-            for (let i = 0; i < val.length; i++) {
-                if (i > 0 && i % 4 === 0) formatted += ' ';
-                formatted += val[i];
-            }
-            this.value = formatted;
-        });
-
-        // Format Expiry Date (MM/YY)
-        document.getElementById('expiry')?.addEventListener('input', function() {
-            let val = this.value.replace(/\D/g, '').substring(0, 4);
-            if (val.length >= 3) {
-                this.value = val.substring(0, 2) + '/' + val.substring(2);
-            } else {
-                this.value = val;
-            }
-        });
-
-        // CVC digits only
-        document.getElementById('cvc')?.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').substring(0, 4);
-        });
-
-        // Form Validation on Submit
-        document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
-            const method = document.getElementById('selectedPaymentMethodInput').value || 'Card';
-            let isValid = true;
-
-            // Clear previous errors
-            document.querySelectorAll('.field-error').forEach(el => {
-                el.style.display = 'none';
-                el.textContent = '';
-            });
-            document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('input-error'));
-
-            function showError(inputId, errorId, message) {
-                const inputEl = document.getElementById(inputId);
-                const errorEl = document.getElementById(errorId);
-                if (inputEl) inputEl.classList.add('input-error');
-                if (errorEl) {
-                    errorEl.textContent = message;
-                    errorEl.style.display = 'block';
-                }
-                isValid = false;
-            }
-
-            // 1. Quốc gia / Khu vực
-            const countryEl = document.getElementById('country');
-            if (!countryEl || !countryEl.value.trim()) {
-                showError('country', 'countryError', 'Thiếu trường chưa điền: Vui lòng chọn Quốc gia / Khu vực.');
-            }
-
-            // 2. Họ và tên
-            const fullNameEl = document.getElementById('fullName');
-            const fullNameVal = fullNameEl ? fullNameEl.value.trim() : '';
-            if (!fullNameVal) {
-                showError('fullName', 'fullNameError', 'Thiếu trường chưa điền: Vui lòng nhập Họ và tên.');
-            } else if (/\d/.test(fullNameVal)) {
-                showError('fullName', 'fullNameError', 'Họ và tên chỉ được chứa chữ cái, không được chứa số.');
-            } else if (!/^[\p{L}\s'-]+$/u.test(fullNameVal)) {
-                showError('fullName', 'fullNameError', 'Họ và tên không hợp lệ (chỉ được chứa chữ cái và khoảng trắng).');
-            }
-
-            // 3. Email
-            const emailEl = document.getElementById('email');
-            const emailVal = emailEl ? emailEl.value.trim() : '';
-            const emailRegex = /^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$/;
-            if (!emailVal) {
-                showError('email', 'emailError', 'Thiếu trường chưa điền: Vui lòng nhập Email liên hệ.');
-            } else if (!emailRegex.test(emailVal)) {
-                showError('email', 'emailError', 'Email liên hệ không đúng định dạng.');
-            }
-
-            // 4. Địa chỉ
-            const addressEl = document.getElementById('address');
-            const addressVal = addressEl ? addressEl.value.trim() : '';
-            if (!addressVal) {
-                showError('address', 'addressError', 'Thiếu trường chưa điền: Vui lòng nhập Địa chỉ.');
-            }
-
-            // 5. Nếu phương thức thanh toán là Thẻ tín dụng/Ghi nợ (Card)
-            if (method === 'Card') {
-                // Số thẻ: 16 chữ số
-                const cardNumEl = document.getElementById('cardNumber');
-                const cardNumRaw = cardNumEl ? cardNumEl.value.trim() : '';
-                const cardNumClean = cardNumRaw.replace(/\s+/g, '');
-                if (!cardNumRaw) {
-                    showError('cardNumber', 'cardNumberError', 'Thiếu trường chưa điền: Vui lòng nhập Số thẻ.');
-                } else if (!/^\d+$/.test(cardNumClean)) {
-                    showError('cardNumber', 'cardNumberError', 'Số thẻ chỉ được chứa chữ số.');
-                } else if (cardNumClean.length !== 16) {
-                    showError('cardNumber', 'cardNumberError', 'Số thẻ phải gồm đúng 16 chữ số.');
-                }
-
-                // Ngày hết hạn: MM/YY
-                const expiryEl = document.getElementById('expiry');
-                const expiryVal = expiryEl ? expiryEl.value.trim() : '';
-                const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-                if (!expiryVal) {
-                    showError('expiry', 'expiryError', 'Thiếu trường chưa điền: Vui lòng nhập Ngày hết hạn thẻ.');
-                } else if (!expiryRegex.test(expiryVal)) {
-                    showError('expiry', 'expiryError', 'Định dạng ngày hết hạn không hợp lệ (MM/YY, ví dụ: 12/28).');
-                }
-
-                // CVC/CVV: 3-4 chữ số
-                const cvcEl = document.getElementById('cvc');
-                const cvcVal = cvcEl ? cvcEl.value.trim() : '';
-                if (!cvcVal) {
-                    showError('cvc', 'cvcError', 'Thiếu trường chưa điền: Vui lòng nhập Mã CVC / CVV.');
-                } else if (!/^\d{3,4}$/.test(cvcVal)) {
-                    showError('cvc', 'cvcError', 'Mã CVC / CVV phải gồm 3 hoặc 4 chữ số.');
-                }
-
-                // Tên in trên thẻ: là chữ, không được chứa số
-                const cardNameEl = document.getElementById('cardName');
-                const cardNameVal = cardNameEl ? cardNameEl.value.trim() : '';
-                if (!cardNameVal) {
-                    showError('cardName', 'cardNameError', 'Thiếu trường chưa điền: Vui lòng nhập Tên in trên thẻ.');
-                } else if (/\d/.test(cardNameVal)) {
-                    showError('cardName', 'cardNameError', 'Tên in trên thẻ chỉ được chứa chữ cái, không được chứa số.');
-                } else if (!/^[\p{L}\s'-]+$/u.test(cardNameVal)) {
-                    showError('cardName', 'cardNameError', 'Tên in trên thẻ chỉ được chứa chữ cái và khoảng trắng.');
-                }
-            }
-
-            // Nếu có lỗi, chặn submit và hiển thị thông báo
-            if (!isValid) {
-                e.preventDefault();
-                const firstErrorEl = document.querySelector('.input-error');
-                if (firstErrorEl) {
-                    firstErrorEl.focus();
-                    firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                Toastify({
-                    text: "Vui lòng điền đầy đủ và chính xác thông tin thanh toán!",
-                    duration: 3500,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "#dc2626"
-                }).showToast();
-                return false;
-            }
-
-            // Nếu dữ liệu hợp lệ, cho phép gửi form và hiển thị thông báo
-            Toastify({
-                text: "Đang xử lý thanh toán và kích hoạt khóa học...",
-                duration: 2500,
-                gravity: "top",
-                position: "right",
-                backgroundColor: "#6f2bd9"
-            }).showToast();
-        });
-    </script>
+    <!-- Checkout Module JS riêng biệt -->
+    <script src="${pageContext.request.contextPath}/assets/js/shopcart/checkout.js"></script>
 </body>
 </html>

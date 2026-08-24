@@ -21,7 +21,7 @@
         
         <div class="preview-content">
             <div class="warning-text">
-                Are you sure you want to delete this course? This action is permanent and cannot be undone. All associated lessons, materials, and student progress might be affected.
+                Bạn có chắc chắn muốn xóa (vô hiệu hóa) khóa học này? Khóa học sẽ được chuyển sang trạng thái <strong>Inactive</strong> và không còn xuất hiện trên Dashboard của bạn. Các học viên đã đăng ký khóa học này trước đó vẫn có thể tiếp tục học tập bình thường.
             </div>
             
             <div class="course-info">
@@ -41,8 +41,8 @@
             </div>
             
             <div class="action-buttons">
-                <a href="${pageContext.request.contextPath}/course-dashboard" class="btn btn-cancel">Cancel</a>
-                <form action="${pageContext.request.contextPath}/course-delete" method="post" class="inline-form">
+                <a href="${pageContext.request.contextPath}/course-manager?action=dashboard" class="btn btn-cancel">Cancel</a>
+                <form action="${pageContext.request.contextPath}/course-manager?action=delete" method="post" class="inline-form">
                     <input type="hidden" name="id" value="${course.id}">
                     <button type="submit" class="btn btn-confirm"><i class="fas fa-trash"></i> Confirm Delete</button>
                 </form>

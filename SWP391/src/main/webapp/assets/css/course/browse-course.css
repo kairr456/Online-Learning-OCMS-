@@ -77,7 +77,8 @@ body {
     cursor: pointer;
     width: 18px;
     height: 18px;
-    accent-color: var(--primary-dark);
+    accent-color: #5d3fd3;
+    border-radius: 4px;
 }
 .star-rating i {
     color: var(--accent-yellow); 

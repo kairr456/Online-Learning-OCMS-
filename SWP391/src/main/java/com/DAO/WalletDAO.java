@@ -4,6 +4,7 @@ import com.entity.PayoutRequest;
 import com.entity.TeacherBankAccount;
 import com.entity.TeacherWallet;
 import com.entity.WalletTransaction;
+import com.utils.AESUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -16,6 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Data Access Object cho Quản lý Ví và Yêu cầu Rút tiền (Wallet & Payout).
+ */
 public class WalletDAO extends DBContext {
 
     private String lastError = null;
@@ -24,18 +28,24 @@ public class WalletDAO extends DBContext {
         return lastError;
     }
 
-    public WalletDAO() {
+    static {
+        // Tự động kiểm tra và khởi tạo bảng 1 lần duy nhất khi nạp Class
         ensureTablesExist();
     }
 
+    public WalletDAO() {
+        // Không chạy lại DDL mỗi lần khởi tạo đối tượng
+    }
+
     /**
-     * Đảm bảo các bảng cần thiết (đặc biệt là payout_request) luôn tồn tại và có đủ cột trong Database
+     * Đảm bảo các bảng cần thiết (teacher_wallet, teacher_bank_account, wallet_transaction, payout_request) luôn tồn tại trong Database
      */
-    public void ensureTablesExist() {
-        Connection conn = null;
+    private static void ensureTablesExist() {
+        DBContext db = null;
         Statement stmt = null;
         try {
-            conn = new DBContext().getConnection();
+            db = new DBContext();
+            Connection conn = db.getConnection();
             if (conn == null) return;
             stmt = conn.createStatement();
 
@@ -58,7 +68,7 @@ public class WalletDAO extends DBContext {
                     + "  `teacher_id` INT NOT NULL,"
                     + "  `bank_code` VARCHAR(50) NOT NULL,"
                     + "  `bank_name` VARCHAR(255) NOT NULL,"
-                    + "  `account_number` VARCHAR(50) NOT NULL,"
+                    + "  `account_number` VARCHAR(255) NOT NULL,"
                     + "  `account_holder` VARCHAR(255) NOT NULL,"
                     + "  `tax_code` VARCHAR(50) DEFAULT NULL,"
                     + "  `is_default` TINYINT(1) DEFAULT 1,"
@@ -89,7 +99,7 @@ public class WalletDAO extends DBContext {
                     + "  `bank_account_id` INT DEFAULT NULL,"
                     + "  `bank_code` VARCHAR(50) DEFAULT NULL,"
                     + "  `bank_name` VARCHAR(255) DEFAULT NULL,"
-                    + "  `account_number` VARCHAR(50) DEFAULT NULL,"
+                    + "  `account_number` VARCHAR(255) DEFAULT NULL,"
                     + "  `account_holder` VARCHAR(255) DEFAULT NULL,"
                     + "  `amount` DECIMAL(15,2) NOT NULL,"
                     + "  `status` VARCHAR(50) DEFAULT 'pending',"
@@ -101,37 +111,90 @@ public class WalletDAO extends DBContext {
                     + "  KEY `idx_payout_teacher` (`teacher_id`)"
                     + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-            // Tự động bổ sung các cột còn thiếu nếu bảng đã tồn tại từ trước
-            String[] alterCols = {
-                "ALTER TABLE `payout_request` ADD COLUMN `bank_account_id` INT DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `bank_code` VARCHAR(50) DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `bank_name` VARCHAR(255) DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `account_number` VARCHAR(50) DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `account_holder` VARCHAR(255) DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00",
-                "ALTER TABLE `payout_request` ADD COLUMN `status` VARCHAR(50) DEFAULT 'pending'",
-                "ALTER TABLE `payout_request` ADD COLUMN `transaction_code` VARCHAR(100) DEFAULT NULL",
-                "ALTER TABLE `payout_request` ADD COLUMN `admin_note` TEXT",
-                "ALTER TABLE `payout_request` ADD COLUMN `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-                "ALTER TABLE `payout_request` ADD COLUMN `processed_at` TIMESTAMP NULL DEFAULT NULL"
-            };
-            for (String alterSql : alterCols) {
-                try {
-                    stmt.execute(alterSql);
-                } catch (Exception ignored) {}
+            // Tự động mở rộng cột account_number lên VARCHAR(255) nếu DB đang dùng cấu trúc cũ
+            try {
+                stmt.execute("ALTER TABLE `teacher_bank_account` MODIFY COLUMN `account_number` VARCHAR(255) NOT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("ALTER TABLE `payout_request` MODIFY COLUMN `account_number` VARCHAR(255) DEFAULT NULL");
+            } catch (Exception ignored) {}
+
+            // Tự động mã hóa dữ liệu STK cũ chưa mã hóa trong Database
+            migrateLegacyUnencryptedAccounts(conn);
+
+        } catch (Exception ignored) {
+        } finally {
+            if (stmt != null) {
+                try { stmt.close(); } catch (Exception ignored) {}
+            }
+            if (db != null) {
+                db.closeResources();
+            }
+        }
+    }
+
+    /**
+     * Tự động quét và mã hóa các số tài khoản cũ đang ở dạng plain text trong DB
+     */
+    private static void migrateLegacyUnencryptedAccounts(Connection conn) {
+        if (conn == null) return;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.createStatement();
+
+            // 1. Quét bảng teacher_bank_account
+            rs = st.executeQuery("SELECT id, account_number FROM teacher_bank_account WHERE account_number IS NOT NULL");
+            List<int[]> idsToUpdate = new ArrayList<>();
+            List<String> encToUpdate = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String rawAcc = rs.getString("account_number");
+                if (rawAcc != null && !rawAcc.trim().isEmpty() && !AESUtil.isEncrypted(rawAcc)) {
+                    idsToUpdate.add(new int[]{id});
+                    encToUpdate.add(AESUtil.encrypt(rawAcc));
+                }
+            }
+            rs.close();
+
+            for (int i = 0; i < idsToUpdate.size(); i++) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE teacher_bank_account SET account_number = ? WHERE id = ?")) {
+                    ps.setString(1, encToUpdate.get(i));
+                    ps.setInt(2, idsToUpdate.get(i)[0]);
+                    ps.executeUpdate();
+                }
             }
 
-            // Đảm bảo kiểu dữ liệu type của transaction chấp nhận 'payout'
-            try { stmt.execute("ALTER TABLE wallet_transaction MODIFY COLUMN `type` VARCHAR(50)"); } catch (Exception ignored) {}
-            try { stmt.execute("ALTER TABLE payout_request MODIFY COLUMN `status` VARCHAR(50) DEFAULT 'pending'"); } catch (Exception ignored) {}
+            // 2. Quét bảng payout_request
+            rs = st.executeQuery("SELECT id, account_number FROM payout_request WHERE account_number IS NOT NULL");
+            List<int[]> poIdsToUpdate = new ArrayList<>();
+            List<String> poEncToUpdate = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String rawAcc = rs.getString("account_number");
+                if (rawAcc != null && !rawAcc.trim().isEmpty() && !AESUtil.isEncrypted(rawAcc)) {
+                    poIdsToUpdate.add(new int[]{id});
+                    poEncToUpdate.add(AESUtil.encrypt(rawAcc));
+                }
+            }
+            rs.close();
 
-        } catch (SQLException e) {
-            System.err.println("[WALLET_DB_INIT] Lỗi khởi tạo bảng: " + e.getMessage());
+            for (int i = 0; i < poIdsToUpdate.size(); i++) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE payout_request SET account_number = ? WHERE id = ?")) {
+                    ps.setString(1, poEncToUpdate.get(i));
+                    ps.setInt(2, poIdsToUpdate.get(i)[0]);
+                    ps.executeUpdate();
+                }
+            }
+
+        } catch (Exception ignored) {
         } finally {
-            try {
-                if (stmt != null) stmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException ignored) {}
+            if (rs != null) {
+                try { rs.close(); } catch (Exception ignored) {}
+            }
+            if (st != null) {
+                try { st.close(); } catch (Exception ignored) {}
+            }
         }
     }
 
@@ -201,7 +264,7 @@ public class WalletDAO extends DBContext {
                 b.setTeacherId(resultSet.getInt("teacher_id"));
                 b.setBankCode(resultSet.getString("bank_code"));
                 b.setBankName(resultSet.getString("bank_name"));
-                b.setAccountNumber(resultSet.getString("account_number"));
+                b.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number")));
                 b.setAccountHolder(resultSet.getString("account_holder"));
                 b.setTaxCode(resultSet.getString("tax_code"));
                 b.setDefault(resultSet.getBoolean("is_default"));
@@ -226,12 +289,14 @@ public class WalletDAO extends DBContext {
             connection = new DBContext().getConnection();
             if (connection == null) return false;
 
+            String encryptedAccountNumber = AESUtil.encrypt(bank.getAccountNumber());
+
             if (existing != null) {
                 String sql = "UPDATE teacher_bank_account SET bank_code = ?, bank_name = ?, account_number = ?, account_holder = ?, tax_code = ?, updated_at = NOW() WHERE id = ?";
                 statement = connection.prepareStatement(sql);
                 statement.setString(1, bank.getBankCode());
                 statement.setString(2, bank.getBankName());
-                statement.setString(3, bank.getAccountNumber());
+                statement.setString(3, encryptedAccountNumber);
                 statement.setString(4, bank.getAccountHolder());
                 statement.setString(5, bank.getTaxCode());
                 statement.setInt(6, existing.getId());
@@ -242,7 +307,7 @@ public class WalletDAO extends DBContext {
                 statement.setInt(1, bank.getTeacherId());
                 statement.setString(2, bank.getBankCode());
                 statement.setString(3, bank.getBankName());
-                statement.setString(4, bank.getAccountNumber());
+                statement.setString(4, encryptedAccountNumber);
                 statement.setString(5, bank.getAccountHolder());
                 statement.setString(6, bank.getTaxCode());
                 return statement.executeUpdate() > 0;
@@ -279,12 +344,8 @@ public class WalletDAO extends DBContext {
     }
 
     /**
-     * Lấy danh sách lịch sử biến động số dư theo wallet_id
+     * Lấy danh sách lịch sử biến động số dư theo wallet_id kèm thứ tự sắp xếp
      */
-    public List<WalletTransaction> getTransactionsByWalletId(int walletId) {
-        return getTransactionsByWalletId(walletId, "newest");
-    }
-
     public List<WalletTransaction> getTransactionsByWalletId(int walletId, String sortOrder) {
         List<WalletTransaction> list = new ArrayList<>();
         String order = "oldest".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
@@ -318,12 +379,8 @@ public class WalletDAO extends DBContext {
     }
 
     /**
-     * Lấy danh sách yêu cầu rút tiền của giảng viên
+     * Lấy danh sách yêu cầu rút tiền của giảng viên kèm thứ tự sắp xếp
      */
-    public List<PayoutRequest> getPayoutRequestsByTeacherId(int teacherId) {
-        return getPayoutRequestsByTeacherId(teacherId, "newest");
-    }
-
     public List<PayoutRequest> getPayoutRequestsByTeacherId(int teacherId, String sortOrder) {
         List<PayoutRequest> list = new ArrayList<>();
         String order = "oldest".equalsIgnoreCase(sortOrder) ? "ASC" : "DESC";
@@ -343,7 +400,7 @@ public class WalletDAO extends DBContext {
                 try { po.setBankAccountId(resultSet.getObject("bank_account_id") != null ? resultSet.getInt("bank_account_id") : null); } catch (Exception ignored) {}
                 try { po.setBankCode(resultSet.getString("bank_code")); } catch (Exception ignored) {}
                 try { po.setBankName(resultSet.getString("bank_name")); } catch (Exception ignored) {}
-                try { po.setAccountNumber(resultSet.getString("account_number")); } catch (Exception ignored) {}
+                try { po.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number"))); } catch (Exception ignored) {}
                 try { po.setAccountHolder(resultSet.getString("account_holder")); } catch (Exception ignored) {}
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}
@@ -368,11 +425,9 @@ public class WalletDAO extends DBContext {
         Connection conn = null;
         this.lastError = null;
         try {
-            System.out.println("========== [PAYOUT_REQUEST] START: teacherId=" + teacherId + ", amount=" + amount + ", note=" + note + " ==========");
             conn = new DBContext().getConnection();
             if (conn == null) {
                 this.lastError = "Không thể kết nối cơ sở dữ liệu.";
-                System.err.println("[PAYOUT_REQUEST] Lỗi: Không thể kết nối Database!");
                 return false;
             }
             conn.setAutoCommit(false);
@@ -385,7 +440,6 @@ public class WalletDAO extends DBContext {
 
             if (!rs.next()) {
                 this.lastError = "Không tìm thấy thông tin ví của giảng viên.";
-                System.err.println("[PAYOUT_REQUEST] Lỗi: Không tìm thấy ví cho teacherId=" + teacherId);
                 conn.rollback();
                 return false;
             }
@@ -393,11 +447,9 @@ public class WalletDAO extends DBContext {
             int walletId = rs.getInt("id");
             BigDecimal currentBalance = rs.getBigDecimal("balance");
             if (currentBalance == null) currentBalance = BigDecimal.ZERO;
-            System.out.println("[PAYOUT_REQUEST] Số dư hiện tại trong ví: " + currentBalance + " đ, Số tiền yêu cầu rút: " + amount + " đ");
 
             if (currentBalance.compareTo(amount) < 0) {
                 this.lastError = "Số dư khả dụng không đủ (Hiện có: " + currentBalance + " ₫, Rút: " + amount + " ₫).";
-                System.err.println("[PAYOUT_REQUEST] Lỗi: Số dư không đủ (" + currentBalance + " < " + amount + ")");
                 conn.rollback();
                 return false;
             }
@@ -411,9 +463,8 @@ public class WalletDAO extends DBContext {
             ResultSet rsBank = psBank.executeQuery();
             if (!rsBank.next()) {
                 this.lastError = "Bạn chưa liên kết tài khoản ngân hàng để nhận tiền.";
-                System.err.println("[PAYOUT_REQUEST] Lỗi: Giảng viên chưa liên kết tài khoản ngân hàng!");
                 conn.rollback();
-                return false; // Chưa có STK ngân hàng
+                return false;
             }
 
             int bankId = rsBank.getInt("id");
@@ -423,6 +474,9 @@ public class WalletDAO extends DBContext {
             String accHolder = rsBank.getString("account_holder");
             psBank.close();
 
+            // Đảm bảo số tài khoản được lưu vào payout_request dưới dạng mã hóa
+            String encryptedAccNum = AESUtil.isEncrypted(accNum) ? accNum : AESUtil.encrypt(accNum);
+
             // 3. Trừ số dư ví
             String updateWalletSql = "UPDATE teacher_wallet SET balance = ?, updated_at = NOW() WHERE id = ?";
             PreparedStatement psUpdate = conn.prepareStatement(updateWalletSql);
@@ -430,91 +484,19 @@ public class WalletDAO extends DBContext {
             psUpdate.setInt(2, walletId);
             psUpdate.executeUpdate();
             psUpdate.close();
-            System.out.println("[PAYOUT_REQUEST] Đã cập nhật trừ số dư ví thành công -> Số dư mới: " + newBalance + " đ");
 
-            // 4. Tạo bản ghi Payout Request (xây dựng câu lệnh INSERT động theo các cột thực tế có trong DB)
-            Set<String> actualCols = new HashSet<>();
-            try (ResultSet rsCols = conn.getMetaData().getColumns(null, null, "payout_request", null)) {
-                while (rsCols.next()) {
-                    actualCols.add(rsCols.getString("COLUMN_NAME").toLowerCase());
-                }
-            } catch (Exception ignored) {}
-
-            if (actualCols.isEmpty()) {
-                try (ResultSet rsCols = conn.getMetaData().getColumns(null, null, "PAYOUT_REQUEST", null)) {
-                    while (rsCols.next()) {
-                        actualCols.add(rsCols.getString("COLUMN_NAME").toLowerCase());
-                    }
-                } catch (Exception ignored) {}
-            }
-
-            List<String> insertCols = new ArrayList<>();
-            List<Object> insertVals = new ArrayList<>();
-
-            if (actualCols.isEmpty() || actualCols.contains("teacher_id")) {
-                insertCols.add("teacher_id");
-                insertVals.add(teacherId);
-            }
-            if (actualCols.contains("bank_account_id")) {
-                insertCols.add("bank_account_id");
-                insertVals.add(bankId);
-            }
-            if (actualCols.contains("bank_code")) {
-                insertCols.add("bank_code");
-                insertVals.add(bankCode);
-            }
-            if (actualCols.contains("bank_name")) {
-                insertCols.add("bank_name");
-                insertVals.add(bankName);
-            }
-            if (actualCols.contains("account_number")) {
-                insertCols.add("account_number");
-                insertVals.add(accNum);
-            }
-            if (actualCols.contains("account_holder")) {
-                insertCols.add("account_holder");
-                insertVals.add(accHolder);
-            }
-            if (actualCols.isEmpty() || actualCols.contains("amount")) {
-                insertCols.add("amount");
-                insertVals.add(amount);
-            }
-            if (actualCols.isEmpty() || actualCols.contains("status")) {
-                insertCols.add("status");
-                insertVals.add("pending");
-            }
-            if (actualCols.contains("admin_note")) {
-                insertCols.add("admin_note");
-                insertVals.add(note != null ? note : "");
-            } else if (actualCols.contains("note")) {
-                insertCols.add("note");
-                insertVals.add(note != null ? note : "");
-            }
-
-            StringBuilder colNames = new StringBuilder();
-            StringBuilder placeholders = new StringBuilder();
-            for (int i = 0; i < insertCols.size(); i++) {
-                if (i > 0) {
-                    colNames.append(", ");
-                    placeholders.append(", ");
-                }
-                colNames.append("`").append(insertCols.get(i)).append("`");
-                placeholders.append("?");
-            }
-
-            String insertPayoutSql = "INSERT INTO payout_request (" + colNames + ") VALUES (" + placeholders + ")";
-            System.out.println("[PAYOUT_REQUEST] Thực thi SQL: " + insertPayoutSql);
+            // 4. Tạo bản ghi Payout Request
+            String insertPayoutSql = "INSERT INTO payout_request (teacher_id, bank_account_id, bank_code, bank_name, account_number, account_holder, amount, status, admin_note) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)";
             PreparedStatement psPayout = conn.prepareStatement(insertPayoutSql, Statement.RETURN_GENERATED_KEYS);
-            for (int i = 0; i < insertVals.size(); i++) {
-                Object val = insertVals.get(i);
-                if (val instanceof Integer) {
-                    psPayout.setInt(i + 1, (Integer) val);
-                } else if (val instanceof BigDecimal) {
-                    psPayout.setBigDecimal(i + 1, (BigDecimal) val);
-                } else {
-                    psPayout.setString(i + 1, val != null ? val.toString() : null);
-                }
-            }
+            psPayout.setInt(1, teacherId);
+            psPayout.setInt(2, bankId);
+            psPayout.setString(3, bankCode);
+            psPayout.setString(4, bankName);
+            psPayout.setString(5, encryptedAccNum);
+            psPayout.setString(6, accHolder);
+            psPayout.setBigDecimal(7, amount);
+            psPayout.setString(8, note != null ? note : "");
             psPayout.executeUpdate();
 
             ResultSet rsKeys = psPayout.getGeneratedKeys();
@@ -523,7 +505,6 @@ public class WalletDAO extends DBContext {
                 payoutId = rsKeys.getInt(1);
             }
             psPayout.close();
-            System.out.println("[PAYOUT_REQUEST] Đã tạo yêu cầu rút tiền payout_request thành công -> Mã yêu cầu #" + payoutId);
 
             // 5. Thêm bản ghi Wallet Transaction
             String txSql = "INSERT INTO wallet_transaction (wallet_id, amount, balance_after, type, reference_id, description) VALUES (?, ?, ?, 'payout', ?, ?)";
@@ -535,15 +516,12 @@ public class WalletDAO extends DBContext {
             psTx.setString(5, "Yêu cầu rút tiền về " + bankName + " (STK: " + accNum + ")");
             psTx.executeUpdate();
             psTx.close();
-            System.out.println("[PAYOUT_REQUEST] Đã ghi nhận lịch sử biến động số dư thành công!");
 
             conn.commit();
-            System.out.println("========== [PAYOUT_REQUEST] HOÀN TẤT THÀNH CÔNG ==========");
             return true;
 
         } catch (SQLException e) {
             this.lastError = "Lỗi khi xử lý giao dịch: " + e.getMessage();
-            System.err.println("[PAYOUT_REQUEST_EXCEPTION] Lỗi khi tạo yêu cầu rút tiền: " + e.getMessage());
             e.printStackTrace();
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
@@ -557,10 +535,56 @@ public class WalletDAO extends DBContext {
     }
 
     /**
-     * Dành cho Admin: Lấy danh sách tất cả các yêu cầu rút tiền
+     * Dành cho Admin: Đếm tổng số lượng yêu cầu rút tiền theo bộ lọc
      */
-    public List<PayoutRequest> getAllPayoutRequests(String keyword, String status) {
+    public int countAllPayoutRequests(String keyword, String status) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) " +
+                "FROM payout_request p " +
+                "JOIN account a ON p.teacher_id = a.id WHERE 1=1 "
+        );
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND p.status = ? ");
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR p.account_number LIKE ?) ");
+        }
+
+        try {
+            connection = new DBContext().getConnection();
+            if (connection == null) return 0;
+
+            statement = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            if (status != null && !status.trim().isEmpty()) {
+                statement.setString(idx++, status.trim());
+            }
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String kw = "%" + keyword.trim() + "%";
+                statement.setString(idx++, kw);
+                statement.setString(idx++, kw);
+                statement.setString(idx++, kw);
+            }
+
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return 0;
+    }
+
+    /**
+     * Dành cho Admin: Lấy danh sách tất cả các yêu cầu rút tiền (có phân trang)
+     */
+    public List<PayoutRequest> getAllPayoutRequests(String keyword, String status, int page, int pageSize) {
         List<PayoutRequest> list = new ArrayList<>();
+        int offset = Math.max(0, (page - 1) * pageSize);
         StringBuilder sql = new StringBuilder(
                 "SELECT p.*, a.full_name AS teacher_name, a.email AS teacher_email " +
                 "FROM payout_request p " +
@@ -573,7 +597,7 @@ public class WalletDAO extends DBContext {
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR p.account_number LIKE ?) ");
         }
-        sql.append(" ORDER BY p.created_at DESC");
+        sql.append(" ORDER BY p.created_at DESC LIMIT ? OFFSET ?");
 
         try {
             connection = new DBContext().getConnection();
@@ -590,6 +614,8 @@ public class WalletDAO extends DBContext {
                 statement.setString(idx++, kw);
                 statement.setString(idx++, kw);
             }
+            statement.setInt(idx++, pageSize);
+            statement.setInt(idx, offset);
 
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -599,7 +625,7 @@ public class WalletDAO extends DBContext {
                 try { po.setBankAccountId(resultSet.getObject("bank_account_id") != null ? resultSet.getInt("bank_account_id") : null); } catch (Exception ignored) {}
                 try { po.setBankCode(resultSet.getString("bank_code")); } catch (Exception ignored) {}
                 try { po.setBankName(resultSet.getString("bank_name")); } catch (Exception ignored) {}
-                try { po.setAccountNumber(resultSet.getString("account_number")); } catch (Exception ignored) {}
+                try { po.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number"))); } catch (Exception ignored) {}
                 try { po.setAccountHolder(resultSet.getString("account_holder")); } catch (Exception ignored) {}
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}
@@ -617,6 +643,10 @@ public class WalletDAO extends DBContext {
             closeResources();
         }
         return list;
+    }
+
+    public List<PayoutRequest> getAllPayoutRequests(String keyword, String status) {
+        return getAllPayoutRequests(keyword, status, 1, 1000);
     }
 
     /**
@@ -747,7 +777,6 @@ public class WalletDAO extends DBContext {
 
     /**
      * Tự động quét và đồng bộ toàn diện ví giáo viên từ bảng registration và payout_request.
-     * Đảm bảo Số dư khả dụng và Tổng thu nhập luôn khớp 100% với doanh thu thực tế.
      */
     public boolean syncWalletWithRegistrations(int teacherId) {
         Connection conn = null;
@@ -782,8 +811,6 @@ public class WalletDAO extends DBContext {
                 return false;
             }
 
-            System.out.println("========== [WALLET_DEBUG] START SYNC FOR TEACHER ID: " + teacherId + " ==========");
-
             // 2. Tìm tất cả các đơn mua thành công của các khóa học do giáo viên này tạo mà chưa có trong wallet_transaction
             String missingTxSql = "SELECT r.id AS reg_id, r.course_id, r.total_cost, r.registration_time, c.name AS course_name, c.price AS course_price, c.created_by "
                     + "FROM registration r "
@@ -803,9 +830,7 @@ public class WalletDAO extends DBContext {
             String insertTxSql = "INSERT INTO wallet_transaction (wallet_id, amount, balance_after, type, reference_id, description) VALUES (?, ?, ?, 'course_sale', ?, ?)";
             PreparedStatement psInsertTx = conn.prepareStatement(insertTxSql);
 
-            int missingCount = 0;
             while (rsMissing.next()) {
-                missingCount++;
                 int regId = rsMissing.getInt("reg_id");
                 int courseId = rsMissing.getInt("course_id");
                 String courseName = rsMissing.getString("course_name");
@@ -817,7 +842,6 @@ public class WalletDAO extends DBContext {
                         : (coursePrice > 0 ? BigDecimal.valueOf(coursePrice) : BigDecimal.ZERO);
 
                 BigDecimal commission = salePrice.multiply(new BigDecimal("0.70"));
-                System.out.println("[WALLET_DEBUG] -> Phát hiện đơn mua mới: Đơn #" + regId + " | Khóa học #" + courseId + " (" + courseName + ") | Giá: " + salePrice + " | Hoa hồng 70%: " + commission);
 
                 psInsertTx.setInt(1, walletId);
                 psInsertTx.setBigDecimal(2, commission);
@@ -826,7 +850,6 @@ public class WalletDAO extends DBContext {
                 psInsertTx.setString(5, "Hoa hồng 70% từ bán khóa học: " + (courseName != null ? courseName : ("ID #" + courseId)) + " (Đơn #" + regId + ")");
                 psInsertTx.executeUpdate();
             }
-            System.out.println("[WALLET_DEBUG] Tổng số đơn mua mới vừa được ghi nhận: " + missingCount);
             psMissing.close();
             psInsertTx.close();
 
@@ -850,7 +873,6 @@ public class WalletDAO extends DBContext {
                 calculatedTotalEarned = rsEarned.getBigDecimal("calculated_earned");
                 if (calculatedTotalEarned == null) calculatedTotalEarned = BigDecimal.ZERO;
             }
-            System.out.println("[WALLET_DEBUG] Tổng thu nhập tính được từ tất cả đơn mua: " + calculatedTotalEarned + " đ");
             psEarned.close();
 
             // 4. Tính tổng tiền đã rút thành công (completed / approved)
@@ -960,20 +982,16 @@ public class WalletDAO extends DBContext {
     /**
      * Tự động cộng 70% doanh thu bán khóa học vào ví giảng viên tạo khóa học
      */
-    public boolean creditTeacherForCourseSale(int courseId, double itemPrice) {
-        return creditTeacherForCourseSale(0, courseId, BigDecimal.valueOf(itemPrice));
-    }
-
-    public boolean creditTeacherForCourseSale(int courseId, BigDecimal price) {
-        return creditTeacherForCourseSale(0, courseId, price);
-    }
-
-    public boolean creditTeacherForCourseSale(int registrationId, int courseId, BigDecimal price) {
+    public boolean creditTeacherForCourseSale(int courseId, BigDecimal itemPrice) {
         int teacherId = getTeacherIdByCourseId(courseId);
         if (teacherId > 0) {
             return syncWalletWithRegistrations(teacherId);
         }
         return false;
+    }
+
+    public boolean creditTeacherForCourseSale(int courseId, double itemPrice) {
+        return creditTeacherForCourseSale(courseId, BigDecimal.valueOf(itemPrice));
     }
 
     private TeacherWallet mapWallet(ResultSet rs) throws SQLException {

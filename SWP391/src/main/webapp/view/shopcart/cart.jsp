@@ -63,8 +63,7 @@
                                         <form action="${pageContext.request.contextPath}/cart" method="get" class="cart-search-form" id="cartSearchForm">
                                             <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
                                             <input type="text" name="search" id="cartSearchInput" class="cart-search-input" 
-                                                   placeholder="Tìm kiếm khóa học..." value="<c:out value="${search}"/>" 
-                                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('cartSearchForm').submit(); }">
+                                                   placeholder="Tìm kiếm khóa học..." value="<c:out value="${search}"/>">
                                             <c:if test="${not empty search}">
                                                 <a href="${pageContext.request.contextPath}/cart?sort=<c:out value="${sort}"/>" class="cart-clear-btn" title="Xóa tìm kiếm">
                                                     <i class="fa-solid fa-xmark"></i>
@@ -81,7 +80,7 @@
                                         <label for="cartSortSelect">
                                             <i class="fa-solid fa-arrow-down-short-wide"></i> Sắp xếp:
                                         </label>
-                                        <select id="cartSortSelect" class="cart-sort-select" onchange="applyCartSort(this.value)">
+                                        <select id="cartSortSelect" class="cart-sort-select">
                                             <option value="newest" ${sort == 'newest' ? 'selected' : ''}>Mới nhất</option>
                                             <option value="oldest" ${sort == 'oldest' ? 'selected' : ''}>Cũ nhất</option>
                                         </select>
@@ -91,8 +90,8 @@
                                 <c:choose>
                                     <%-- Khi tìm kiếm không có kết quả phù hợp --%>
                                     <c:when test="${empty cartItems}">
-                                        <div class="empty-cart" style="padding: 40px 0;">
-                                            <i class="fa-solid fa-magnifying-glass" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px;"></i>
+                                        <div class="empty-cart empty-cart-compact">
+                                            <i class="fa-solid fa-magnifying-glass empty-cart-icon"></i>
                                             <h5>Không tìm thấy khóa học nào phù hợp</h5>
                                             <p class="text-muted mb-3">Không có khóa học nào trong giỏ hàng khớp với từ khóa "<strong><c:out value="${search}"/></strong>".</p>
                                             <a href="${pageContext.request.contextPath}/cart?sort=<c:out value="${sort}"/>" class="btn btn-sm btn-outline-primary">
@@ -104,25 +103,36 @@
                                         <c:forEach items="${cartItems}" var="item" varStatus="status">
                                             <div class="cart-item">
                                                 <div class="row align-items-center">
-                                                    <c:set var="course" value="${courseDAO.findById(item.courseId)}" />
+                                                    <c:set var="course" value="${courseMap[item.courseId]}" />
+                                                    <c:set var="courseNameDisplay" value="${not empty course.name ? course.name : 'khóa học này'}" />
                                                     <div class="col-md-2">
-                                                        <img src="${course.thumbnail}" alt="Course thumbnail" class="cart-item-image">
+                                                        <a href="${pageContext.request.contextPath}/course?id=${item.courseId}">
+                                                            <img src="${not empty course.thumbnail ? course.thumbnail : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=120'}" 
+                                                                 alt="${not empty course.name ? course.name : 'Course thumbnail'}" 
+                                                                 class="cart-item-image">
+                                                        </a>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <h5>${course.name}</h5>
-                                                        <small>Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
+                                                        <h5 class="cart-item-title mb-1">
+                                                            <a href="${pageContext.request.contextPath}/course?id=${item.courseId}" class="text-dark text-decoration-none fw-bold">
+                                                                <c:out value="${not empty course.name ? course.name : ('Khóa học #' + item.courseId)}" />
+                                                            </a>
+                                                        </h5>
+                                                        <small class="text-muted d-block">Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
                                                     </div>
                                                     <div class="col-md-2 text-right">
                                                         <span class="price"><fmt:formatNumber value="${item.price}" pattern="#,##0.00"/>₫</span>
                                                     </div>
                                                     <div class="col-md-2 text-right">
-                                                        <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="${course.name}">
+                                                        <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="<c:out value='${courseNameDisplay}' />">
                                                             <input type="hidden" name="action" value="remove">
                                                             <input type="hidden" name="itemId" value="${item.id}">
                                                             <input type="hidden" name="search" value="<c:out value="${search}"/>">
                                                             <input type="hidden" name="sort" value="<c:out value="${sort}"/>">
                                                             <input type="hidden" name="page" value="${currentPage}">
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmRemove(${item.id}, '${course.name}')">
+                                                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-item" 
+                                                                    data-item-id="${item.id}" 
+                                                                    data-course-name="<c:out value='${courseNameDisplay}' />">
                                                                 <i class="fas fa-trash"></i> Remove
                                                             </button>
                                                         </form>
@@ -233,90 +243,17 @@
     <jsp:include page="/view/common/footer.jsp"></jsp:include>
     <!-- footer-area-end -->
 
-    <!-- JS here -->
+    <!-- Truyền dữ liệu thông báo từ CartController (nếu có) -->
+    <c:if test="${not empty toastMessage}">
+        <div id="cartToastData" data-message="<c:out value='${toastMessage}'/>" data-type="<c:out value='${toastType}'/>" style="display: none;"></div>
+    </c:if>
+
+    <!-- JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Toast JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     
-    <script>
-        // Function to apply sorting
-        function applyCartSort(sortVal) {
-            const searchInput = document.getElementById('cartSearchInput');
-            const searchVal = searchInput ? searchInput.value.trim() : '';
-            let url = '${pageContext.request.contextPath}/cart?page=1&sort=' + encodeURIComponent(sortVal);
-            if (searchVal) {
-                url += '&search=' + encodeURIComponent(searchVal);
-            }
-            window.location.href = url;
-        }
-
-        // Function to confirm item removal
-        function confirmRemove(itemId, courseName) {
-            if (confirm('Are you sure you want to remove "' + courseName + '" from your cart?')) {
-                document.getElementById('removeForm_' + itemId).submit();
-            }
-            return false;
-        }
-        
-        // Update the remove buttons to use the confirmation function
-        document.addEventListener('DOMContentLoaded', function() {
-            const removeForms = document.querySelectorAll('.remove-item-form');
-            removeForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const itemId = this.querySelector('input[name="itemId"]').value;
-                    const courseName = this.getAttribute('data-course-name');
-                    confirmRemove(itemId, courseName);
-                });
-            });
-        });
-        
-        // Function to show toast message
-        function showToast(message, type) {
-            let backgroundColor = "#28a745"; // Default success color
-            
-            if (type === "error") {
-                backgroundColor = "#dc3545"; // Danger color
-            } else if (type === "info") {
-                backgroundColor = "#17a2b8"; // Info color
-            } else if (type === "warning") {
-                backgroundColor = "#ffc107"; // Warning color
-            }
-            
-            Toastify({
-                text: message,
-                duration: 5000,
-                close: true,
-                gravity: "top",
-                position: "right",
-                backgroundColor: backgroundColor,
-                stopOnFocus: true
-            }).showToast();
-        }
-        
-        // Check for session messages and display toast
-        <c:if test="${not empty sessionScope.message}">
-            document.addEventListener("DOMContentLoaded", function() {
-                showToast("${sessionScope.message}", "${sessionScope.messageType}");
-            });
-            <c:remove var="message" scope="session" />
-            <c:remove var="messageType" scope="session" />
-        </c:if>
-        
-        // Handle checkout confirmation
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkoutForm = document.getElementById('checkoutForm');
-            if (checkoutForm) {
-                checkoutForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to complete your purchase? This will register you for all courses in your cart.')) {
-                        this.submit();
-                    }
-                });
-            }
-        });
-    </script>
+    <!-- Cart Module JS riêng biệt -->
+    <script src="${pageContext.request.contextPath}/assets/js/shopcart/cart.js"></script>
 </body>
 
 </html>

@@ -152,16 +152,35 @@ public class LearningController extends HttpServlet {
         if ("document".equals(type)) {
             lessonDocument = learningDAO.getLessonDocument(currentLesson.getId());
         }
-        if ("quiz".equals(type)) {
+                if ("quiz".equals(type)) {
             quizId = learningDAO.getQuizIdByLessonId(currentLesson.getId());
             if (quizId != null && quizId > 0) {
-                quizQuestions = learningDAO.getQuestionsByQuizId(quizId);
+                List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
+                java.util.Collections.shuffle(allQuestions);
+                
+                int numToTake = 10; // Default if not configured
+                com.DAO.QuizDAO qDAO = new com.DAO.QuizDAO();
+                java.util.Map<String, Object> lq = qDAO.getLessonQuizByLessonId(currentLesson.getId());
+                if (lq != null && lq.get("number_of_questions") != null) {
+                    numToTake = (Integer) lq.get("number_of_questions");
+                }
+                
+                quizQuestions = allQuestions;
+                if (numToTake > 0 && numToTake < allQuestions.size()) {
+                    quizQuestions = allQuestions.subList(0, numToTake);
+                }
+                
+                StringBuilder servedIds = new StringBuilder();
                 quizAnswers = new HashMap<>();
                 int total = 0;
                 for (QuizQuestion q : quizQuestions) {
+                    if (servedIds.length() > 0) servedIds.append(",");
+                    servedIds.append(q.getId());
                     quizAnswers.put(q.getId(), learningDAO.getAnswersByQuestionId(q.getId()));
                     total += (q.getPoints() != null ? q.getPoints() : 1);
                 }
+                request.setAttribute("servedQuestionIds", servedIds.toString());
+                
                 quizTotalPoints = total;
                 hasPassedQuiz = learningDAO.hasPassedQuiz(account.getId(), quizId);
                 bestQuizScore = learningDAO.getBestQuizScore(account.getId(), quizId);
@@ -225,7 +244,7 @@ public class LearningController extends HttpServlet {
         LearningDAO learningDAO = new LearningDAO();
 
         try {
-            if ("submitQuiz".equals(action)) {
+                        if ("submitQuiz".equals(action)) {
                 String quizIdParam = request.getParameter("quizId");
                 String quizIdError = MyLearningValidator.validateQuizId(quizIdParam);
                 if (quizIdError != null) {
@@ -233,7 +252,25 @@ public class LearningController extends HttpServlet {
                     return;
                 }
                 int quizId = Integer.parseInt(quizIdParam);
-                List<QuizQuestion> questions = learningDAO.getQuestionsByQuizId(quizId);
+                List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
+                
+                String servedIdsParam = request.getParameter("servedQuestionIds");
+                List<QuizQuestion> questions = new java.util.ArrayList<>();
+                if (servedIdsParam != null && !servedIdsParam.isEmpty()) {
+                    String[] servedIdsArray = servedIdsParam.split(",");
+                    java.util.Set<Integer> servedIdsSet = new java.util.HashSet<>();
+                    for (String s : servedIdsArray) {
+                        servedIdsSet.add(Integer.parseInt(s.trim()));
+                    }
+                    for (QuizQuestion q : allQuestions) {
+                        if (servedIdsSet.contains(q.getId())) {
+                            questions.add(q);
+                        }
+                    }
+                } else {
+                    questions = allQuestions;
+                }
+                
                 int total = 0;
                 int score = 0;
                 for (QuizQuestion q : questions) {
@@ -344,3 +381,4 @@ public class LearningController extends HttpServlet {
         return url;
     }
 }
+

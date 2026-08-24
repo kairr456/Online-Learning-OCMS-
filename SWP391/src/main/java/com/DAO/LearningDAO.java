@@ -119,10 +119,10 @@ public class LearningDAO extends DBContext {
         return -1;
     }
 
-    public List<QuizQuestion> getQuestionsByQuizId(int quizId) {
+        public List<QuizQuestion> getQuestionsByQuizId(int quizId) {
         List<QuizQuestion> list = new ArrayList<>();
         String sql = "SELECT qb.* FROM question_bank qb " +
-                     "JOIN lesson_quiz lq ON qb.lesson_id = lq.lesson_id " +
+                     "JOIN lesson_quiz lq ON qb.group_id = lq.question_group_id " +
                      "WHERE lq.id = ? AND qb.status = 'active'";
         try {
             connection = new DBContext().connection;
@@ -132,18 +132,17 @@ public class LearningDAO extends DBContext {
             while (resultSet.next()) {
                 QuizQuestion q = new QuizQuestion();
                 q.setId(resultSet.getInt("id"));
-                // We keep quiz_id for backward compatibility in models
-                q.setQuizId(quizId);
+                q.setCourseId(resultSet.getInt("course_id"));
+                q.setLessonId(resultSet.getInt("lesson_id"));
+                q.setGroupId(resultSet.getInt("group_id"));
                 q.setQuestionText(resultSet.getString("question_text"));
                 q.setPoints(resultSet.getInt("points"));
-                q.setOrderNumber(1);
                 q.setStatus(resultSet.getString("status"));
                 q.setCreatedDate(resultSet.getTimestamp("created_date"));
-                // q.setModifiedDate(resultSet.getTimestamp("modified_date")); // no longer exists
                 list.add(q);
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             closeResources();
         }

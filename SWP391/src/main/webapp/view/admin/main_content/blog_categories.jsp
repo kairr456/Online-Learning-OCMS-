@@ -8,12 +8,17 @@
 
     <!-- Thông báo kết quả thao tác -->
     <c:if test="${param.msg == 'deleted'}">
-        <div style="background-color: #E7F6EC; color: #1B8F4A; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+        <div class="alert-box alert-success">
             <i class="fa-solid fa-circle-check"></i> Blog category deleted successfully!
         </div>
     </c:if>
+    <c:if test="${param.error == 'has_posts'}">
+        <div class="alert-box alert-danger">
+            <i class="fa-solid fa-triangle-exclamation"></i> Cannot delete this category because it contains existing blog posts!
+        </div>
+    </c:if>
     <c:if test="${param.error == 'delete_failed'}">
-        <div style="background-color: #FDEBEC; color: #D63646; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+        <div class="alert-box alert-danger">
             <i class="fa-solid fa-triangle-exclamation"></i> Failed to delete blog category. Please try again.
         </div>
     </c:if>
@@ -47,25 +52,32 @@
         <table class="account-table">
             <thead>
                 <tr>
-                    <th style="width: 60px;">ID</th>
-                    <th style="width: 200px;">Name</th>
+                    <th class="col-cat-id">ID</th>
+                    <th class="col-cat-name">Name</th>
                     <th>Description</th>
-                    <th style="width: 100px; text-align: center;">Blogs</th>
-                    <th style="width: 170px;">Created Date</th>
-                    <th style="width: 170px;">Updated Date</th>
-                    <th style="width: 110px; text-align: center;">Actions</th>
+                    <th class="col-cat-blogs">Blogs</th>
+                    <th class="col-cat-date">Created Date</th>
+                    <th class="col-cat-date">Updated Date</th>
+                    <th class="col-cat-actions">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <c:forEach var="cat" items="${categoryList}">
                     <tr>
                         <td><strong>${cat.id}</strong></td>
-                        <td style="font-weight: 600; color: #161439;">${cat.name}</td>
-                        <td style="color: #4B5563; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${fn:escapeXml(cat.description)}">
-                            ${cat.description != null && !cat.description.trim().isEmpty() ? cat.description : '<em style="color:#9CA3AF;">No description</em>'}
+                        <td class="cat-name-cell">${cat.name}</td>
+                        <td class="cat-desc-cell" title="${fn:escapeXml(cat.description)}">
+                            <c:choose>
+                                <c:when test="${cat.description != null && !cat.description.trim().isEmpty()}">
+                                    ${cat.description}
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="cat-no-desc">No description</span>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
-                        <td style="text-align: center;">
-                            <span class="badge active" style="font-size: 11.5px; padding: 3px 10px;">${cat.blogCount} posts</span>
+                        <td class="text-center">
+                            <span class="badge active cat-badge-count">${cat.blogCount} posts</span>
                         </td>
                         <td>${cat.createdAt}</td>
                         <td>${cat.updatedAt}</td>
@@ -79,13 +91,25 @@
                                 <i class="fa-regular fa-pen-to-square"></i>
                             </button>
 
-                            <!-- Nút Xóa (Có xác nhận) -->
-                            <a href="${pageContext.request.contextPath}/admin/blog-categories?action=delete&id=${cat.id}"
-                               class="btn-action delete"
-                               onclick="return confirm('Are you sure you want to delete category \'${fn:escapeXml(cat.name)}\'?')"
-                               title="Delete">
-                                <i class="fa-regular fa-trash-can"></i>
-                            </a>
+                            <!-- Nút Xóa (Chỉ cho phép xóa khi posts = 0) -->
+                            <c:choose>
+                                <c:when test="${cat.blogCount == 0}">
+                                    <a href="${pageContext.request.contextPath}/admin/blog-categories?action=delete&id=${cat.id}"
+                                       class="btn-action delete"
+                                       onclick="return confirm('Are you sure you want to delete category \'${fn:escapeXml(cat.name)}\'?')"
+                                       title="Delete">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <button type="button"
+                                            class="btn-action delete disabled"
+                                            disabled
+                                            title="Cannot delete: Category contains ${cat.blogCount} post(s)">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
                     </tr>
                 </c:forEach>
@@ -93,8 +117,8 @@
                 <!-- Trống danh mục -->
                 <c:if test="${empty categoryList}">
                     <tr>
-                        <td colspan="7" style="text-align:center; padding: 30px; color: #6B7280;">
-                            <i class="fa-regular fa-folder-open" style="font-size: 28px; margin-bottom: 8px; display: block; color: #9CA3AF;"></i>
+                        <td colspan="7" class="cat-empty-state">
+                            <i class="fa-regular fa-folder-open cat-empty-icon"></i>
                             No blog categories found.
                         </td>
                     </tr>
@@ -106,17 +130,36 @@
     <!-- ===== Phân trang ===== -->
     <c:if test="${totalPages > 1}">
         <div class="pagination">
+            <!-- Trang đầu (<<) -->
+            <c:if test="${currentPage > 1}">
+                <a href="javascript:void(0)" class="page-link" onclick="goToPage('1')" title="First page">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+            </c:if>
+
+            <!-- Trang trước (<) -->
             <c:if test="${currentPage > 1}">
                 <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage - 1}')" title="Previous page">
                     <i class="fa-solid fa-angle-left"></i>
                 </a>
             </c:if>
+
+            <!-- Danh sách số trang -->
             <c:forEach var="i" begin="1" end="${totalPages}">
                 <a href="javascript:void(0)" class="page-link ${currentPage == i ? 'active' : ''}" onclick="goToPage('${i}')">${i}</a>
             </c:forEach>
+
+            <!-- Trang sau (>) -->
             <c:if test="${currentPage < totalPages}">
                 <a href="javascript:void(0)" class="page-link" onclick="goToPage('${currentPage + 1}')" title="Next page">
                     <i class="fa-solid fa-angle-right"></i>
+                </a>
+            </c:if>
+
+            <!-- Trang cuối (>>) -->
+            <c:if test="${currentPage < totalPages}">
+                <a href="javascript:void(0)" class="page-link" onclick="goToPage('${totalPages}')" title="Last page">
+                    <i class="fa-solid fa-angles-right"></i>
                 </a>
             </c:if>
         </div>
@@ -127,23 +170,23 @@
 <div id="categoryModal" class="modal" style="display:none;">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
-        <h3 id="modalTitle" style="margin-bottom: 15px; color: #161439; font-size: 18px; font-weight: 700;">Add Blog Category</h3>
+        <h3 id="modalTitle" class="cat-modal-title">Add Blog Category</h3>
 
         <form id="categoryForm">
             <input type="hidden" id="formAction" name="action" value="add">
             <input type="hidden" id="categoryId" name="id">
 
-            <label for="f_name">Category Name <span style="color:#dc3545;">*</span></label>
+            <label for="f_name">Category Name <span class="text-danger">*</span></label>
             <input type="text" id="f_name" name="name" placeholder="e.g. Technology, Education..." maxlength="100" required>
 
             <label for="f_description">Description</label>
-            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category..." style="width: 100%; padding: 9px 10px; margin-top: 4px; border: 1px solid #E7E7E7; border-radius: 8px; box-sizing: border-box; outline: none; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category..." class="cat-textarea"></textarea>
 
-            <p id="modalError" style="color:#dc3545; font-size: 13px; margin-top: 10px;"></p>
+            <p id="modalError" class="cat-modal-error"></p>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                <button type="button" onclick="closeModal()" style="margin-top:0; padding: 10px 18px; border: 1px solid #E7E7E7; border-radius: 8px; background: #fff; cursor: pointer; color: #555;">Cancel</button>
-                <button type="submit" id="btnSaveCategory" style="margin-top:0; background: #5751E1; border: none; color: #fff; padding: 10px 22px; border-radius: 8px; cursor: pointer; font-weight: 500;">Save Category</button>
+            <div class="cat-modal-actions">
+                <button type="button" class="btn-cat-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" id="btnSaveCategory" class="btn-cat-save">Save Category</button>
             </div>
         </form>
     </div>
@@ -151,86 +194,6 @@
 
 <!-- JavaScript xử lý Modal, Fetch API và Phân trang -->
 <script>
-    (function () {
-        const CONTEXT_PATH = '${pageContext.request.contextPath}';
-        const modal = document.getElementById('categoryModal');
-        const form = document.getElementById('categoryForm');
-        const modalError = document.getElementById('modalError');
-
-        function openAdd() {
-            form.reset();
-            document.getElementById('formAction').value = 'add';
-            document.getElementById('categoryId').value = '';
-            document.getElementById('modalTitle').textContent = 'Add Blog Category';
-            modalError.textContent = '';
-            modal.style.display = 'flex';
-            setTimeout(() => document.getElementById('f_name').focus(), 50);
-        }
-
-        function openEdit(btn) {
-            const d = btn.dataset;
-            form.reset();
-            document.getElementById('formAction').value = 'edit';
-            document.getElementById('categoryId').value = d.id;
-            document.getElementById('f_name').value = d.name || '';
-            document.getElementById('f_description').value = d.description || '';
-            document.getElementById('modalTitle').textContent = 'Edit Blog Category';
-            modalError.textContent = '';
-            modal.style.display = 'flex';
-            setTimeout(() => document.getElementById('f_name').focus(), 50);
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Đóng modal khi click ra ngoài vùng modal-content
-        window.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-
-        // Xử lý submit form thêm/sửa qua fetch POST
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            modalError.textContent = '';
-            const btnSave = document.getElementById('btnSaveCategory');
-            btnSave.disabled = true;
-            btnSave.textContent = 'Saving...';
-
-            const body = new URLSearchParams(new FormData(form)).toString();
-            fetch(CONTEXT_PATH + '/admin/blog-categories', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: body
-            })
-            .then(res => res.json())
-            .then(data => {
-                btnSave.disabled = false;
-                btnSave.textContent = 'Save Category';
-                if (data.success) {
-                    closeModal();
-                    location.reload();
-                } else {
-                    modalError.textContent = data.error || 'An error occurred while saving category.';
-                }
-            })
-            .catch(err => {
-                btnSave.disabled = false;
-                btnSave.textContent = 'Save Category';
-                modalError.textContent = 'Network error or server error. Please try again.';
-            });
-        });
-
-        function goToPage(page) {
-            document.getElementById('pageInput').value = page;
-            document.getElementById('filterForm').submit();
-        }
-
-        window.openAdd = openAdd;
-        window.openEdit = openEdit;
-        window.closeModal = closeModal;
-        window.goToPage = goToPage;
-    })();
+    window.CONTEXT_PATH = '${pageContext.request.contextPath}';
 </script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/blog_categories.js?v=1.0"></script>
