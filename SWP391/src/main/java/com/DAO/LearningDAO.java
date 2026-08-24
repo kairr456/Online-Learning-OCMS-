@@ -26,6 +26,7 @@ public class LearningDAO extends DBContext {
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 LessonVideo v = new LessonVideo();
+                v.setId(resultSet.getInt("id"));
                 v.setLessonId(resultSet.getInt("lesson_id"));
                 v.setVideoUrl(resultSet.getString("video_url"));
                 v.setVideoProvider(resultSet.getString("video_provider"));

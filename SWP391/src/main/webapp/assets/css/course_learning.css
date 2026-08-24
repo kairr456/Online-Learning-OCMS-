@@ -783,7 +783,11 @@ body {
 .learn-topbar .tb-nav { display: flex; gap: 16px; align-items: center; }
 
 /* Layout */
+<<<<<<< Updated upstream
 .learn-wrap { display: flex; min-height: 100vh; }
+=======
+.learn-wrap { display: flex; margin-top: 116px; min-height: calc(100vh - 116px); }
+>>>>>>> Stashed changes
 
 /* Sidebar */
 .learn-sidebar {
@@ -792,9 +796,9 @@ body {
     border-right: 1px solid #d1d7dc;
     background: #fff;
     overflow-y: auto;
-    max-height: calc(100vh - 56px);
+    max-height: calc(100vh - 116px);
     position: sticky;
-    top: 56px;
+    top: 116px;
 }
 .learn-sidebar .sb-title { padding: 16px; font-weight: 700; font-size: 15px; border-bottom: 1px solid #eee; }
 .section-item { border-bottom: 1px solid #f0f0f0; }
