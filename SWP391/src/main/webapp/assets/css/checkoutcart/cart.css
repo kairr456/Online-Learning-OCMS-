@@ -15,6 +15,19 @@
     object-fit: cover;
     border-radius: 5px;
 }
+.cart-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+.cart-item-title a {
+    color: #1e293b;
+    transition: color 0.2s ease;
+}
+.cart-item-title a:hover {
+    color: #4361ee !important;
+}
 .cart-summary {
     background-color: #f8f9fa;
     padding: 20px;
@@ -228,4 +241,36 @@
     justify-content: center;
     width: 50%;
     text-decoration: none;
+}
+
+/* ==========================================================================
+   Toastify Customization (Chống tràn văn bản, mượt mà & tự động mờ dần biến mất)
+   ========================================================================== */
+.toastify {
+    max-width: 480px !important;
+    width: auto !important;
+    word-break: break-word !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    line-height: 1.5 !important;
+    padding: 14px 20px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    transition: all 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) !important;
+    opacity: 0;
+}
+.toastify.on {
+    opacity: 1 !important;
+}
+.toastify .toast-close {
+    margin-left: 12px !important;
+    opacity: 0.85 !important;
+    font-weight: bold !important;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+.toastify .toast-close:hover {
+    opacity: 1 !important;
 }

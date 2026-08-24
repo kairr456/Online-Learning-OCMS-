@@ -146,7 +146,8 @@ public class CourseAdminDAO extends DBContext {
             connection = getConnection();
             statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
-            return statement.executeUpdate() > 0;
+            int affected = statement.executeUpdate();
+            return affected > 0;
         } catch (SQLException ex) {
             System.out.println("Error deactivating course: " + ex.getMessage());
             return false;

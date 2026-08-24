@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. Lắng nghe sự kiện chuyển đổi Phương thức thanh toán
     const radioCard = document.getElementById('radioCard');
     const radioQR = document.getElementById('radioQR');
-    const cardOptionBox = document.getElementById('cardOptionBox');
-    const qrOptionBox = document.getElementById('qrOptionBox');
+    const cardHeaderClick = document.getElementById('cardHeaderClick');
+    const qrHeaderClick = document.getElementById('qrHeaderClick');
+    const paymentInput = document.getElementById('selectedPaymentMethodInput');
 
     if (radioCard) {
         radioCard.addEventListener('change', function () {
@@ -20,12 +21,26 @@ document.addEventListener('DOMContentLoaded', function () {
             if (this.checked) selectPaymentMethod('QR_CODE');
         });
     }
+    if (cardHeaderClick) {
+        cardHeaderClick.addEventListener('click', function () {
+            selectPaymentMethod('Card');
+        });
+    }
+    if (qrHeaderClick) {
+        qrHeaderClick.addEventListener('click', function () {
+            selectPaymentMethod('QR_CODE');
+        });
+    }
 
-    // 2. Định dạng Số thẻ tín dụng (Tự động chèn khoảng trắng sau mỗi 4 số)
+    // Khởi tạo trạng thái nút ban đầu
+    const initialMethod = paymentInput?.value || (radioQR?.checked ? 'QR_CODE' : 'Card');
+    selectPaymentMethod(initialMethod);
+
+    // 2. Định dạng Số thẻ tín dụng (Tự động chèn khoảng trắng sau mỗi 4 số, tối đa 20 số)
     const cardNumInput = document.getElementById('cardNumber');
     if (cardNumInput) {
         cardNumInput.addEventListener('input', function () {
-            let val = this.value.replace(/\D/g, '').substring(0, 16);
+            let val = this.value.replace(/\D/g, '').substring(0, 20);
             let formatted = '';
             for (let i = 0; i < val.length; i++) {
                 if (i > 0 && i % 4 === 0) formatted += ' ';
@@ -48,11 +63,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. Định dạng Mã CVC / CVV (Chỉ cho phép số)
+    // 4. Định dạng Mã CVC / CVV (Chỉ cho phép 3 số)
     const cvcInput = document.getElementById('cvc');
     if (cvcInput) {
         cvcInput.addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+            this.value = this.value.replace(/\D/g, '').substring(0, 3);
         });
     }
 
@@ -147,8 +162,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     showError('cardNumber', 'cardNumberError', 'Thiếu trường chưa điền: Vui lòng nhập Số thẻ.');
                 } else if (!/^\d+$/.test(cardNumClean)) {
                     showError('cardNumber', 'cardNumberError', 'Số thẻ chỉ được chứa chữ số.');
-                } else if (cardNumClean.length !== 16) {
-                    showError('cardNumber', 'cardNumberError', 'Số thẻ phải gồm đúng 16 chữ số.');
+                } else if (cardNumClean.length < 12 || cardNumClean.length > 20) {
+                    showError('cardNumber', 'cardNumberError', 'Số thẻ phải gồm từ 12 đến 20 chữ số.');
                 }
 
                 const expiryEl = document.getElementById('expiry');
@@ -164,8 +179,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const cvcVal = cvcEl ? cvcEl.value.trim() : '';
                 if (!cvcVal) {
                     showError('cvc', 'cvcError', 'Thiếu trường chưa điền: Vui lòng nhập Mã CVC / CVV.');
-                } else if (!/^\d{3,4}$/.test(cvcVal)) {
-                    showError('cvc', 'cvcError', 'Mã CVC / CVV phải gồm 3 hoặc 4 chữ số.');
+                } else if (!/^\d{3}$/.test(cvcVal)) {
+                    showError('cvc', 'cvcError', 'Mã CVC / CVV phải gồm đúng 3 chữ số.');
                 }
 
                 const cardNameEl = document.getElementById('cardName');

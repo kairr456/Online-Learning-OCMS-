@@ -4,6 +4,7 @@ import com.entity.PayoutRequest;
 import com.entity.TeacherBankAccount;
 import com.entity.TeacherWallet;
 import com.entity.WalletTransaction;
+import com.utils.AESUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -67,7 +68,7 @@ public class WalletDAO extends DBContext {
                     + "  `teacher_id` INT NOT NULL,"
                     + "  `bank_code` VARCHAR(50) NOT NULL,"
                     + "  `bank_name` VARCHAR(255) NOT NULL,"
-                    + "  `account_number` VARCHAR(50) NOT NULL,"
+                    + "  `account_number` VARCHAR(255) NOT NULL,"
                     + "  `account_holder` VARCHAR(255) NOT NULL,"
                     + "  `tax_code` VARCHAR(50) DEFAULT NULL,"
                     + "  `is_default` TINYINT(1) DEFAULT 1,"
@@ -98,7 +99,7 @@ public class WalletDAO extends DBContext {
                     + "  `bank_account_id` INT DEFAULT NULL,"
                     + "  `bank_code` VARCHAR(50) DEFAULT NULL,"
                     + "  `bank_name` VARCHAR(255) DEFAULT NULL,"
-                    + "  `account_number` VARCHAR(50) DEFAULT NULL,"
+                    + "  `account_number` VARCHAR(255) DEFAULT NULL,"
                     + "  `account_holder` VARCHAR(255) DEFAULT NULL,"
                     + "  `amount` DECIMAL(15,2) NOT NULL,"
                     + "  `status` VARCHAR(50) DEFAULT 'pending',"
@@ -110,6 +111,17 @@ public class WalletDAO extends DBContext {
                     + "  KEY `idx_payout_teacher` (`teacher_id`)"
                     + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
+            // Tự động mở rộng cột account_number lên VARCHAR(255) nếu DB đang dùng cấu trúc cũ
+            try {
+                stmt.execute("ALTER TABLE `teacher_bank_account` MODIFY COLUMN `account_number` VARCHAR(255) NOT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("ALTER TABLE `payout_request` MODIFY COLUMN `account_number` VARCHAR(255) DEFAULT NULL");
+            } catch (Exception ignored) {}
+
+            // Tự động mã hóa dữ liệu STK cũ chưa mã hóa trong Database
+            migrateLegacyUnencryptedAccounts(conn);
+
         } catch (Exception ignored) {
         } finally {
             if (stmt != null) {
@@ -117,6 +129,71 @@ public class WalletDAO extends DBContext {
             }
             if (db != null) {
                 db.closeResources();
+            }
+        }
+    }
+
+    /**
+     * Tự động quét và mã hóa các số tài khoản cũ đang ở dạng plain text trong DB
+     */
+    private static void migrateLegacyUnencryptedAccounts(Connection conn) {
+        if (conn == null) return;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.createStatement();
+
+            // 1. Quét bảng teacher_bank_account
+            rs = st.executeQuery("SELECT id, account_number FROM teacher_bank_account WHERE account_number IS NOT NULL");
+            List<int[]> idsToUpdate = new ArrayList<>();
+            List<String> encToUpdate = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String rawAcc = rs.getString("account_number");
+                if (rawAcc != null && !rawAcc.trim().isEmpty() && !AESUtil.isEncrypted(rawAcc)) {
+                    idsToUpdate.add(new int[]{id});
+                    encToUpdate.add(AESUtil.encrypt(rawAcc));
+                }
+            }
+            rs.close();
+
+            for (int i = 0; i < idsToUpdate.size(); i++) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE teacher_bank_account SET account_number = ? WHERE id = ?")) {
+                    ps.setString(1, encToUpdate.get(i));
+                    ps.setInt(2, idsToUpdate.get(i)[0]);
+                    ps.executeUpdate();
+                }
+            }
+
+            // 2. Quét bảng payout_request
+            rs = st.executeQuery("SELECT id, account_number FROM payout_request WHERE account_number IS NOT NULL");
+            List<int[]> poIdsToUpdate = new ArrayList<>();
+            List<String> poEncToUpdate = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String rawAcc = rs.getString("account_number");
+                if (rawAcc != null && !rawAcc.trim().isEmpty() && !AESUtil.isEncrypted(rawAcc)) {
+                    poIdsToUpdate.add(new int[]{id});
+                    poEncToUpdate.add(AESUtil.encrypt(rawAcc));
+                }
+            }
+            rs.close();
+
+            for (int i = 0; i < poIdsToUpdate.size(); i++) {
+                try (PreparedStatement ps = conn.prepareStatement("UPDATE payout_request SET account_number = ? WHERE id = ?")) {
+                    ps.setString(1, poEncToUpdate.get(i));
+                    ps.setInt(2, poIdsToUpdate.get(i)[0]);
+                    ps.executeUpdate();
+                }
+            }
+
+        } catch (Exception ignored) {
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (Exception ignored) {}
+            }
+            if (st != null) {
+                try { st.close(); } catch (Exception ignored) {}
             }
         }
     }
@@ -187,7 +264,7 @@ public class WalletDAO extends DBContext {
                 b.setTeacherId(resultSet.getInt("teacher_id"));
                 b.setBankCode(resultSet.getString("bank_code"));
                 b.setBankName(resultSet.getString("bank_name"));
-                b.setAccountNumber(resultSet.getString("account_number"));
+                b.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number")));
                 b.setAccountHolder(resultSet.getString("account_holder"));
                 b.setTaxCode(resultSet.getString("tax_code"));
                 b.setDefault(resultSet.getBoolean("is_default"));
@@ -212,12 +289,14 @@ public class WalletDAO extends DBContext {
             connection = new DBContext().getConnection();
             if (connection == null) return false;
 
+            String encryptedAccountNumber = AESUtil.encrypt(bank.getAccountNumber());
+
             if (existing != null) {
                 String sql = "UPDATE teacher_bank_account SET bank_code = ?, bank_name = ?, account_number = ?, account_holder = ?, tax_code = ?, updated_at = NOW() WHERE id = ?";
                 statement = connection.prepareStatement(sql);
                 statement.setString(1, bank.getBankCode());
                 statement.setString(2, bank.getBankName());
-                statement.setString(3, bank.getAccountNumber());
+                statement.setString(3, encryptedAccountNumber);
                 statement.setString(4, bank.getAccountHolder());
                 statement.setString(5, bank.getTaxCode());
                 statement.setInt(6, existing.getId());
@@ -228,7 +307,7 @@ public class WalletDAO extends DBContext {
                 statement.setInt(1, bank.getTeacherId());
                 statement.setString(2, bank.getBankCode());
                 statement.setString(3, bank.getBankName());
-                statement.setString(4, bank.getAccountNumber());
+                statement.setString(4, encryptedAccountNumber);
                 statement.setString(5, bank.getAccountHolder());
                 statement.setString(6, bank.getTaxCode());
                 return statement.executeUpdate() > 0;
@@ -321,7 +400,7 @@ public class WalletDAO extends DBContext {
                 try { po.setBankAccountId(resultSet.getObject("bank_account_id") != null ? resultSet.getInt("bank_account_id") : null); } catch (Exception ignored) {}
                 try { po.setBankCode(resultSet.getString("bank_code")); } catch (Exception ignored) {}
                 try { po.setBankName(resultSet.getString("bank_name")); } catch (Exception ignored) {}
-                try { po.setAccountNumber(resultSet.getString("account_number")); } catch (Exception ignored) {}
+                try { po.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number"))); } catch (Exception ignored) {}
                 try { po.setAccountHolder(resultSet.getString("account_holder")); } catch (Exception ignored) {}
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}
@@ -395,6 +474,9 @@ public class WalletDAO extends DBContext {
             String accHolder = rsBank.getString("account_holder");
             psBank.close();
 
+            // Đảm bảo số tài khoản được lưu vào payout_request dưới dạng mã hóa
+            String encryptedAccNum = AESUtil.isEncrypted(accNum) ? accNum : AESUtil.encrypt(accNum);
+
             // 3. Trừ số dư ví
             String updateWalletSql = "UPDATE teacher_wallet SET balance = ?, updated_at = NOW() WHERE id = ?";
             PreparedStatement psUpdate = conn.prepareStatement(updateWalletSql);
@@ -411,7 +493,7 @@ public class WalletDAO extends DBContext {
             psPayout.setInt(2, bankId);
             psPayout.setString(3, bankCode);
             psPayout.setString(4, bankName);
-            psPayout.setString(5, accNum);
+            psPayout.setString(5, encryptedAccNum);
             psPayout.setString(6, accHolder);
             psPayout.setBigDecimal(7, amount);
             psPayout.setString(8, note != null ? note : "");
@@ -543,7 +625,7 @@ public class WalletDAO extends DBContext {
                 try { po.setBankAccountId(resultSet.getObject("bank_account_id") != null ? resultSet.getInt("bank_account_id") : null); } catch (Exception ignored) {}
                 try { po.setBankCode(resultSet.getString("bank_code")); } catch (Exception ignored) {}
                 try { po.setBankName(resultSet.getString("bank_name")); } catch (Exception ignored) {}
-                try { po.setAccountNumber(resultSet.getString("account_number")); } catch (Exception ignored) {}
+                try { po.setAccountNumber(AESUtil.decrypt(resultSet.getString("account_number"))); } catch (Exception ignored) {}
                 try { po.setAccountHolder(resultSet.getString("account_holder")); } catch (Exception ignored) {}
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}

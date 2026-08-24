@@ -171,28 +171,16 @@ public class CategoryDAO extends DBContext implements I_DAO<Category> {
         return categoryNames;
     }
 
+    public String getCategoryName(int categoryId) {
+        Category category = findById(categoryId);
+        return category != null ? category.getName() : null;
+    }
+
     public static void main(String[] args) {
         CategoryDAO categoryDAO = new CategoryDAO();
         List<Category> categories = categoryDAO.findAll();
         for (Category category : categories) {
             System.out.println(category);
         }
-    }
-    public String getCategoryName(int categoryId) {
-        String sql = "SELECT name FROM category WHERE id = ?";
-        try {
-            connection = getConnection();
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, categoryId);
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getString("name");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error getting category name: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-        return null;
     }
 }

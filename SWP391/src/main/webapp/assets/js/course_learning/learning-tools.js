@@ -1,6 +1,19 @@
 // Learning Tools page (view/course_learning/learning_tools.jsp)
 const CTX = document.body.getAttribute('data-ctx') || '';
 
+function showNotification(message, isError) {
+    var modal = document.getElementById('notificationModal');
+    document.getElementById('notificationTitle').textContent = isError ? 'Error' : 'Notification';
+    var msg = document.getElementById('notificationMessage');
+    msg.textContent = message;
+    msg.style.color = isError ? '#dc3545' : '#212529';
+    modal.classList.add('show');
+}
+
+function closeNotificationModal() {
+    document.getElementById('notificationModal').classList.remove('show');
+}
+
 function saveReminderSettings(event) {
     event.preventDefault();
     var selectedDays = [];
@@ -8,10 +21,7 @@ function saveReminderSettings(event) {
         selectedDays.push(cb.value);
     });
     if (selectedDays.length === 0) {
-        var status = document.getElementById('reminderStatus');
-        status.style.display = 'block';
-        status.textContent = 'Please select at least one day.';
-        status.style.color = '#dc3545';
+        showNotification('Please select at least one day.', true);
         return;
     }
     var body = new URLSearchParams({
@@ -27,29 +37,18 @@ function saveReminderSettings(event) {
     })
     .then(function (res) { return res.json(); })
     .then(function (data) {
-        var status = document.getElementById('reminderStatus');
-        status.style.display = 'block';
         if (data.status === 'success') {
-            status.textContent = 'Reminder settings saved successfully!';
-            status.style.color = '#198754';
+            showNotification('Reminder settings saved successfully!', false);
         } else {
-            status.textContent = data.message || 'Failed to save settings.';
-            status.style.color = '#dc3545';
+            showNotification(data.message || 'Failed to save settings.', true);
         }
     })
     .catch(function (err) {
-        var status = document.getElementById('reminderStatus');
-        status.style.display = 'block';
-        status.textContent = 'Error saving settings.';
-        status.style.color = '#dc3545';
+        showNotification('Error saving settings.', true);
     });
 }
 
 function sendTestReminder() {
-    var status = document.getElementById('reminderStatus');
-    status.style.display = 'block';
-    status.textContent = 'Sending...';
-    status.style.color = '#0d6efd';
     fetch(CTX + '/learning-tools', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
@@ -58,16 +57,13 @@ function sendTestReminder() {
     .then(function (res) { return res.json(); })
     .then(function (data) {
         if (data.status === 'success') {
-            status.textContent = 'Test reminder email sent!';
-            status.style.color = '#198754';
+            showNotification('Test reminder email sent!', false);
         } else {
-            status.textContent = data.message || 'Failed to send email.';
-            status.style.color = '#dc3545';
+            showNotification(data.message || 'Failed to send email.', true);
         }
     })
     .catch(function (err) {
-        status.textContent = 'Error sending email.';
-        status.style.color = '#dc3545';
+        showNotification('Error sending email.', true);
     });
 }
 
@@ -108,12 +104,12 @@ function syncCalendar(provider) {
     var select = document.getElementById('calendarCourse');
     var courseName = select.value;
     if (!courseName) {
-        alert('Please select a course first.');
+        showNotification('Please select a course first.', true);
         return;
     }
     var selectedDays = document.querySelectorAll('#reminderDays .reminder-day:checked');
     if (selectedDays.length === 0) {
-        alert('Please set reminder days first.');
+        showNotification('Please set reminder days first.', true);
         return;
     }
     var start = nextOccurrence();

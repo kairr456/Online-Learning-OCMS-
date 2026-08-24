@@ -1,7 +1,8 @@
 package com.entity;
 
 public class LessonVideo {
-    private Integer lessonId;        // INT, Primary Key
+    private Integer id;              // INT, Primary Key, AUTO_INCREMENT
+    private Integer lessonId;        // INT, Foreign Key
     private String videoUrl;         // TEXT
     private String videoProvider;    // ENUM('youtube', 'vimeo', etc.)
     private Integer videoDuration;   // INT
@@ -9,11 +10,20 @@ public class LessonVideo {
     public LessonVideo() {
     }
 
-    public LessonVideo(Integer lessonId, String videoUrl, String videoProvider, Integer videoDuration) {
+    public LessonVideo(Integer id, Integer lessonId, String videoUrl, String videoProvider, Integer videoDuration) {
+        this.id = id;
         this.lessonId = lessonId;
         this.videoUrl = videoUrl;
         this.videoProvider = videoProvider;
         this.videoDuration = videoDuration;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getLessonId() {

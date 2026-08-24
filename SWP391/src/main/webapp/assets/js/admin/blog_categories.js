@@ -76,6 +76,13 @@
             e.preventDefault();
             if (modalError) modalError.textContent = '';
 
+            const fName = document.getElementById('f_name');
+            if (fName && !fName.value.trim()) {
+                if (modalError) modalError.textContent = 'Vui lòng nhập tên danh mục (không được để trống hoặc chỉ chứa dấu cách)!';
+                fName.focus();
+                return;
+            }
+
             const btnSave = document.getElementById('btnSaveCategory');
             if (btnSave) {
                 btnSave.disabled = true;

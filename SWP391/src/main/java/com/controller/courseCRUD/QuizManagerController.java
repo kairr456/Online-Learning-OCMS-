@@ -376,110 +376,40 @@ public class QuizManagerController extends HttpServlet {
             return;
         }
 
-        QuizDAO quizDAO = new QuizDAO();
-        CourseDAO courseDAO = new CourseDAO();
-
-        // 1. Get teacher's active courses for the filter dropdown
-        List<Course> allCourses = courseDAO.findByCreator(account.getId());
-        List<Course> courses = new ArrayList<>();
-        if (allCourses != null) {
-            for (Course c : allCourses) {
-                if ("active".equalsIgnoreCase(c.getStatus())) {
-                    courses.add(c);
-                }
-            }
-        }
-        request.setAttribute("courses", courses);
-
-        String courseIdStr = request.getParameter("courseId");
-        String search = request.getParameter("search");
-        List<Map<String, Object>> teacherQuizzes = quizDAO.getQuizzesByTeacher(account.getId(), search, courseIdStr, null);
-        request.setAttribute("teacherQuizzes", teacherQuizzes);
-        request.setAttribute("selectedCourseId", courseIdStr);
-        request.setAttribute("searchKeyword", search);
-
         String quizIdStr = request.getParameter("quizId");
-        String lessonIdStr = request.getParameter("lessonId");
-        int quizId = 0;
-        if (quizIdStr != null && !quizIdStr.trim().isEmpty()) {
-            try {
-                quizId = Integer.parseInt(quizIdStr.trim());
-            } catch (Exception ignored) {}
-        } else if (lessonIdStr != null && !lessonIdStr.trim().isEmpty()) {
-            try {
-                int lessonId = Integer.parseInt(lessonIdStr.trim());
-                Map<String, Object> lq = quizDAO.getLessonQuizByLessonId(lessonId);
-                if (lq != null) {
-                    quizId = (Integer) lq.get("id");
-                }
-            } catch (Exception ignored) {}
-        }
-
-        if (quizId <= 0) {
-            // Overview mode: Teacher chooses which course/quiz to view scores
-            request.setAttribute("isOverview", true);
-            request.getRequestDispatcher("/view/courseCRUD/quiz-results.jsp").forward(request, response);
+        if (quizIdStr == null || quizIdStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/dashboard-quiz");
             return;
         }
+
+        int quizId = Integer.parseInt(quizIdStr);
+        QuizDAO quizDAO = new QuizDAO();
+
         Map<String, Object> quizInfo = quizDAO.getLessonQuizById(quizId);
 
         if (quizInfo == null) {
-            response.sendRedirect(request.getContextPath() + "/quiz-results");
+            response.sendRedirect(request.getContextPath() + "/dashboard-quiz");
             return;
         }
 
         List<Map<String, Object>> attempts = quizDAO.getAttemptsByQuizId(quizId);
         List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
 
-        // Calculate summary metrics
-        int totalAttempts = (attempts != null) ? attempts.size() : 0;
-        int passedCount = 0;
-        double totalScore = 0;
-        if (totalAttempts > 0) {
-            for (Map<String, Object> a : attempts) {
-                Boolean passed = (Boolean) a.get("passed");
-                if (passed != null && passed) passedCount++;
-                Number sc = (Number) a.get("score");
-                if (sc != null) totalScore += sc.doubleValue();
-            }
-        }
-        double avgScore = (totalAttempts > 0) ? Math.round((totalScore / totalAttempts) * 10.0) / 10.0 : 0.0;
-        double passRate = (totalAttempts > 0) ? Math.round(((double) passedCount / totalAttempts) * 100.0) : 0.0;
-
         request.setAttribute("quizInfo", quizInfo);
         request.setAttribute("attempts", attempts);
         request.setAttribute("questions", questions);
-        request.setAttribute("totalAttempts", totalAttempts);
-        request.setAttribute("passedCount", passedCount);
-        request.setAttribute("avgScore", avgScore);
-        request.setAttribute("passRate", passRate);
 
         String attemptIdStr = request.getParameter("attemptId");
-        if (attemptIdStr != null && !attemptIdStr.trim().isEmpty()) {
-            try {
-                int attemptId = Integer.parseInt(attemptIdStr.trim());
-                List<Map<String, Object>> attemptAnswers = quizDAO.getAttemptAnswers(attemptId);
+        if (attemptIdStr != null && !attemptIdStr.isEmpty()) {
+            int attemptId = Integer.parseInt(attemptIdStr);
+            List<Map<String, Object>> attemptAnswers = quizDAO.getAttemptAnswers(attemptId);
 
-                Map<Integer, Map<String, Object>> userAnswersMap = new HashMap<>();
-                if (attemptAnswers != null) {
-                    for (Map<String, Object> ans : attemptAnswers) {
-                        userAnswersMap.put((Integer) ans.get("question_id"), ans);
-                    }
-                }
-
-                if (questions != null) {
-                    for (Map<String, Object> q : questions) {
-                        int qId = (Integer) q.get("id");
-                        Map<String, Object> uAns = userAnswersMap.get(qId);
-                        q.put("userAns", uAns);
-                    }
-                }
-
-                request.setAttribute("userAnswersMap", userAnswersMap);
-                request.setAttribute("selectedAttemptId", attemptId);
-            } catch (Exception e) {
-                e.printStackTrace();
+            Map<Integer, Map<String, Object>> userAnswersMap = new HashMap<>();
+            for (Map<String, Object> ans : attemptAnswers) {
+                userAnswersMap.put((Integer) ans.get("question_id"), ans);
             }
+            request.setAttribute("userAnswersMap", userAnswersMap);
+            request.setAttribute("selectedAttemptId", attemptId);
         }
 
         request.getRequestDispatcher("/view/courseCRUD/quiz-results.jsp").forward(request, response);

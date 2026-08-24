@@ -13,6 +13,12 @@ public class Blog {
     private Timestamp updatedDate;
     private Timestamp createdDate;
     private String status;
+    private String rejectReason;
+
+    // Helper display fields (from joins)
+    private String authorName;
+    private String authorEmail;
+    private String categoryName;
 
     public Blog() {}
 
@@ -61,4 +67,16 @@ public class Blog {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getRejectReason() { return rejectReason; }
+    public void setRejectReason(String rejectReason) { this.rejectReason = rejectReason; }
+
+    public String getAuthorName() { return authorName; }
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
+
+    public String getAuthorEmail() { return authorEmail; }
+    public void setAuthorEmail(String authorEmail) { this.authorEmail = authorEmail; }
+
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
 }

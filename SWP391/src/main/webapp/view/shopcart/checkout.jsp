@@ -136,7 +136,7 @@
                                 <div class="mb-3">
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="cardNumber" name="cardNumber" 
-                                               placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" 
+                                               placeholder="4242 4242 4242 4242" maxlength="24" inputmode="numeric" 
                                                value="${not empty paramCardNumber ? paramCardNumber : '4242 4242 4242 4242'}">
                                         <span class="input-group-text bg-white"><i class="fa-regular fa-credit-card"></i></span>
                                     </div>
@@ -154,31 +154,19 @@
                                     <div class="col-6">
                                         <label class="form-label">Mã CVC / CVV <span class="text-danger">*</span></label>
                                         <input type="password" class="form-control" id="cvc" name="cvc" 
-                                               placeholder="123" maxlength="4" inputmode="numeric" 
+                                               placeholder="123" maxlength="3" inputmode="numeric" 
                                                value="${not empty paramCvc ? paramCvc : '123'}">
                                         <div class="field-error" id="cvcError"></div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
+                                <div class="mb-0">
                                     <label class="form-label">Tên in trên thẻ (Name on Card) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
                                            placeholder="NGUYEN VAN A" 
                                            value="${not empty paramCardName ? paramCardName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A')}">
                                     <div class="field-error" id="cardNameError"></div>
                                 </div>
-
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="saveCard" name="saveCard" checked>
-                                    <label class="form-check-label text-muted" for="saveCard" style="font-size:13px;">
-                                        Lưu thông tin thẻ an toàn cho lần thanh toán sau
-                                    </label>
-                                </div>
-
-                                <button type="submit" onclick="selectPaymentMethod('Card')" class="btn-pay-submit btn-pay-submit--card">
-                                    <i class="fa-solid fa-lock me-2"></i>
-                                    <span>Thanh toán ngay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
-                                </button>
                             </div>
                         </div>
 
@@ -243,18 +231,6 @@
                                             </span>
                                         </div>
                                     </div>
-
-                                    <!-- Notice -->
-                                    <div class="qr-instruction-alert mb-3">
-                                        <i class="fa-solid fa-circle-info me-1"></i>
-                                        Quét mã QR bằng App ngân hàng bất kỳ để thanh toán. Bấm nút bên dưới để <strong>Xác nhận mua ngay</strong>.
-                                    </div>
-
-                                    <!-- Direct Confirm Button inside QR Box -->
-                                    <button type="submit" onclick="selectPaymentMethod('QR_CODE')" class="btn-pay-submit btn-pay-submit--qr">
-                                        <i class="fa-solid fa-circle-check me-2"></i>
-                                        <span>Xác nhận đã chuyển khoản (Kích hoạt khóa học ngay)</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>

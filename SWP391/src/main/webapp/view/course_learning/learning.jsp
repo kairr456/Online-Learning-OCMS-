@@ -1,5 +1,6 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,12 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${currentLesson.title} | ${course.name}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
+    
+    
 </head>
 <body data-ctx="${pageContext.request.contextPath}">
 
-    <!-- Top bar -->
+    <!-- Common Header (project-wide) -->
+    <jsp:include page="/view/common/header.jsp" />
+
+    <!-- Learning-specific Topbar -->
     <div class="learn-topbar">
         <div class="tb-nav">
             <c:choose>
@@ -94,17 +102,37 @@
                             <%-- VIDEO --%>
                             <c:when test="${currentLesson.type == 'video'}">
                                 <c:if test="${not empty lessonVideos}">
-                                    <c:forEach var="v" items="${lessonVideos}">
-                                        <div class="video-wrap">
-                                            <c:choose>
-                                                <c:when test="${v.videoProvider == 'youtube'}">
-                                                    <iframe src="${v.videoUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <video controls><source src="${v.videoUrl}" type="video/mp4">Your browser does not support video.</video>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
+                                    <c:forEach var="v" items="${lessonVideos}" varStatus="vs">
+                                        <c:if test="${v.videoUrl != null and v.videoUrl != '' and v.videoProvider != null}">
+                                            <div class="video-wrap">
+                                                <c:choose>
+                                                    <c:when test="${v.videoProvider == 'youtube'}">
+                                                        <c:set var="ytUrl" value="${v.videoUrl}"/>
+                                                        <c:if test="${fn:contains(v.videoUrl, 'enablejsapi')}">
+                                                            <c:set var="ytUrl" value="${v.videoUrl}"/>
+                                                        </c:if>
+                                                        <c:if test="${!fn:contains(v.videoUrl, 'enablejsapi')}">
+                                                            <c:set var="ytUrl" value="${v.videoUrl}${fn:contains(v.videoUrl, '?') ? '&' : '?'}enablejsapi=1"/>
+                                                        </c:if>
+                                                        <iframe id="lessonVideo_${vs.index}" class="lesson-video-youtube" 
+                                                                src="${ytUrl}" 
+                                                                data-lesson-id="${currentLesson.id}"
+                                                                data-video-id="${v.id}"
+                                                                data-video-provider="youtube"
+                                                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <video id="lessonVideo_${vs.index}" class="lesson-video-html5" 
+                                                               controls 
+                                                               data-lesson-id="${currentLesson.id}"
+                                                               data-video-id="${v.id}"
+                                                               data-video-provider="html5">
+                                                            <source src="${v.videoUrl}" type="video/mp4">Your browser does not support video.
+                                                        </video>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </c:if>
                                     </c:forEach>
                                 </c:if>
                                 <c:if test="${empty lessonVideos}">

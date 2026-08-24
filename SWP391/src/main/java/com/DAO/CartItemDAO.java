@@ -187,12 +187,14 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     }
     
     /**
-     * Get the total price of all items in a cart
+     * Get the total price of all active items in a cart
      * @param cartId The cart ID
      * @return The total price
      */
     public BigDecimal getCartTotal(Integer cartId) {
-        String sql = "SELECT SUM(price) FROM cart_item WHERE cart_id = ?";
+        String sql = "SELECT SUM(ci.price) FROM cart_item ci " +
+                     "JOIN course c ON ci.course_id = c.id " +
+                     "WHERE ci.cart_id = ? AND c.status = 'active'";
         try {
             connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
@@ -212,12 +214,14 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     }
     
     /**
-     * Count the number of items in a cart
+     * Count the number of active items in a cart
      * @param cartId The cart ID
      * @return The number of items
      */
     public int countCartItems(Integer cartId) {
-        String sql = "SELECT COUNT(*) FROM cart_item WHERE cart_id = ?";
+        String sql = "SELECT COUNT(*) FROM cart_item ci " +
+                     "JOIN course c ON ci.course_id = c.id " +
+                     "WHERE ci.cart_id = ? AND c.status = 'active'";
         try {
             connection = new DBContext().getConnection();
             statement = connection.prepareStatement(sql);
@@ -234,19 +238,72 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
         }
         return 0;
     }
+
+    /**
+     * Clean up inactive/deactivated items from a cart and return their course names
+     * @param cartId The cart ID
+     * @return List of removed course names
+     */
+    public List<String> cleanupAndGetInactiveCourses(Integer cartId) {
+        List<String> removedCourseNames = new ArrayList<>();
+        if (cartId == null) {
+            return removedCourseNames;
+        }
+
+        String selectSql = "SELECT c.name FROM cart_item ci " +
+                           "JOIN course c ON ci.course_id = c.id " +
+                           "WHERE ci.cart_id = ? AND c.status != 'active'";
+        String deleteSql = "DELETE ci FROM cart_item ci " +
+                           "JOIN course c ON ci.course_id = c.id " +
+                           "WHERE ci.cart_id = ? AND c.status != 'active'";
+        try {
+            connection = new DBContext().getConnection();
+            statement = connection.prepareStatement(selectSql);
+            statement.setInt(1, cartId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                if (name != null && !name.trim().isEmpty()) {
+                    removedCourseNames.add(name.trim());
+                } else {
+                    removedCourseNames.add("Khóa học");
+                }
+            }
+
+            if (!removedCourseNames.isEmpty()) {
+                statement.close();
+                statement = connection.prepareStatement(deleteSql);
+                statement.setInt(1, cartId);
+                statement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error cleaning up inactive cart items: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return removedCourseNames;
+    }
+
+    /**
+     * Automatically clean up inactive/deactivated items from a cart
+     * @param cartId The cart ID
+     * @return Number of removed items
+     */
+    public int cleanupInactiveCartItems(Integer cartId) {
+        return cleanupAndGetInactiveCourses(cartId).size();
+    }
     
     /**
-     * Get cart items with course details
+     * Get cart items with course details (only active courses)
      * @param cartId The cart ID
      * @return List of cart items with course details
      */
-    
     public List<CartItem> getCartItemsWithCourseDetails(Integer cartId) {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT ci.*, c.name as course_name, c.thumbnail as course_thumbnail " +
                      "FROM cart_item ci " +
                      "JOIN course c ON ci.course_id = c.id " +
-                     "WHERE ci.cart_id = ? " +
+                     "WHERE ci.cart_id = ? AND c.status = 'active' " +
                      "ORDER BY ci.added_date DESC, ci.id DESC";
         try {
             connection = new DBContext().getConnection();
@@ -256,7 +313,6 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
             
             while (resultSet.next()) {
                 CartItem item = getFromResultSet(resultSet);
-                // Additional course details could be added to a map or extended object if needed
                 cartItems.add(item);
             }
         } catch (SQLException ex) {
@@ -268,7 +324,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
     }
 
     /**
-     * Get cart items with course details filtered by search keyword and sorted
+     * Get cart items with course details filtered by search keyword and sorted (only active courses)
      * @param cartId The cart ID
      * @param search Search keyword for course name
      * @param sort Sort direction ("newest" or "oldest")
@@ -280,7 +336,7 @@ public class CartItemDAO extends DBContext implements I_DAO<CartItem> {
         sql.append("SELECT ci.*, c.name as course_name, c.thumbnail as course_thumbnail ")
            .append("FROM cart_item ci ")
            .append("JOIN course c ON ci.course_id = c.id ")
-           .append("WHERE ci.cart_id = ? ");
+           .append("WHERE ci.cart_id = ? AND c.status = 'active' ");
 
         boolean hasSearch = (search != null && !search.trim().isEmpty());
         if (hasSearch) {

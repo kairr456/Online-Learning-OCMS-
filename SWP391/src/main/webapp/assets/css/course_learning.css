@@ -776,11 +776,6 @@ body {
     color: #fff;
     padding: 0 20px;
     height: 56px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
 }
 .learn-topbar a { color: #fff; text-decoration: none; font-size: 14px; }
 .learn-topbar a:hover { color: #a435f0; }
@@ -788,7 +783,7 @@ body {
 .learn-topbar .tb-nav { display: flex; gap: 16px; align-items: center; }
 
 /* Layout */
-.learn-wrap { display: flex; margin-top: 56px; min-height: calc(100vh - 56px); }
+.learn-wrap { display: flex; margin-top: 116px; min-height: calc(100vh - 116px); }
 
 /* Sidebar */
 .learn-sidebar {
@@ -797,9 +792,9 @@ body {
     border-right: 1px solid #d1d7dc;
     background: #fff;
     overflow-y: auto;
-    max-height: calc(100vh - 56px);
+    max-height: calc(100vh - 116px);
     position: sticky;
-    top: 56px;
+    top: 116px;
 }
 .learn-sidebar .sb-title { padding: 16px; font-weight: 700; font-size: 15px; border-bottom: 1px solid #eee; }
 .section-item { border-bottom: 1px solid #f0f0f0; }

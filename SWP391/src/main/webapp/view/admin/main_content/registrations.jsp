@@ -52,7 +52,6 @@
                     <th>Total Cost</th>
                     <th>Status</th>
                     <th>Registration Time</th>
-                    <th>Expires</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,12 +81,6 @@
                             </c:choose>
                         </td>
                         <td>${reg.registrationTime}</td>
-                        <td>
-                            <fmt:formatDate value="${reg.validTo}" pattern="dd/MM/yyyy"/>
-                            <c:if test="${reg.validTo < now}">
-                                <span class="badge inactive">Expired</span>
-                            </c:if>
-                        </td>
                     </tr>
                 </c:forEach>
                 <!-- Trường hợp không có dữ liệu khớp filter -->

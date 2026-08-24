@@ -163,19 +163,19 @@ public class AccountDAO extends DBContext {
 
         StringBuilder sql = new StringBuilder(
                 "SELECT id, username, email, phone, full_name, "
-                + "gender, is_active, role_id "
-                + "FROM Account WHERE 1=1 ");
+                        + "gender, is_active, role_id "
+                        + "FROM Account WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
         // Tìm kiếm theo username, email hoặc full_name
         AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);
 
         sql.append(" ORDER BY id ASC LIMIT ? OFFSET ?");
-        params.add(pageSize);               // LIMIT
-        params.add((page - 1) * pageSize);  // OFFSET
+        params.add(pageSize); // LIMIT
+        params.add((page - 1) * pageSize); // OFFSET
         try {
             statement = connection.prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
-                statement.setObject(i + 1, params.get(i));   // setObject xử lý cả String lẫn Integer
+                statement.setObject(i + 1, params.get(i)); // setObject xử lý cả String lẫn Integer
             }
             resultSet = statement.executeQuery();
 
@@ -224,9 +224,9 @@ public class AccountDAO extends DBContext {
 
             System.out.println(
                     "Deactivate Account ID = "
-                    + userId
-                    + ", affected rows = "
-                    + rows);
+                            + userId
+                            + ", affected rows = "
+                            + rows);
 
             return rows > 0;
 
@@ -242,12 +242,13 @@ public class AccountDAO extends DBContext {
         return false;
     }
 
-    // Đếm tổng số record theo bộ lọc — cùng filter với searchAccounts, chỉ khác câu SELECT
+    // Đếm tổng số record theo bộ lọc — cùng filter với searchAccounts, chỉ khác câu
+    // SELECT
     public int countAccounts(String keyword, String roleId, String status) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Account WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
-        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params);  // không có LIMIT
+        AccountFilterBuilder.appendFilters(sql, keyword, roleId, status, params); // không có LIMIT
 
         try {
             statement = connection.prepareStatement(sql.toString());
@@ -265,23 +266,24 @@ public class AccountDAO extends DBContext {
         }
         return 0;
     }
+
     public boolean updateBasicInfo(int accountId, String fullName, String phone, boolean gender) {
-    String sql = "UPDATE account SET full_name = ?, phone = ?, gender = ? WHERE id = ?";
-    try {
-        statement = connection.prepareStatement(sql);
-        statement.setString(1, fullName);
-        statement.setString(2, phone);
-        statement.setBoolean(3, gender);
-        statement.setInt(4, accountId);
-        int rowsUpdated = statement.executeUpdate();
-        return rowsUpdated > 0;
-    } catch (SQLException ex) {
-        Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
-    } finally {
-        closeResources();
+        String sql = "UPDATE account SET full_name = ?, phone = ?, gender = ? WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, fullName);
+            statement.setString(2, phone);
+            statement.setBoolean(3, gender);
+            statement.setInt(4, accountId);
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
     }
-    return false;
-}
 
     // Takes the already-hashed password -- ProfileController hashes with
     // PasswordUtil.md5() before calling this, same as RegisterController
@@ -321,10 +323,41 @@ public class AccountDAO extends DBContext {
         return false;
     }
 
-// Lấy 1 account theo id (đổ vào modal khi Edit)
+    public boolean registerPendingTeacher(Account account) {
+        String sql = "INSERT INTO account "
+                + "(username, password, email, phone, full_name, gender, avatar, is_active, role_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, account.getUsername());
+            statement.setString(2, account.getPassword());
+            statement.setString(3, account.getEmail());
+            statement.setString(4, account.getPhone());
+            statement.setString(5, account.getFullName());
+            statement.setBoolean(6, account.isGender());
+            statement.setString(7, account.getAvatar());
+            statement.setBoolean(8, false); // is_active = false for pending teacher
+            statement.setInt(9, account.getRoleId());
+
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                resultSet = statement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    account.setId(resultSet.getInt(1));
+                }
+                return true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+    // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {
-        String sql = "SELECT id, username, email, phone, full_name, gender, is_active, role_id "
-                + "FROM Account WHERE id = ?";
+        String sql = "SELECT * FROM account WHERE id = ?";
         try {
             statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
@@ -337,6 +370,9 @@ public class AccountDAO extends DBContext {
                 u.setPhone(resultSet.getString("phone"));
                 u.setFullName(resultSet.getString("full_name"));
                 u.setGender(resultSet.getBoolean("gender"));
+                try {
+                    u.setAvatar(resultSet.getString("avatar"));
+                } catch (Exception ignored) {}
                 u.setActive(resultSet.getBoolean("is_active"));
                 u.setRoleId(resultSet.getInt("role_id"));
                 return u;
@@ -349,7 +385,7 @@ public class AccountDAO extends DBContext {
         return null;
     }
 
-// Cập nhật account (không đụng username/password)
+    // Cập nhật account (không đụng username/password)
     public boolean updateAccount(Account a) {
         String sql = "UPDATE Account SET email=?, phone=?, full_name=?, gender=?, is_active=?, role_id=? WHERE id=?";
         try {
@@ -364,6 +400,20 @@ public class AccountDAO extends DBContext {
             return statement.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+    public boolean activateAccount(int accountId) {
+        String sql = "UPDATE account SET is_active = 1 WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             closeResources();
         }
@@ -396,5 +446,20 @@ public class AccountDAO extends DBContext {
             closeResources();
         }
         return null;
+    }
+
+    // Delete account by ID
+    public boolean deleteAccount(int accountId) {
+        String sql = "DELETE FROM account WHERE id = ?";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return false;
     }
 }

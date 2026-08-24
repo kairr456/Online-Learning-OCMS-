@@ -3,6 +3,7 @@
 <%@ page import="com.entity.Category" %>
 <%@ page import="com.DAO.CategoryDAO" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Collections" %>
 <%
     // This fragment is meant to be pulled into other pages with:
     //   <jsp:include page="${pageContext.request.contextPath}/view/common/header.jsp" />
@@ -14,7 +15,12 @@
 
     // Category dropdown options come straight from the database now instead
     // of being hardcoded -- new categories show up here automatically.
-    List<Category> headerCategories = new CategoryDAO().findAll();
+    List<Category> headerCategories = Collections.emptyList();
+    try {
+        headerCategories = new CategoryDAO().findAll();
+    } catch (Exception e) {
+        e.printStackTrace(); // Check Tomcat logs for DB errors
+    }
 %>
 <style>
 .site-header__nav-dropdown {
@@ -94,7 +100,7 @@
                 value="<%= request.getParameter("courseName") != null ? request.getParameter("courseName") : "" %>"
             >
             <button type="submit" class="site-header__search-btn" aria-label="Search">
-                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
                     <path d="M13.5 13.5L17.5 17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                 </svg>
@@ -111,7 +117,7 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </a>
                     <div class="nav-dropdown-menu">
-                        <a href="<%= ctx %>/course-dashboard">Dashboard Home</a>
+                        <a href="<%= ctx %>/course-manager?action=dashboard">Dashboard Home</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Question Bank</a>
                         <a href="<%= ctx %>/quiz-results"> Student Quiz Scores</a>
@@ -130,13 +136,13 @@
                 <% } %>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/wishlist" title="Wishlist" aria-label="Wishlist">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 20.2s-7.6-4.6-9.8-9.1C.6 7.7 2.3 4.4 5.6 4.4c1.9 0 3.4 1 4.4 2.5.9-1.5 2.5-2.5 4.4-2.5 3.3 0 5 3.3 3.4 6.7-2.2 4.5-9.8 9.1-9.8 9.1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                     </svg>
                 </a>
 
                 <a class="site-header__icon-btn" href="<%= ctx %>/cart" title="Cart" aria-label="Cart">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3.5 4.5h2l2.1 11.1a1.6 1.6 0 0 0 1.6 1.3h8.1a1.6 1.6 0 0 0 1.6-1.3l1.4-7.4H6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9.5" cy="20.2" r="1.3" fill="currentColor"/>
                         <circle cx="17" cy="20.2" r="1.3" fill="currentColor"/>
@@ -148,7 +154,7 @@
                         <% if (headerAccount.getAvatar() != null && !headerAccount.getAvatar().isEmpty()) { %>
                             <img src="<%= headerAccount.getAvatar() %>" alt="">
                         <% } else { %>
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="8.5" r="3.4" stroke="currentColor" stroke-width="1.6"/>
                                 <path d="M4.8 19.2c1.4-3.2 4.1-4.9 7.2-4.9s5.8 1.7 7.2 4.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                             </svg>
