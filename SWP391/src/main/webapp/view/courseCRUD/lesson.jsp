@@ -32,7 +32,7 @@
                     <div class="alert alert-${sessionScope.messageType == 'error' ? 'danger' : 'success'} alert-dismissible fade show mb-4 shadow-sm" role="alert">
                         <i class="fas fa-${sessionScope.messageType == 'error' ? 'exclamation-circle' : 'check-circle'} me-2"></i>
                         <c:out value="${sessionScope.message}" />
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" onclick="this.closest('.alert').remove();" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     <c:remove var="message" scope="session" />
                     <c:remove var="messageType" scope="session" />
@@ -55,10 +55,10 @@
                             <button class="nav-link active fw-bold" id="info-tab" onclick="switchTab('info-content', this)" type="button"><i class="fas fa-info-circle me-1"></i> 1. Course Information</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold" id="curriculum-tab" onclick="switchTab('curriculum-content', this)" type="button" ${empty course ? 'style="opacity:0.5;cursor:not-allowed;" title="Save course info first"' : ''}><i class="fas fa-list me-1"></i> 2. Curriculum</button>
+                            <button class="nav-link fw-bold" id="curriculum-tab" onclick="switchTab('curriculum-content', this)" type="button"><i class="fas fa-list me-1"></i> 2. Curriculum</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold text-primary" id="qbank-tab" onclick="switchTab('qbank-content', this)" type="button" ${empty course ? 'style="opacity:0.5;cursor:not-allowed;" title="Save course info first"' : ''}><i class="fas fa-database me-1"></i> 3. Question Bank</button>
+                            <button class="nav-link fw-bold text-primary" id="qbank-tab" onclick="switchTab('qbank-content', this)" type="button"><i class="fas fa-database me-1"></i> 3. Question Bank</button>
                         </li>
                     </ul>
 
@@ -170,18 +170,42 @@
 
                         <!-- Tab 3: Question Bank -->
                         <div class="tab-pane fade" id="qbank-content" role="tabpanel">
-                            <c:if test="${not empty course}">
-                                <div class="card bg-light border-0 mt-4">
-                                    <div class="card-body text-center p-5">
-                                        <h4><i class="fas fa-database text-primary mb-3" style="font-size: 3rem;"></i></h4>
-                                        <h3>Course Question Bank</h3>
-                                        <p class="text-muted">Manage all questions and groups for this course.</p>
-                                        <a href="${pageContext.request.contextPath}/question-bank?courseId=${course.id}" class="btn btn-primary btn-lg mt-3">
-                                            <i class="fas fa-external-link-alt me-2"></i> Open Question Bank Manager
-                                        </a>
+                            <c:choose>
+                                <c:when test="${not empty course}">
+                                    <div class="card bg-light border-0 mt-4">
+                                        <div class="card-body text-center p-5">
+                                            <h4><i class="fas fa-database text-primary mb-3" style="font-size: 3rem;"></i></h4>
+                                            <h3>Course Question Bank</h3>
+                                            <p class="text-muted">Quản lý toàn bộ câu hỏi và bộ đề (Question Groups) dành riêng cho khóa học <strong>"${fn:escapeXml(course.name)}"</strong>.</p>
+                                            <div class="d-flex justify-content-center gap-3 mt-4">
+                                                <a href="${pageContext.request.contextPath}/question-bank?courseId=${course.id}" class="btn btn-primary btn-lg">
+                                                    <i class="fas fa-external-link-alt me-2"></i> Mở Question Bank Của Khóa Học Này
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/dashboard-quiz" class="btn btn-outline-secondary btn-lg">
+                                                    <i class="fas fa-layer-group me-2"></i> Quản Lý Tất Cả Question Bank
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </c:if>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="card bg-light border-0 mt-4">
+                                        <div class="card-body text-center p-5">
+                                            <h4><i class="fas fa-database text-warning mb-3" style="font-size: 3rem;"></i></h4>
+                                            <h3>Ngân Hàng Câu Hỏi (Question Bank)</h3>
+                                            <p class="text-muted">Bạn đang tạo một khóa học mới. Hãy lưu nháp khóa học để hệ thống cấp mã định danh và bắt đầu tạo câu hỏi.</p>
+                                            <div class="d-flex justify-content-center gap-3 mt-4">
+                                                <button type="submit" name="submitAction" value="goto_qbank" class="btn btn-primary btn-lg" formnovalidate>
+                                                    <i class="fas fa-save me-2"></i> Lưu Nháp & Mở Question Bank
+                                                </button>
+                                                <a href="${pageContext.request.contextPath}/dashboard-quiz" class="btn btn-outline-secondary btn-lg">
+                                                    <i class="fas fa-layer-group me-2"></i> Xem Tất Cả Question Bank
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div> <!-- End courseTabsContent -->
                     
@@ -501,10 +525,26 @@
         }
 
         function validateCourseForm(event) {
-            // Nút bấm nếu là click bypass hoặc tạo bộ đề
             const submitter = event.submitter;
-            if (submitter && submitter.getAttribute('formnovalidate') !== null) {
-                return true;
+            const isDraft = (submitter && (submitter.value === 'continue' || submitter.value === 'goto_qbank' || submitter.getAttribute('formnovalidate') !== null));
+
+            if (isDraft) {
+                // For draft save, only require basic Course Title if empty, or allow saving
+                clearAllValidationErrors();
+                const nameInput = document.getElementById('courseName');
+                const nameVal = nameInput ? nameInput.value.trim() : '';
+                if (nameInput) nameInput.value = nameVal;
+
+                if (!nameVal) {
+                    markInvalid(nameInput, 'Vui lòng nhập Tên khóa học để lưu bản nháp (Draft)!');
+                    const summary = document.getElementById('validationSummary');
+                    if (summary) summary.style.display = 'block';
+                    const list = document.getElementById('validationErrorsList');
+                    if (list) list.innerHTML = '<li>Vui lòng nhập tên khóa học để lưu bản nháp.</li>';
+                    if (event) event.preventDefault();
+                    return false;
+                }
+                return true; // Bypass all other checks for draft
             }
 
             clearAllValidationErrors();

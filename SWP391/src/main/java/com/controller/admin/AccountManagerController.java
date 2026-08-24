@@ -1,7 +1,9 @@
 package com.controller.admin;
 
 import com.DAO.AccountDAO;
+import com.DAO.TeacherProfileDAO;
 import com.entity.Account;
+import com.entity.TeacherProfile;
 import com.utils.PasswordUtil;
 import com.validator.adminValidator;
 import com.validator.registerValidator;
@@ -14,12 +16,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
-@WebServlet(name = "AccountManagerController", urlPatterns = {"/admin/accounts"})
+@WebServlet(name = "AccountManagerController", urlPatterns = { "/admin/accounts" })
 public class AccountManagerController extends HttpServlet {
 
     private static final int PAGE_SIZE = 5;
+
     // ---------- GET: list + delete ----------
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -36,27 +40,33 @@ public class AccountManagerController extends HttpServlet {
             return;
         }
 
+        if ("preview".equals(action)) {
+            handleGetAccountDetailJson(request, response);
+            return;
+        }
+
         // Lấy thông tin filter & search
         String keyword = registrationValidator.keywordFor(request.getParameter("keyword"));
         String roleId = request.getParameter("roleId");
         String status = request.getParameter("status");
-        
-        //Phân trang
+
+        // Phân trang
         int page = registrationValidator.pageFor(request.getParameter("page"));
-        
+
         // Đếm tổng số record TRƯỚC (instance riêng) → tính tổng số trang → clamp page
         int totalRecords = new AccountDAO().countAccounts(keyword, roleId, status);
         int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / PAGE_SIZE));
-        if (page > totalPages) page = totalPages;
+        if (page > totalPages)
+            page = totalPages;
 
         // Lấy danh sách account (instance riêng — connection bị đóng sau mỗi lần gọi)
         List<Account> userList = new AccountDAO().searchAccounts(keyword, roleId, status, page, PAGE_SIZE);
-        
+
         // Đưa danh sách account và thông tin filter sang JSP
         request.setAttribute("userList", userList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        
+
         // Main content cần render
         request.setAttribute("contentPage", "accounts.jsp");
 
@@ -64,7 +74,7 @@ public class AccountManagerController extends HttpServlet {
         request.getRequestDispatcher("/view/admin/common/admin_layout.jsp")
                 .forward(request, response);
     }
-    
+
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -82,26 +92,37 @@ public class AccountManagerController extends HttpServlet {
         // Quay lại danh sách
         response.sendRedirect(request.getContextPath() + "/admin/accounts");
     }
-    
+
     // ---------- POST: add + edit (từ modal, trả JSON) ----------
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");   // "add" hoặc "edit"
-        if ("add".equals(action))  handleAdd(request, response);
-        else if ("edit".equals(action)) handleEdit(request, response);
+        String action = request.getParameter("action"); // "add" hoặc "edit"
+        if ("add".equals(action))
+            handleAdd(request, response);
+        else if ("edit".equals(action))
+            handleEdit(request, response);
     }
 
     private void handleAdd(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String username = adminValidator.trim(request.getParameter("username"));
-        String email    = adminValidator.trim(request.getParameter("email"));
-        String phone    = adminValidator.trim(request.getParameter("phone"));
+        String email = adminValidator.trim(request.getParameter("email"));
+        String phone = adminValidator.trim(request.getParameter("phone"));
         String fullName = adminValidator.trim(request.getParameter("fullName"));
 
-        if (new AccountDAO().isUsernameExists(username)) { writeJson(response, false, "Username already exists."); return; }
-        if (!registerValidator.isValidEmail(email))       { writeJson(response, false, "Invalid email address.");    return; }
-        if (new AccountDAO().isEmailExists(email))        { writeJson(response, false, "Email already exists.");    return; }
+        if (new AccountDAO().isUsernameExists(username)) {
+            writeJson(response, false, "Username already exists.");
+            return;
+        }
+        if (!registerValidator.isValidEmail(email)) {
+            writeJson(response, false, "Invalid email address.");
+            return;
+        }
+        if (new AccountDAO().isEmailExists(email)) {
+            writeJson(response, false, "Email already exists.");
+            return;
+        }
 
         Account account = new Account();
         account.setUsername(username);
@@ -111,7 +132,7 @@ public class AccountManagerController extends HttpServlet {
         account.setFullName(fullName);
         account.setGender(registerValidator.genderValueFor(request.getParameter("gender")));
         account.setAvatar("");
-        account.setActive(true);   // mặc định Active
+        account.setActive(true); // mặc định Active
         account.setRoleId(adminValidator.parseInt(request.getParameter("roleId"), 3));
 
         // Register() ĐÃ INSERT đủ 9 cột → Add account dùng chung, không cần SQL mới
@@ -121,9 +142,15 @@ public class AccountManagerController extends HttpServlet {
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = adminValidator.parseInt(request.getParameter("id"), -1);
-        if (id <= 0) { writeJson(response, false, "Invalid account id."); return; }
+        if (id <= 0) {
+            writeJson(response, false, "Invalid account id.");
+            return;
+        }
         Account account = new AccountDAO().getAccountById(id);
-        if (account == null) { writeJson(response, false, "Account not found."); return; }
+        if (account == null) {
+            writeJson(response, false, "Account not found.");
+            return;
+        }
 
         account.setEmail(adminValidator.trim(request.getParameter("email")));
         account.setPhone(adminValidator.trim(request.getParameter("phone")));
@@ -142,6 +169,127 @@ public class AccountManagerController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().print(
-            "{\"success\": " + success + ", \"error\": \"" + (error == null ? "" : error) + "\"}");
+                "{\"success\": " + success + ", \"error\": \"" + (error == null ? "" : error) + "\"}");
+    }
+
+    // ---------- PREVIEW: Get account detail as JSON for modal ----------
+    private void handleGetAccountDetailJson(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+
+        int id = adminValidator.parseInt(request.getParameter("id"), -1);
+        if (id <= 0) {
+            response.getWriter().print("{\"success\": false, \"error\": \"Invalid account ID.\"}");
+            return;
+        }
+
+        Account account = new AccountDAO().getAccountById(id);
+        if (account == null) {
+            response.getWriter().print("{\"success\": false, \"error\": \"Account not found.\"}");
+            return;
+        }
+
+        // Build JSON manually
+        StringBuilder json = new StringBuilder();
+        json.append("{")
+                .append("\"success\": true, ")
+                .append("\"id\": ").append(account.getId()).append(", ")
+                .append("\"username\": ").append(escapeJson(account.getUsername())).append(", ")
+                .append("\"email\": ").append(escapeJson(account.getEmail())).append(", ")
+                .append("\"phone\": ").append(escapeJson(account.getPhone())).append(", ")
+                .append("\"fullName\": ").append(escapeJson(account.getFullName())).append(", ")
+                .append("\"gender\": ").append(account.isGender() ? "true" : "false").append(", ")
+                .append("\"roleId\": ").append(account.getRoleId()).append(", ")
+                .append("\"active\": ").append(account.isActive() ? "true" : "false").append(", ");
+
+        // Format created date if available (account doesn't have createdDate field,
+        // skip)
+        json.append("\"createdDate\": null");
+
+        // If teacher (roleId=2), include teacher profile
+        if (account.getRoleId() == 2) {
+            TeacherProfile profile = new TeacherProfileDAO().findByAccountId(account.getId());
+            if (profile != null) {
+                json.append(", \"teacherProfile\": {")
+                        .append("\"specialization\": ").append(escapeJson(profile.getSpecialization())).append(", ")
+                        .append("\"bio\": ").append(escapeJson(profile.getBio())).append(", ")
+                        .append("\"experienceYears\": ").append(profile.getExperienceYears()).append(", ")
+                        .append("\"cvUrl\": ").append(escapeJson(normalizeCvUrl(request, profile.getCvUrl())))
+                        .append(", ")
+                        .append("\"portfolioUrl\": ").append(escapeJson(profile.getPortfolioUrl())).append(", ")
+                        .append("\"approvalStatus\": ").append(escapeJson(profile.getApprovalStatus())).append(", ")
+                        .append("\"rejectedReason\": ").append(escapeJson(profile.getRejectedReason())).append(", ");
+
+                // Format created date
+                String createdDateStr = profile.getCreatedAt() != null
+                        ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(profile.getCreatedAt())
+                        : "";
+                json.append("\"createdDate\": ").append(escapeJson(createdDateStr))
+                        .append("}");
+            } else {
+                json.append(", \"teacherProfile\": null");
+            }
+        } else {
+            json.append(", \"teacherProfile\": null");
+        }
+
+        json.append("}");
+        response.getWriter().print(json.toString());
+    }
+
+    private String escapeJson(String str) {
+        if (str == null)
+            return "null";
+        StringBuilder sb = new StringBuilder("\"");
+        for (char c : str.toCharArray()) {
+            switch (c) {
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                default:
+                    if (c < ' ') {
+                        String t = "000" + Integer.toHexString(c);
+                        sb.append("\\u").append(t.substring(t.length() - 4));
+                    } else {
+                        sb.append(c);
+                    }
+                    break;
+            }
+        }
+        sb.append("\"");
+        return sb.toString();
+    }
+
+    private String normalizeCvUrl(HttpServletRequest request, String cvUrl) {
+        if (cvUrl == null || cvUrl.isBlank()) {
+            return cvUrl;
+        }
+
+        String legacyPath = "/uploads/teacher-cv/";
+        String currentPath = "/assets/css/uploads/teacher-cv/";
+        int legacyIndex = cvUrl.indexOf(legacyPath);
+        if (legacyIndex >= 0) {
+            return request.getContextPath() + currentPath
+                    + cvUrl.substring(legacyIndex + legacyPath.length());
+        }
+        return cvUrl;
     }
 }

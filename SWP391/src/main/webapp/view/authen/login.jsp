@@ -55,6 +55,23 @@
             </div>
         <% } %>
 
+        <!-- Success message for registration -->
+        <%
+            String registered = request.getParameter("registered");
+            String pendingApproval = request.getParameter("pendingApproval");
+            if ("true".equals(registered)) {
+        %>
+            <div class="login-success" role="status">
+                <span class="login-success__icon">&#10003;</span>
+                <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+            </div>
+        <% } else if ("true".equals(pendingApproval)) { %>
+            <div class="login-info" role="status">
+                <span class="login-info__icon">&#128279;</span>
+                <span>Đăng ký giảng viên thành công! Tài khoản đang chờ admin duyệt. Bạn sẽ nhận email khi có kết quả.</span>
+            </div>
+        <% } %>
+
         <!-- Login form -->
         <form id="loginForm" method="post" action="${pageContext.request.contextPath}/login">
 

@@ -178,7 +178,6 @@
                             <th>Change</th>
                             <th>Actor</th>
                             <th>Note</th>
-                            <th>IP</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -202,7 +201,6 @@
                                 <td>${log.oldStatus} <i class="fa-solid fa-arrow-right admin-status-arrow"></i> ${log.newStatus}</td>
                                 <td>${log.actorName}</td>
                                 <td>${log.note}</td>
-                                <td>${log.ipAddress}</td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty courseApprovalLogs}">

@@ -49,7 +49,7 @@
                                 <ul class="list-wrap">
                                     <li class="author-two">
                                         By
-                                        <a href="teacher-detail.jsp?id=${course.createdBy}">${authorName}</a>
+                                        <a href="${pageContext.request.contextPath}/teacher-detail?id=${course.createdBy}">${authorName}</a>
                                     </li>
                                     <li class="date"><i class="fas fa-calendar"></i> ${course.createdDate}</li>
                                 </ul>
@@ -135,7 +135,7 @@
                                                 <i class="fas fa-user-tie"></i>
                                             </div>
                                             <div class="instructor-info">
-                                                <h4><a href="teacher-detail.jsp?id=${course.createdBy}" class="text-decoration-none text-dark">${not empty authorName ? authorName : (instructor != null ? instructor.fullName : 'Giảng viên')}</a></h4>
+                                                <h4><a href="${pageContext.request.contextPath}/teacher-detail?id=${course.createdBy}" class="text-decoration-none text-dark">${not empty authorName ? authorName : (instructor != null ? instructor.fullName : 'Giảng viên')}</a></h4>
                                                 <p><c:out value="${instructor != null && not empty instructor.email ? instructor.email : 'Instructor at OCMS'}" /></p>
                                                 <div class="instructor-meta">
                                                     <span><i class="fas fa-book-open"></i> ${instructorCourseCount > 0 ? instructorCourseCount : 1} Courses</span>

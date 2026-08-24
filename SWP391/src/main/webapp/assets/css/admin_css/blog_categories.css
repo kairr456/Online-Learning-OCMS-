@@ -1,62 +1,47 @@
 /* ==========================================================================
-   Admin Blog Category Management Stylesheet (blog_categories.css)
+   Admin Blog Category Management — Updated to match new design tokens
    ========================================================================== */
 
-/* Alert Boxes */
+/* ── Alert Boxes ─────────────────────── */
 .alert-box {
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 12px 18px;
+    border-radius: var(--r-sm);
     margin-bottom: 20px;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 8px;
+    animation: pageIn .25s ease;
 }
 
 .alert-box.alert-success {
-    background-color: #E7F6EC;
-    color: #1B8F4A;
-    border: 1px solid #C8F0D4;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
 }
 
 .alert-box.alert-danger {
-    background-color: #FDEBEC;
-    color: #D63646;
-    border: 1px solid #F8C8CC;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
 }
 
-/* Table Column Widths & Alignments */
-.col-cat-id {
-    width: 60px;
-}
+/* ── Table columns ─────────────────────── */
+.col-cat-id     { width: 60px; }
+.col-cat-name   { width: 200px; }
+.col-cat-blogs  { width: 100px; text-align: center; }
+.col-cat-date   { width: 170px; }
+.col-cat-actions{ width: 110px; text-align: center; }
 
-.col-cat-name {
-    width: 200px;
-}
-
-.col-cat-blogs {
-    width: 100px;
-    text-align: center;
-}
-
-.col-cat-date {
-    width: 170px;
-}
-
-.col-cat-actions {
-    width: 110px;
-    text-align: center;
-}
-
-/* Table Cell Content */
+/* ── Table cell content ─────────────── */
 .cat-name-cell {
     font-weight: 600;
-    color: #161439;
+    color: var(--ink);
 }
 
 .cat-desc-cell {
-    color: #4B5563;
+    color: var(--ink-mid);
     max-width: 350px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -64,58 +49,67 @@
 }
 
 .cat-no-desc {
-    color: #9CA3AF;
+    color: var(--ink-mute);
     font-style: italic;
 }
 
 .cat-badge-count {
     font-size: 11.5px !important;
     padding: 3px 10px !important;
+    background: #f1f5f9;
+    color: var(--ink-mid);
+    border-radius: 20px;
+    font-weight: 700;
+    display: inline-block;
 }
 
 .cat-empty-state {
     text-align: center;
-    padding: 30px;
-    color: #6B7280;
+    padding: 36px;
+    color: var(--ink-mute);
 }
 
 .cat-empty-icon {
-    font-size: 28px;
-    margin-bottom: 8px;
+    font-size: 30px;
+    margin-bottom: 10px;
     display: block;
-    color: #9CA3AF;
+    opacity: .4;
 }
 
-/* Modal Form Styles */
+/* ── Modal ─────────────────────────── */
 .cat-modal-title {
-    margin-bottom: 15px;
-    color: #161439;
-    font-size: 18px;
+    margin-bottom: 14px;
+    color: var(--ink);
+    font-size: 17px;
     font-weight: 700;
+    font-family: var(--font-display);
 }
 
 .cat-textarea {
     width: 100%;
-    padding: 9px 10px;
-    margin-top: 4px;
-    border: 1px solid #E7E7E7;
-    border-radius: 8px;
+    padding: 9px 12px;
+    margin-top: 5px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--r-sm);
     box-sizing: border-box;
     outline: none;
-    font-family: inherit;
-    font-size: 14px;
+    font-family: var(--font-body);
+    font-size: 13.5px;
     resize: vertical;
-    transition: border-color 0.2s;
+    transition: border-color .2s, box-shadow .2s;
+    background: #f8fafc;
 }
 
 .cat-textarea:focus {
-    border-color: #5751E1;
+    border-color: var(--admin-amber);
+    box-shadow: 0 0 0 3px rgba(216,162,74,.1);
+    background: #fff;
 }
 
 .cat-modal-error {
-    color: #dc3545;
-    font-size: 13px;
-    margin-top: 10px;
+    color: var(--color-red);
+    font-size: 12.5px;
+    margin-top: 8px;
 }
 
 .cat-modal-actions {
@@ -127,103 +121,53 @@
 
 .btn-cat-cancel {
     margin-top: 0 !important;
-    padding: 10px 18px;
-    border: 1px solid #E7E7E7;
-    border-radius: 8px;
-    background: #fff;
+    padding: 9px 18px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: var(--r-sm);
+    background: #f8fafc;
     cursor: pointer;
-    color: #555;
+    color: var(--ink-mid);
     font-weight: 500;
-    transition: background 0.2s;
+    font-size: 13px;
+    transition: background .18s;
 }
 
-.btn-cat-cancel:hover {
-    background: #f8fafc;
-}
+.btn-cat-cancel:hover { background: #f1f5f9; }
 
 .btn-cat-save {
     margin-top: 0 !important;
-    background: #5751E1 !important;
+    background: linear-gradient(135deg, var(--admin-amber) 0%, var(--admin-amber-dark) 100%) !important;
     border: none !important;
     color: #fff !important;
-    padding: 10px 22px;
-    border-radius: 8px;
+    padding: 9px 22px;
+    border-radius: var(--r-sm);
     cursor: pointer;
-    font-weight: 500;
-    transition: background 0.2s;
+    font-weight: 600;
+    font-size: 13px;
+    box-shadow: 0 3px 10px rgba(216,162,74,.28);
+    transition: opacity .18s, transform .18s;
 }
 
-.btn-cat-save:hover {
-    background: #463FC0 !important;
-}
+.btn-cat-save:hover { opacity: .9; transform: translateY(-1px); }
+.btn-cat-save:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 
-.btn-cat-save:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-}
-
-/* Disabled Delete Button when posts > 0 */
+/* Disabled delete button */
 .btn-action.delete.disabled {
-    opacity: 0.35 !important;
+    opacity: .35 !important;
     cursor: not-allowed !important;
     pointer-events: auto !important;
-    background: #f1f5f9 !important;
-    color: #94a3b8 !important;
-    border-color: #e2e8f0 !important;
 }
 
 .btn-action.delete.disabled:hover {
     transform: none !important;
-    background: #f1f5f9 !important;
-    color: #94a3b8 !important;
-    box-shadow: none !important;
+    background: transparent !important;
 }
 
-/* ==========================================================================
-   Pagination Styling (Dark Navy & White theme matching Image 1)
-   ========================================================================== */
+/* ── Pagination ─────────────────────── */
 .account-manager-container .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
-    margin: 28px 0 16px;
+    gap: 6px;
+    margin: 24px 0 14px;
 }
-
-.account-manager-container .pagination .page-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 38px;
-    height: 38px;
-    padding: 0 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    background: #ffffff;
-    color: #161439;
-    border: 1px solid #e2e8f0;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.account-manager-container .pagination .page-link:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #161439;
-    transform: translateY(-1px);
-}
-
-.account-manager-container .pagination .page-link.active {
-    background: #111827 !important; /* Dark Navy / Black matching Ảnh 1 */
-    border-color: #111827 !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.25);
-}
-
-.account-manager-container .pagination .page-link i {
-    font-size: 13px;
-    color: #161439;
-}
-
