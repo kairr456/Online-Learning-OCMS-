@@ -776,11 +776,6 @@ body {
     color: #fff;
     padding: 0 20px;
     height: 56px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
 }
 .learn-topbar a { color: #fff; text-decoration: none; font-size: 14px; }
 .learn-topbar a:hover { color: #a435f0; }
@@ -788,7 +783,7 @@ body {
 .learn-topbar .tb-nav { display: flex; gap: 16px; align-items: center; }
 
 /* Layout */
-.learn-wrap { display: flex; margin-top: 56px; min-height: calc(100vh - 56px); }
+.learn-wrap { display: flex; min-height: 100vh; }
 
 /* Sidebar */
 .learn-sidebar {

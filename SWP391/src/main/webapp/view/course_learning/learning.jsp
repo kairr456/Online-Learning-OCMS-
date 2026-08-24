@@ -8,9 +8,14 @@
     <title>${currentLesson.title} | ${course.name}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/course_learning.css">
 </head>
 <body data-ctx="${pageContext.request.contextPath}">
+
+    <!-- Common Header -->
+    <jsp:include page="/view/common/header.jsp" />
 
     <!-- Top bar -->
     <div class="learn-topbar">
@@ -94,14 +99,38 @@
                             <%-- VIDEO --%>
                             <c:when test="${currentLesson.type == 'video'}">
                                 <c:if test="${not empty lessonVideos}">
-                                    <c:forEach var="v" items="${lessonVideos}">
+                                    <c:forEach var="v" items="${lessonVideos}" varStatus="vs">
                                         <div class="video-wrap">
                                             <c:choose>
                                                 <c:when test="${v.videoProvider == 'youtube'}">
-                                                    <iframe src="${v.videoUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                                    <c:set var="ytUrl" value="${v.videoUrl}"/>
+                                                    <c:if test="${v.videoUrl.contains('enablejsapi')}">
+                                                        <c:set var="ytUrl" value="${v.videoUrl}"/>
+                                                    </c:if>
+                                                    <c:if test="${!v.videoUrl.contains('enablejsapi')}">
+                                                        <c:set var="ytUrl" value="${v.videoUrl}${v.videoUrl.contains('?') ? '&' : '?'}enablejsapi=1"/>
+                                                    </c:if>
+                                                    <c:set var="vp" value="${videoProgressMap[v.id]}"/>
+                                                    <iframe id="lessonVideo_${vs.index}" class="lesson-video-youtube" 
+                                                            src="${ytUrl}" 
+                                                            data-lesson-id="${currentLesson.id}"
+                                                            data-video-id="${v.id}"
+                                                            data-video-provider="youtube"
+                                                            ${vp != null ? 'data-saved-time="' + vp.videoCurrentTime + '"' : ''}
+                                                            ${vp != null ? 'data-saved-duration="' + vp.videoDuration + '"' : ''}
+                                                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <video controls><source src="${v.videoUrl}" type="video/mp4">Your browser does not support video.</video>
+                                                    <c:set var="vp" value="${videoProgressMap[v.id]}"/>
+                                                    <video id="lessonVideo_${vs.index}" class="lesson-video-html5" 
+                                                           controls 
+                                                           data-lesson-id="${currentLesson.id}"
+                                                           data-video-id="${v.id}"
+                                                           data-video-provider="html5"
+                                                           ${vp != null ? 'data-saved-time="' + vp.videoCurrentTime + '"' : ''}
+                                                           ${vp != null ? 'data-saved-duration="' + vp.videoDuration + '"' : ''}>
+                                                        <source src="${v.videoUrl}" type="video/mp4">Your browser does not support video.
+                                                    </video>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -197,6 +226,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning.js"></script>
 </body>
 </html>
