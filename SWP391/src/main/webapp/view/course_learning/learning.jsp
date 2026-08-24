@@ -19,12 +19,9 @@
 
     <!-- Common Header (project-wide) -->
     <jsp:include page="/view/common/header.jsp" />
-    
 
     <!-- Learning-specific Topbar -->
     <div class="learn-topbar">
-        <jsp:include page="/view/common/header.jsp" />
-        <p></p>
         <div class="tb-nav">
             <c:choose>
                     <c:when test="${param.from == 'archived'}">
