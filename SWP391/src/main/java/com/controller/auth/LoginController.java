@@ -12,12 +12,11 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import jakarta.servlet.http.Cookie;
 
-
 // This single servlet now answers two routes: "/login" (show the form / handle
 // sign-in) and "/logout" (end the session). They share a controller because
 // logout has no view or form of its own -- it's just one action -- so a
 // separate servlet class would be more boilerplate than logic.
-@WebServlet(name = "LoginController", urlPatterns = {"/login", "/logout"})
+@WebServlet(name = "LoginController", urlPatterns = { "/login", "/logout" })
 public class LoginController extends HttpServlet {
 
     @Override
@@ -47,14 +46,12 @@ public class LoginController extends HttpServlet {
                     if ("rememberedUsername".equals(cookie.getName())) {
                         Cookie rememberCookie = new Cookie(
                                 "rememberedUsername",
-                                cookie.getValue()
-                        );
+                                cookie.getValue());
                         rememberCookie.setMaxAge(30 * 24 * 60 * 60);
                         rememberCookie.setPath(
                                 request.getContextPath().isEmpty()
                                         ? "/"
-                                        : request.getContextPath()
-                        );
+                                        : request.getContextPath());
                         response.addCookie(rememberCookie);
                         break;
                     }
@@ -88,7 +85,8 @@ public class LoginController extends HttpServlet {
         }
 
         for (Cookie cookie : cookies) {
-            if ("rememberedUsername".equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isEmpty()) {
+            if ("rememberedUsername".equals(cookie.getName()) && cookie.getValue() != null
+                    && !cookie.getValue().isEmpty()) {
                 return true;
             }
         }
@@ -122,12 +120,11 @@ public class LoginController extends HttpServlet {
         String user = request.getParameter("username");
         String pass = request.getParameter("password");
 
-        boolean rememberMe =
-        request.getParameter("remember") != null;
+        boolean rememberMe = request.getParameter("remember") != null;
 
         Account account = authenticate(user, pass);
 
-        if (account != null) {
+        if (account != null && account.isActive()) {
             // Login successful: Create session
             HttpSession session = request.getSession();
             storeAuthenticatedAccount(session, account);
@@ -138,23 +135,20 @@ public class LoginController extends HttpServlet {
             if (rememberMe) {
                 rememberCookie = new Cookie(
                         "rememberedUsername",
-                        user
-                );
+                        user);
                 // Remember username for 30 days
                 rememberCookie.setMaxAge(30 * 24 * 60 * 60);
             } else {
                 // Delete existing remembered username
                 rememberCookie = new Cookie(
                         "rememberedUsername",
-                        ""
-                );
+                        "");
                 rememberCookie.setMaxAge(0);
             }
             rememberCookie.setPath(
                     request.getContextPath().isEmpty()
                             ? "/"
-                            : request.getContextPath()
-            );
+                            : request.getContextPath());
             response.addCookie(rememberCookie);
 
             String contextPath = request.getContextPath();
@@ -172,24 +166,24 @@ public class LoginController extends HttpServlet {
             }
         } else {
             // Login failed: Set error message and forward back to login page
-            request.setAttribute("errorMessage", "Invalid username or password!");
-           // --- "/login" via GET: load remembered username ---
-    // --- "/login" via GET ---
+            request.setAttribute("errorMessage", account != null
+                    ? "Your account is inactive. Please contact the administrator."
+                    : "Invalid username or password!");
+            // --- "/login" via GET: load remembered username ---
+            // --- "/login" via GET ---
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if ("rememberedUsername".equals(cookie.getName())) {
                         request.setAttribute(
                                 "rememberedUsername",
-                                cookie.getValue()
-                        );
+                                cookie.getValue());
                         break;
                     }
                 }
             }
-request.getRequestDispatcher(
-        "/view/authen/login.jsp"
-).forward(request, response);
+            request.getRequestDispatcher(
+                    "/view/authen/login.jsp").forward(request, response);
         }
     }
 }

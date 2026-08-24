@@ -278,6 +278,25 @@ html {
   background: var(--amber);
 }
 
+/* Admin layout uses the shared header too. Keep its full-width treatment
+   and preserve the dark header palette while reusing the public markup. */
+.admin-container ~ .site-header,
+body:has(.admin-container) .site-header {
+  width: 100%;
+}
+
+body:has(.admin-container) .site-header__inner {
+  max-width: none;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+body:has(.admin-container) .site-header__brand,
+body:has(.admin-container) .site-header__nav a,
+body:has(.admin-container) .site-header__account a {
+  color: #f8fafc;
+}
+
 
 .site-header__search-btn svg {
   width: 17px;

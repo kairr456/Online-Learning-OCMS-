@@ -1,12 +1,5 @@
 <aside class="sidebar">
 
-    <!-- Brand -->
-    <a href="${pageContext.request.contextPath}/admin/dashboard" class="sidebar-brand">
-        <div class="sidebar-brand-mark">O</div>
-        <span class="sidebar-brand-text">OCMS</span>
-        <span class="sidebar-brand-badge">Admin</span>
-    </a>
-
     <nav class="sidebar-menu">
 
         <!-- OVERVIEW -->

@@ -32,7 +32,7 @@
 <body>
 
     <!-- 1. Header — full width top bar -->
-    <jsp:include page="header.jsp"/>
+    <jsp:include page="/view/common/header.jsp"/>
 
     <!-- 2. Body: sidebar left + content right -->
     <div class="admin-container">
