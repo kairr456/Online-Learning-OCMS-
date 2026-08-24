@@ -91,27 +91,48 @@
                                 <h3 class="mb-3"><i class="fas fa-file-alt text-primary me-2"></i> Quiz: ${lesson.title}</h3>
                                 <p class="text-muted mb-4 fs-5">${lesson.description}</p>
                                 
-                                <c:choose>
-                                      <c:when test="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}">
-                                          <div>
+                                <c:set var="isExhausted" value="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}" />
+                                <c:set var="canViewHistory" value="${maxRetakes == -1 || maxRetakes >= 10 || isExhausted}" />
+                                <c:set var="hasAttempts" value="${userAttempts > 0}" />
+                                
+                                <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+                                    <c:choose>
+                                          <c:when test="${isExhausted}">
                                               <button class="btn btn-secondary btn-lg px-5 rounded-pill shadow-sm" disabled>
                                                   <i class="fas fa-lock me-2"></i> Quiz Đã Khóa (Hết Lượt)
                                               </button>
-                                              <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm text-white ms-3 mt-3 mt-md-0">
-                                                  <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
+                                          </c:when>
+                                          <c:otherwise>
+                                              <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm quiz-start-btn">
+                                                  <i class="fas fa-play-circle me-2"></i> 
+                                                  <c:choose>
+                                                      <c:when test="${hasAttempts}">Làm lại bài</c:when>
+                                                      <c:otherwise>Bắt đầu làm bài</c:otherwise>
+                                                  </c:choose>
+                                                  <c:if test="${maxRetakes != null && maxRetakes != -1}">
+                                                      <br><small class="fw-normal">(Còn ${maxRetakes - userAttempts} lượt)</small>
+                                                  </c:if>
                                               </a>
-                                          </div>
-                                          <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
-                                      </c:when>
-                                    <c:otherwise>
-                                        <a href="${pageContext.request.contextPath}/take-quiz?lessonId=${lesson.id}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm quiz-start-btn">
-                                            <i class="fas fa-play-circle me-2"></i> Bắt đầu làm bài
-                                            <c:if test="${maxRetakes != null && maxRetakes != -1}">
-                                                <br><small class="fw-normal">(Còn ${maxRetakes - userAttempts} lượt)</small>
-                                            </c:if>
-                                        </a>
-                                    </c:otherwise>
-                                </c:choose>
+                                          </c:otherwise>
+                                    </c:choose>
+
+                                    <c:choose>
+                                        <c:when test="${hasAttempts && canViewHistory}">
+                                            <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info btn-lg px-5 rounded-pill shadow-sm text-white">
+                                                <i class="fas fa-history me-2"></i> Xem lịch sử làm bài
+                                            </a>
+                                        </c:when>
+                                        <c:when test="${hasAttempts && !canViewHistory}">
+                                            <div class="text-danger small" style="max-width: 250px; text-align: left; line-height: 1.2;">
+                                                <i class="fas fa-info-circle"></i> Xem lịch sử sẽ hiển thị khi dùng hết lượt hoặc bài có trên 10 lượt.
+                                            </div>
+                                        </c:when>
+                                    </c:choose>
+                                </div>
+                                
+                                <c:if test="${isExhausted}">
+                                    <p class="text-danger mt-3">Bạn đã sử dụng hết ${maxRetakes} lượt làm bài.</p>
+                                </c:if>
                             </div>
                         </c:when>
 

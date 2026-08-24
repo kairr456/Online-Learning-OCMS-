@@ -66,13 +66,9 @@
 
             <!-- Review Questions -->
             <c:set var="maxRetakes" value="${lessonQuiz.max_retakes}" />
-            <c:set var="showAnswers" value="${maxRetakes == -1 || maxRetakes >= 10}" />
             
             <h4 class="mb-4">
                 Chi tiết bài làm:
-                <c:if test="${!showAnswers}">
-                    <span class="text-danger fs-6 ms-2">(Đáp án đúng sẽ được ẩn đối với các bài kiểm tra giới hạn dưới 10 lần làm)</span>
-                </c:if>
             </h4>
             
             <c:forEach var="question" items="${questions}" varStatus="status">
@@ -82,41 +78,31 @@
                     </div>
                     
                     <c:forEach var="answer" items="${question.answers}">
-                        <c:set var="isUserChoice" value="${question.selectedAnswerId == answer.id}" />
-                        
+                        <c:set var="isUserChoice" value="false" />
+                        <c:forEach var="sId" items="${question.selectedAnswerIds}">
+                            <c:if test="${sId == answer.id}">
+                                <c:set var="isUserChoice" value="true" />
+                            </c:if>
+                        </c:forEach>
                         <c:choose>
-                            <%-- If answers are hidden, just show what the user picked --%>
-                            <c:when test="${!showAnswers && isUserChoice}">
-                                <div class="answer-option bg-light border-primary fw-bold">
-                                    <div class="answer-icon text-primary"><i class="fas fa-check-circle"></i></div>
-                                    <div class="ms-2">${answer.answer_text} <span class="badge bg-primary ms-2">Lựa chọn của bạn</span></div>
-                                </div>
-                            </c:when>
-                            <c:when test="${!showAnswers && !isUserChoice}">
-                                <div class="answer-option">
-                                    <div class="answer-icon text-muted"><i class="far fa-circle"></i></div>
-                                    <div class="ms-2">${answer.answer_text}</div>
-                                </div>
-                            </c:when>
-                            
                             <%-- User selected this answer, and it is CORRECT --%>
-                            <c:when test="${showAnswers && isUserChoice && answer.is_correct}">
+                            <c:when test="${isUserChoice && answer.is_correct}">
                                 <div class="answer-option bg-light border-success fw-bold">
                                     <div class="answer-icon text-success"><i class="fas fa-check-circle"></i></div>
-                                    <div class="ms-2">${answer.answer_text} <span class="badge bg-success ms-2">Lựa chọn của bạn</span></div>
+                                    <div class="ms-2">${answer.answer_text} <span class="badge bg-success ms-2">Lựa chọn của bạn (Đúng)</span></div>
                                 </div>
                             </c:when>
                             
                             <%-- User selected this answer, and it is INCORRECT --%>
-                            <c:when test="${showAnswers && isUserChoice && !answer.is_correct}">
+                            <c:when test="${isUserChoice && !answer.is_correct}">
                                 <div class="answer-option bg-light border-danger fw-bold">
                                     <div class="answer-icon text-danger"><i class="fas fa-times-circle"></i></div>
-                                    <div class="ms-2">${answer.answer_text} <span class="badge bg-danger ms-2">Lựa chọn của bạn</span></div>
+                                    <div class="ms-2">${answer.answer_text} <span class="badge bg-danger ms-2">Lựa chọn của bạn (Sai)</span></div>
                                 </div>
                             </c:when>
                             
                             <%-- User DID NOT select this answer, but it is the CORRECT answer --%>
-                            <c:when test="${showAnswers && !isUserChoice && answer.is_correct}">
+                            <c:when test="${!isUserChoice && answer.is_correct}">
                                 <div class="answer-option bg-light border-success">
                                     <div class="answer-icon text-success"><i class="fas fa-check"></i></div>
                                     <div class="ms-2">${answer.answer_text} <span class="badge bg-outline-success text-success border border-success ms-2">Đáp án đúng</span></div>
