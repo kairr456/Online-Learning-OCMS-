@@ -56,9 +56,17 @@
                             ${status.index + 1}. ${question.question_text} <span class="text-muted small ms-2">(${question.points} pts)</span>
                         </div>
                         <div class="answers-list">
+                            <c:set var="isMulti" value="${questionMultipleChoiceMap[question.id]}" />
                             <c:forEach var="answer" items="${questionAnswersMap[question.id]}">
                                 <label class="answer-option">
-                                    <input type="radio" name="q_${question.id}" value="${answer.id}" required>
+                                    <c:choose>
+                                        <c:when test="${isMulti}">
+                                            <input type="checkbox" name="q_${question.id}" value="${answer.id}">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <input type="radio" name="q_${question.id}" value="${answer.id}" required>
+                                        </c:otherwise>
+                                    </c:choose>
                                     <span class="answer-label">${answer.answer_text}</span>
                                 </label>
                             </c:forEach>
@@ -96,9 +104,22 @@
                         <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="window.location.reload();">
                             <i class="fas fa-redo me-2"></i> Retry
                         </button>
-                        <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info px-4 py-2 text-white" id="viewHistoryBtn">
-                            <i class="fas fa-history me-2"></i> Xem lịch sử
-                        </a>
+                        
+                        <c:set var="isLastAttempt" value="${(maxRetakes != null && maxRetakes != -1) && (userAttempts + 1 >= maxRetakes)}" />
+                        <c:set var="canViewHistory" value="${maxRetakes == -1 || maxRetakes >= 10 || isLastAttempt}" />
+                        
+                        <c:choose>
+                            <c:when test="${canViewHistory}">
+                                <a href="${pageContext.request.contextPath}/quiz-result?lessonId=${lesson.id}" class="btn btn-info px-4 py-2 text-white" id="viewHistoryBtn">
+                                    <i class="fas fa-history me-2"></i> Xem lịch sử
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="text-danger small align-self-center mx-2" style="max-width: 200px; line-height: 1.2;">
+                                    (Xem lịch sử sẽ hiển thị khi dùng hết lượt hoặc bài có trên 10 lượt)
+                                </span>
+                            </c:otherwise>
+                        </c:choose>
                         <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary px-4 py-2 quiz-back-btn">
                             <i class="fas fa-arrow-left me-2"></i> Back to Course
                         </a>

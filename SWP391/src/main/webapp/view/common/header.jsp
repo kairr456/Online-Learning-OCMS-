@@ -120,6 +120,7 @@
                         <a href="<%= ctx %>/course-manager?action=dashboard">Dashboard Home</a>
                         <a href="<%= ctx %>/lesson">Course Add</a>
                         <a href="<%= ctx %>/dashboard-quiz">Question Bank</a>
+                        <a href="<%= ctx %>/quiz-results"> Student Quiz Scores</a>
                         <a href="<%= ctx %>/teacher-certificates">Course Certificate</a>
                     </div>
                 </div>

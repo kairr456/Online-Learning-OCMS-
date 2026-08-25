@@ -240,15 +240,29 @@ public class StudentLearningController extends HttpServlet {
             request.setAttribute("servedQuestionIds", servedIds.toString());
 
             Map<Integer, List<Map<String, Object>>> questionAnswersMap = new HashMap<>();
+            Map<Integer, Boolean> questionMultipleChoiceMap = new HashMap<>();
             for (Map<String, Object> q : questions) {
                 int qId = (Integer) q.get("id");
-                questionAnswersMap.put(qId, quizDAO.getAnswersByQuestionId(qId));
+                List<Map<String, Object>> answers = quizDAO.getAnswersByQuestionId(qId);
+                questionAnswersMap.put(qId, answers);
+
+                int correctCount = 0;
+                if (answers != null) {
+                    for (Map<String, Object> ans : answers) {
+                        Boolean isCorrect = (Boolean) ans.get("is_correct");
+                        if (isCorrect != null && isCorrect) {
+                            correctCount++;
+                        }
+                    }
+                }
+                questionMultipleChoiceMap.put(qId, correctCount > 1);
             }
 
             request.setAttribute("lesson", lesson);
             request.setAttribute("lessonQuiz", lessonQuiz);
             request.setAttribute("questions", questions);
             request.setAttribute("questionAnswersMap", questionAnswersMap);
+            request.setAttribute("questionMultipleChoiceMap", questionMultipleChoiceMap);
             request.setAttribute("courseId", lessonDAO.getCourseIdBySectionId(lesson.getSectionId()));
 
             request.getRequestDispatcher("/view/course_learning/take-quiz.jsp").forward(request, response);
@@ -313,21 +327,34 @@ public class StudentLearningController extends HttpServlet {
                 int points = (Integer) q.get("points");
                 totalPoints += points;
 
-                String selectedAnswerIdStr = request.getParameter("q_" + qId);
-                if (selectedAnswerIdStr != null && !selectedAnswerIdStr.isEmpty()) {
-                    int selectedAnswerId = Integer.parseInt(selectedAnswerIdStr);
-
-                    List<Map<String, Object>> answers = quizDAO.getAnswersByQuestionId(qId);
-                    for (Map<String, Object> a : answers) {
-                        int aId = (Integer) a.get("id");
-                        boolean isCorrect = (Boolean) a.get("is_correct");
-
-                        if (aId == selectedAnswerId && isCorrect) {
-                            earnedPoints += points;
-                            totalCorrectQuestions++;
-                            break;
+                // Support multiple choice answers using getParameterValues
+                String[] selectedAnswerIds = request.getParameterValues("q_" + qId);
+                Set<Integer> userAnsIds = new HashSet<>();
+                if (selectedAnswerIds != null) {
+                    for (String sIdStr : selectedAnswerIds) {
+                        if (sIdStr != null && !sIdStr.trim().isEmpty()) {
+                            try {
+                                userAnsIds.add(Integer.parseInt(sIdStr.trim()));
+                            } catch (NumberFormatException ignored) {}
                         }
                     }
+                }
+
+                List<Map<String, Object>> answers = quizDAO.getAnswersByQuestionId(qId);
+                Set<Integer> correctAnsIds = new HashSet<>();
+                if (answers != null) {
+                    for (Map<String, Object> a : answers) {
+                        Boolean isCorrect = (Boolean) a.get("is_correct");
+                        if (isCorrect != null && isCorrect) {
+                            correctAnsIds.add((Integer) a.get("id"));
+                        }
+                    }
+                }
+
+                // If correctAnsIds matches userAnsIds exactly, user gets points for this question
+                if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
+                    earnedPoints += points;
+                    totalCorrectQuestions++;
                 }
             }
 
@@ -361,10 +388,16 @@ public class StudentLearningController extends HttpServlet {
             if (attemptId > 0) {
                 for (Map<String, Object> q : questions) {
                     int qId = (Integer) q.get("id");
-                    String selectedAnswerIdStr = request.getParameter("q_" + qId);
-                    if (selectedAnswerIdStr != null && !selectedAnswerIdStr.isEmpty()) {
-                        int selectedAnswerId = Integer.parseInt(selectedAnswerIdStr);
-                        quizDAO.insertQuizAttemptAnswer(attemptId, qId, selectedAnswerId);
+                    String[] selectedAnswerIds = request.getParameterValues("q_" + qId);
+                    if (selectedAnswerIds != null) {
+                        for (String sIdStr : selectedAnswerIds) {
+                            if (sIdStr != null && !sIdStr.trim().isEmpty()) {
+                                try {
+                                    int selectedAnswerId = Integer.parseInt(sIdStr.trim());
+                                    quizDAO.insertQuizAttemptAnswer(attemptId, qId, selectedAnswerId);
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
                     }
                 }
             }
@@ -486,15 +519,14 @@ public class StudentLearningController extends HttpServlet {
 
             for (Map<String, Object> q : questions) {
                 int qId = (Integer) q.get("id");
-                Integer selectedAnswerId = null;
+                List<Integer> selectedAnswerIds = new ArrayList<>();
                 for (Map<String, Object> ans : attemptAnswers) {
                     Integer ansQId = (Integer) ans.get("question_id");
                     if (ansQId != null && ansQId.equals(qId)) {
-                        selectedAnswerId = (Integer) ans.get("selected_answer_id");
-                        break;
+                        selectedAnswerIds.add((Integer) ans.get("selected_answer_id"));
                     }
                 }
-                q.put("selectedAnswerId", selectedAnswerId);
+                q.put("selectedAnswerIds", selectedAnswerIds);
             }
 
             request.setAttribute("lesson", lesson);

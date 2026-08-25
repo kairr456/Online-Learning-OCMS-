@@ -172,13 +172,26 @@ public class LearningController extends HttpServlet {
                 
                 StringBuilder servedIds = new StringBuilder();
                 quizAnswers = new HashMap<>();
+                Map<Integer, Boolean> quizQuestionMultipleChoiceMap = new HashMap<>();
                 int total = 0;
                 for (QuizQuestion q : quizQuestions) {
                     if (servedIds.length() > 0) servedIds.append(",");
                     servedIds.append(q.getId());
-                    quizAnswers.put(q.getId(), learningDAO.getAnswersByQuestionId(q.getId()));
+                    List<QuizAnswer> qAns = learningDAO.getAnswersByQuestionId(q.getId());
+                    quizAnswers.put(q.getId(), qAns);
                     total += (q.getPoints() != null ? q.getPoints() : 1);
+
+                    int correctCount = 0;
+                    if (qAns != null) {
+                        for (QuizAnswer a : qAns) {
+                            if (Boolean.TRUE.equals(a.getIsCorrect())) {
+                                correctCount++;
+                            }
+                        }
+                    }
+                    quizQuestionMultipleChoiceMap.put(q.getId(), correctCount > 1);
                 }
+                request.setAttribute("quizQuestionMultipleChoiceMap", quizQuestionMultipleChoiceMap);
                 request.setAttribute("servedQuestionIds", servedIds.toString());
                 
                 quizTotalPoints = total;
@@ -276,16 +289,31 @@ public class LearningController extends HttpServlet {
                 for (QuizQuestion q : questions) {
                     int points = q.getPoints() != null ? q.getPoints() : 1;
                     total += points;
-                    String answerParam = request.getParameter("answer_" + q.getId());
-                    if (answerParam == null || answerParam.trim().isEmpty()) {
-                        continue;
-                    }
-                    int answerId = Integer.parseInt(answerParam);
-                    for (QuizAnswer a : learningDAO.getAnswersByQuestionId(q.getId())) {
-                        if (a.getId() == answerId && Boolean.TRUE.equals(a.getIsCorrect())) {
-                            score += points;
-                            break;
+
+                    String[] selectedAnswerIds = request.getParameterValues("answer_" + q.getId());
+                    java.util.Set<Integer> userAnsIds = new java.util.HashSet<>();
+                    if (selectedAnswerIds != null) {
+                        for (String sIdStr : selectedAnswerIds) {
+                            if (sIdStr != null && !sIdStr.trim().isEmpty()) {
+                                try {
+                                    userAnsIds.add(Integer.parseInt(sIdStr.trim()));
+                                } catch (NumberFormatException ignored) {}
+                            }
                         }
+                    }
+
+                    List<QuizAnswer> answers = learningDAO.getAnswersByQuestionId(q.getId());
+                    java.util.Set<Integer> correctAnsIds = new java.util.HashSet<>();
+                    if (answers != null) {
+                        for (QuizAnswer a : answers) {
+                            if (Boolean.TRUE.equals(a.getIsCorrect())) {
+                                correctAnsIds.add(a.getId());
+                            }
+                        }
+                    }
+
+                    if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
+                        score += points;
                     }
                 }
                 boolean passed = total > 0 && ((double) score / total) >= PASS_RATIO;

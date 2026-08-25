@@ -2,6 +2,7 @@ package com.DAO;
 
 import com.entity.Lesson;
 import com.entity.Section;
+import com.validator.DbTextValidator;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -32,6 +33,9 @@ public class LessonDAO extends DBContext {
     }
 
     public int insertLesson(Lesson lesson) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+        DbTextValidator.validateLength(lesson.getStatus(), 20, "Trạng thái bài học");
+
         String sql = "INSERT INTO lesson (section_id, title, type, order_number, status) VALUES (?, ?, ?, ?, ?)";
         try {
             connection = new DBContext().connection;
@@ -58,6 +62,8 @@ public class LessonDAO extends DBContext {
     }
 
     public void insertLessonVideo(int lessonId, String videoUrl) {
+        DbTextValidator.validateLength(videoUrl, 65535, "URL Video bài học");
+
         String sql = "INSERT INTO lesson_video (lesson_id, video_url, video_provider) VALUES (?, ?, 'youtube')";
         try {
             connection = new DBContext().connection;
@@ -88,6 +94,8 @@ public class LessonDAO extends DBContext {
     }
 
     public void insertLessonText(int lessonId, String content) {
+        DbTextValidator.validateLength(content, 10000000, "Nội dung bài học dạng văn bản");
+
         String sql = "INSERT INTO lesson_text (lesson_id, content) VALUES (?, ?)";
         try {
             connection = new DBContext().connection;
@@ -265,6 +273,8 @@ public class LessonDAO extends DBContext {
     }
 
     public void updateLesson(Lesson lesson) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+
         String sql = "UPDATE lesson SET title = ?, type = ?, order_number = ? WHERE id = ?";
         try {
             connection = new DBContext().connection;
@@ -282,6 +292,8 @@ public class LessonDAO extends DBContext {
     }
 
     public void upsertLessonVideo(int lessonId, String videoUrl) {
+        DbTextValidator.validateLength(videoUrl, 65535, "URL Video bài học");
+
         String sqlCheck = "SELECT lesson_id FROM lesson_video WHERE lesson_id = ?";
         boolean exists = false;
         try {
@@ -332,6 +344,8 @@ public class LessonDAO extends DBContext {
     }
 
     public void upsertLessonText(int lessonId, String content) {
+        DbTextValidator.validateLength(content, 10000000, "Nội dung bài học dạng văn bản");
+
         String sqlCheck = "SELECT lesson_id FROM lesson_text WHERE lesson_id = ?";
         boolean exists = false;
         try {

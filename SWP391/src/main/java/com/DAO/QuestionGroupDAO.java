@@ -1,6 +1,7 @@
 package com.DAO;
 
 import com.entity.QuestionGroup;
+import com.validator.DbTextValidator;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,6 +35,8 @@ public class QuestionGroupDAO extends DBContext {
     }
 
     public int createGroup(int courseId, String name) {
+        DbTextValidator.validateLength(name, 255, "Tên nhóm câu hỏi");
+
         String sql = "INSERT INTO question_group (course_id, name) VALUES (?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, courseId);
@@ -48,13 +51,27 @@ public class QuestionGroupDAO extends DBContext {
         return 0;
     }
 
-    public void deleteGroup(int id) {
+    public boolean deleteGroup(int id) {
+        String checkSql = "SELECT COUNT(*) FROM lesson_quiz WHERE question_group_id = ?";
+        try (PreparedStatement psCheck = connection.prepareStatement(checkSql)) {
+            psCheck.setInt(1, id);
+            try (ResultSet rs = psCheck.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return false; // In use by a lesson
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         String sql = "DELETE FROM question_group WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -74,4 +91,6 @@ public class QuestionGroupDAO extends DBContext {
         return false;
     }
 }
+
+
 

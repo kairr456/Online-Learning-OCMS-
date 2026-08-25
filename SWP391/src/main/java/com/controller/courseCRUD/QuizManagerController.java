@@ -376,40 +376,146 @@ public class QuizManagerController extends HttpServlet {
             return;
         }
 
+        QuizDAO quizDAO = new QuizDAO();
+        CourseDAO courseDAO = new CourseDAO();
+
+        // 1. Get teacher's active courses for the filter dropdown
+        List<Course> allCourses = courseDAO.findByCreator(account.getId());
+        List<Course> courses = new ArrayList<>();
+        if (allCourses != null) {
+            for (Course c : allCourses) {
+                if ("active".equalsIgnoreCase(c.getStatus())) {
+                    courses.add(c);
+                }
+            }
+        }
+        request.setAttribute("courses", courses);
+
+        String courseIdStr = request.getParameter("courseId");
+        String search = request.getParameter("search");
+        List<Map<String, Object>> teacherQuizzes = quizDAO.getQuizzesByTeacher(account.getId(), search, courseIdStr, null);
+        request.setAttribute("teacherQuizzes", teacherQuizzes);
+        request.setAttribute("selectedCourseId", courseIdStr);
+        request.setAttribute("searchKeyword", search);
+
         String quizIdStr = request.getParameter("quizId");
-        if (quizIdStr == null || quizIdStr.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/dashboard-quiz");
-            return;
+        String lessonIdStr = request.getParameter("lessonId");
+        int quizId = 0;
+        if (quizIdStr != null && !quizIdStr.trim().isEmpty()) {
+            try {
+                quizId = Integer.parseInt(quizIdStr.trim());
+            } catch (Exception ignored) {}
+        } else if (lessonIdStr != null && !lessonIdStr.trim().isEmpty()) {
+            try {
+                int lessonId = Integer.parseInt(lessonIdStr.trim());
+                Map<String, Object> lq = quizDAO.getLessonQuizByLessonId(lessonId);
+                if (lq != null) {
+                    quizId = (Integer) lq.get("id");
+                }
+            } catch (Exception ignored) {}
         }
 
-        int quizId = Integer.parseInt(quizIdStr);
-        QuizDAO quizDAO = new QuizDAO();
+        if (quizId <= 0) {
+            // Overview mode: Teacher chooses which course/quiz to view scores
+            request.setAttribute("isOverview", true);
+            request.getRequestDispatcher("/view/courseCRUD/quiz-results.jsp").forward(request, response);
+            return;
+        }
 
         Map<String, Object> quizInfo = quizDAO.getLessonQuizById(quizId);
 
         if (quizInfo == null) {
-            response.sendRedirect(request.getContextPath() + "/dashboard-quiz");
+            response.sendRedirect(request.getContextPath() + "/quiz-results");
             return;
         }
 
         List<Map<String, Object>> attempts = quizDAO.getAttemptsByQuizId(quizId);
         List<Map<String, Object>> questions = quizDAO.getQuestionsByQuizId(quizId);
 
+        // Calculate summary metrics
+        int totalAttempts = (attempts != null) ? attempts.size() : 0;
+        int passedCount = 0;
+        double totalScore = 0;
+        if (totalAttempts > 0) {
+            for (Map<String, Object> a : attempts) {
+                Boolean passed = (Boolean) a.get("passed");
+                if (passed != null && passed) passedCount++;
+                Number sc = (Number) a.get("score");
+                if (sc != null) totalScore += sc.doubleValue();
+            }
+        }
+        double avgScore = (totalAttempts > 0) ? Math.round((totalScore / totalAttempts) * 10.0) / 10.0 : 0.0;
+        double passRate = (totalAttempts > 0) ? Math.round(((double) passedCount / totalAttempts) * 100.0) : 0.0;
+
         request.setAttribute("quizInfo", quizInfo);
         request.setAttribute("attempts", attempts);
         request.setAttribute("questions", questions);
+        request.setAttribute("totalAttempts", totalAttempts);
+        request.setAttribute("passedCount", passedCount);
+        request.setAttribute("avgScore", avgScore);
+        request.setAttribute("passRate", passRate);
 
         String attemptIdStr = request.getParameter("attemptId");
-        if (attemptIdStr != null && !attemptIdStr.isEmpty()) {
-            int attemptId = Integer.parseInt(attemptIdStr);
-            List<Map<String, Object>> attemptAnswers = quizDAO.getAttemptAnswers(attemptId);
+        if (attemptIdStr != null && !attemptIdStr.trim().isEmpty()) {
+            try {
+                int attemptId = Integer.parseInt(attemptIdStr.trim());
+                List<Map<String, Object>> attemptAnswers = quizDAO.getAttemptAnswers(attemptId);
 
-            Map<Integer, Map<String, Object>> userAnswersMap = new HashMap<>();
-            for (Map<String, Object> ans : attemptAnswers) {
-                userAnswersMap.put((Integer) ans.get("question_id"), ans);
+                Map<Integer, List<Map<String, Object>>> userAnswersMap = new HashMap<>();
+                if (attemptAnswers != null) {
+                    for (Map<String, Object> ans : attemptAnswers) {
+                        int qKey = (Integer) ans.get("question_id");
+                        userAnswersMap.computeIfAbsent(qKey, k -> new ArrayList<>()).add(ans);
+                    }
+                }
+
+                if (questions != null) {
+                    for (Map<String, Object> q : questions) {
+                        int qId = (Integer) q.get("id");
+                        List<Map<String, Object>> uAnsList = userAnswersMap.get(qId);
+                        
+                        Map<String, Object> combinedAns = new HashMap<>();
+                        if (uAnsList != null && !uAnsList.isEmpty()) {
+                            StringBuilder sb = new StringBuilder();
+                            boolean allCorrect = true;
+                            for (Map<String, Object> ans : uAnsList) {
+                                if (sb.length() > 0) sb.append(", ");
+                                sb.append(ans.get("selected_answer_text"));
+                                
+                                Boolean isCorr = (Boolean) ans.get("is_correct");
+                                if (isCorr == null || !isCorr) {
+                                    allCorrect = false;
+                                }
+                            }
+                            
+                            // Check if student selected ALL correct answers and NO incorrect answers!
+                            List<Map<String, Object>> qAnswers = quizDAO.getAnswersByQuestionId(qId);
+                            int totalCorrectAnswers = 0;
+                            if (qAnswers != null) {
+                                for (Map<String, Object> qa : qAnswers) {
+                                    Boolean isCorr = (Boolean) qa.get("is_correct");
+                                    if (isCorr != null && isCorr) {
+                                        totalCorrectAnswers++;
+                                    }
+                                }
+                            }
+                            if (uAnsList.size() != totalCorrectAnswers) {
+                                allCorrect = false;
+                            }
+                            
+                            combinedAns.put("selected_answer_text", sb.toString());
+                            combinedAns.put("is_correct", allCorrect);
+                        } else {
+                            combinedAns.put("selected_answer_text", "");
+                            combinedAns.put("is_correct", false);
+                        }
+                        q.put("userAns", combinedAns);
+                    }
+                }
+                request.setAttribute("selectedAttemptId", attemptId);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            request.setAttribute("userAnswersMap", userAnswersMap);
-            request.setAttribute("selectedAttemptId", attemptId);
         }
 
         request.getRequestDispatcher("/view/courseCRUD/quiz-results.jsp").forward(request, response);

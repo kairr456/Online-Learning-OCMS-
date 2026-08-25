@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.entity.QuizQuestion;
+import com.validator.DbTextValidator;
 
 public class QuizDAO extends DBContext {
 
@@ -27,12 +28,15 @@ public class QuizDAO extends DBContext {
                      "  COUNT(DISTINCT CASE WHEN qa.passed = 1 THEN qa.id ELSE NULL END) AS passed_attempts " +
                      "FROM lesson l " +
                      "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
+                     "LEFT JOIN section s ON l.section_id = s.id " +
+                     "LEFT JOIN course c ON s.course_id = c.id " +
                      "LEFT JOIN question_bank qb ON lq.question_group_id = qb.group_id " +
                      "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
-                     "WHERE l.created_by = ? AND l.type = 'quiz'";
+                     "WHERE (l.created_by = ? OR c.created_by = ?) AND l.type = 'quiz' AND c.status = 'active'";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, teacherId);
+            ps.setInt(2, teacherId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     int totalAttempts = rs.getInt("total_attempts");
@@ -67,10 +71,11 @@ public class QuizDAO extends DBContext {
             "LEFT JOIN course c ON s.course_id = c.id " +
             "LEFT JOIN question_bank qb ON lq.question_group_id = qb.group_id " +
             "LEFT JOIN quiz_attempt qa ON lq.id = qa.quiz_id " +
-            "WHERE l.created_by = ? AND l.type = 'quiz' "
+            "WHERE (l.created_by = ? OR c.created_by = ?) AND l.type = 'quiz' AND c.status = 'active' "
         );
 
         List<Object> params = new ArrayList<>();
+        params.add(teacherId);
         params.add(teacherId);
 
         if (search != null && !search.trim().isEmpty()) {
@@ -116,23 +121,30 @@ public class QuizDAO extends DBContext {
     public List<Map<String, Object>> getRecentAttempts(int teacherId, int limit) {
         List<Map<String, Object>> attempts = new ArrayList<>();
         
-        String sql = "SELECT qa.id, acc.full_name AS student_name, l.title AS quiz_name, " +
+        String sql = "SELECT qa.id, acc.full_name AS student_name, acc.username, l.title AS quiz_name, " +
                      "qa.score, qa.passed, qa.end_time " +
                      "FROM quiz_attempt qa " +
                      "JOIN account acc ON qa.account_id = acc.id " +
                      "JOIN lesson_quiz lq ON qa.quiz_id = lq.id " +
                      "JOIN lesson l ON lq.lesson_id = l.id " +
-                     "WHERE l.created_by = ? " +
+                     "LEFT JOIN section s ON l.section_id = s.id " +
+                     "LEFT JOIN course c ON s.course_id = c.id " +
+                     "WHERE (l.created_by = ? OR c.created_by = ?) AND c.status = 'active' " +
                      "ORDER BY qa.end_time DESC LIMIT ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, teacherId);
-            ps.setInt(2, limit);
+            ps.setInt(2, teacherId);
+            ps.setInt(3, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> a = new HashMap<>();
                     a.put("id", rs.getInt("id"));
-                    a.put("student_name", rs.getString("student_name"));
+                    String studentName = rs.getString("student_name");
+                    if (studentName == null || studentName.trim().isEmpty()) {
+                        studentName = rs.getString("username");
+                    }
+                    a.put("student_name", studentName);
                     a.put("quiz_name", rs.getString("quiz_name"));
                     a.put("score", rs.getDouble("score"));
                     a.put("passed", rs.getInt("passed") == 1);
@@ -148,6 +160,10 @@ public class QuizDAO extends DBContext {
 
     // 4. Create new Quiz (Lesson)
     public int insertQuizLesson(com.entity.Lesson lesson, int createdBy) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+        DbTextValidator.validateLength(lesson.getDescription(), 65535, "Mô tả bài học");
+        DbTextValidator.validateLength(lesson.getStatus(), 20, "Trạng thái bài học");
+
         int lessonId = -1;
         String sql = "";
         
@@ -200,6 +216,8 @@ public class QuizDAO extends DBContext {
 
     // 6. Insert Quiz Question
     public int insertQuizQuestion(int quizId, String text, int points, int order) throws SQLException {
+        DbTextValidator.validateLength(text, 10000000, "Nội dung câu hỏi");
+
         // Find course_id and lesson_id
         int courseId = 0;
         int lessonId = 0;
@@ -372,7 +390,11 @@ public class QuizDAO extends DBContext {
     }
 
     public Map<String, Object> getLessonQuizById(int quizId) {
-        String sql = "SELECT * FROM lesson_quiz WHERE id = ?";
+        String sql = "SELECT lq.*, l.title AS lesson_title, c.name AS course_name, c.id AS course_id FROM lesson_quiz lq " +
+                     "JOIN lesson l ON lq.lesson_id = l.id " +
+                     "LEFT JOIN section s ON l.section_id = s.id " +
+                     "LEFT JOIN course c ON s.course_id = c.id " +
+                     "WHERE lq.id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, quizId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -380,6 +402,9 @@ public class QuizDAO extends DBContext {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
                     map.put("lesson_id", rs.getInt("lesson_id"));
+                    map.put("lesson_title", rs.getString("lesson_title"));
+                    map.put("course_name", rs.getString("course_name"));
+                    map.put("course_id", rs.getInt("course_id"));
                     map.put("passing_score", rs.getInt("passing_score"));
                     map.put("max_retakes", rs.getInt("max_retakes"));
                     map.put("number_of_questions", rs.getInt("number_of_questions"));
@@ -399,9 +424,12 @@ public class QuizDAO extends DBContext {
         String sql = "SELECT lq.id AS quiz_id, l.title AS lesson_title " +
                      "FROM lesson l " +
                      "JOIN lesson_quiz lq ON l.id = lq.lesson_id " +
-                     "WHERE l.created_by = ? AND l.type = 'quiz'";
+                     "LEFT JOIN section s ON l.section_id = s.id " +
+                     "LEFT JOIN course c ON s.course_id = c.id " +
+                     "WHERE (l.created_by = ? OR c.created_by = ?) AND l.type = 'quiz'";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, teacherId);
+            ps.setInt(2, teacherId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> map = new HashMap<>();
@@ -418,7 +446,7 @@ public class QuizDAO extends DBContext {
 
     public List<Map<String, Object>> getAttemptAnswers(int attemptId) {
         List<Map<String, Object>> ans = new ArrayList<>();
-        String sql = "SELECT qaa.question_bank_id AS question_id, qaa.selected_answer_id, qa.is_correct " +
+        String sql = "SELECT qaa.question_bank_id AS question_id, qaa.selected_answer_id, qa.answer_text AS selected_answer_text, qa.is_correct " +
                      "FROM quiz_attempt_answer qaa " +
                      "JOIN question_bank_answer qa ON qaa.selected_answer_id = qa.id " +
                      "WHERE qaa.attempt_id = ?";
@@ -429,6 +457,7 @@ public class QuizDAO extends DBContext {
                     Map<String, Object> map = new HashMap<>();
                     map.put("question_id", rs.getInt("question_id"));
                     map.put("selected_answer_id", rs.getInt("selected_answer_id"));
+                    map.put("selected_answer_text", rs.getString("selected_answer_text"));
                     map.put("is_correct", rs.getBoolean("is_correct"));
                     ans.add(map);
                 }
@@ -441,7 +470,7 @@ public class QuizDAO extends DBContext {
 
     public List<Map<String, Object>> getAttemptsByQuizId(int quizId) {
         List<Map<String, Object>> attempts = new ArrayList<>();
-        String sql = "SELECT qa.id, acc.full_name AS student_name, " +
+        String sql = "SELECT qa.id, acc.full_name AS student_name, acc.username, " +
                      "qa.score, qa.passed, qa.end_time " +
                      "FROM quiz_attempt qa " +
                      "JOIN account acc ON qa.account_id = acc.id " +
@@ -453,7 +482,11 @@ public class QuizDAO extends DBContext {
                 while (rs.next()) {
                     Map<String, Object> a = new HashMap<>();
                     a.put("id", rs.getInt("id"));
-                    a.put("student_name", rs.getString("student_name"));
+                    String studentName = rs.getString("student_name");
+                    if (studentName == null || studentName.trim().isEmpty()) {
+                        studentName = rs.getString("username");
+                    }
+                    a.put("student_name", studentName);
                     a.put("score", rs.getDouble("score"));
                     a.put("passed", rs.getInt("passed") == 1);
                     a.put("end_time", rs.getTimestamp("end_time"));
@@ -519,6 +552,10 @@ public class QuizDAO extends DBContext {
     }
 
     public void updateQuizLesson(com.entity.Lesson lesson) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+        DbTextValidator.validateLength(lesson.getDescription(), 65535, "Mô tả bài học");
+        DbTextValidator.validateLength(lesson.getStatus(), 20, "Trạng thái bài học");
+
         String sql = "UPDATE lesson SET title = ?, description = ?, duration_minutes = ?, status = ? WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, lesson.getTitle());
@@ -660,6 +697,8 @@ public class QuizDAO extends DBContext {
     }
 
     public int insertQuestion(int courseId, int groupId, String questionText, int points) throws SQLException {
+        DbTextValidator.validateLength(questionText, 10000000, "Nội dung câu hỏi");
+
         String sql = "INSERT INTO question_bank (course_id, group_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, courseId);
@@ -675,6 +714,8 @@ public class QuizDAO extends DBContext {
     }
 
     public void updateQuestion(int questionId, String questionText, int points) throws SQLException {
+        DbTextValidator.validateLength(questionText, 10000000, "Nội dung câu hỏi");
+
         String sql = "UPDATE question_bank SET question_text = ?, points = ? WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, questionText);
