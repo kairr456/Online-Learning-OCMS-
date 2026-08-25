@@ -38,6 +38,7 @@ function addBlogSection(headingVal, imgUrlVal, captionVal, textVal) {
             <label class="form-label">Tiêu đề đoạn (Phụ đề mục này) <span class="required" style="color: #D64545;">*</span></label>
             <input type="text" class="form-control section-heading-input" 
                    placeholder="VD: 1. Giới thiệu tổng quan hoặc Những điều cần lưu ý..." 
+                   maxlength="255"
                    value="${escapeHtmlAttr(heading)}">
         </div>
 
@@ -62,6 +63,7 @@ function addBlogSection(headingVal, imgUrlVal, captionVal, textVal) {
             <label class="form-label">Chú thích hình ảnh (Tùy chọn)</label>
             <input type="text" class="form-control section-caption-input" 
                    placeholder="VD: Hình ảnh minh họa cấu trúc hệ thống hoặc sơ đồ luồng..." 
+                   maxlength="255"
                    value="${escapeHtmlAttr(caption)}">
         </div>
 
@@ -342,6 +344,11 @@ function compileAndValidateForm(e) {
         showFormValidationError(titleEl, 'Vui lòng nhập Tiêu đề bài viết (không được để trống hoặc chỉ chứa khoảng trắng)!');
         return false;
     }
+    if (title.length > 255) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        showFormValidationError(titleEl, 'Tiêu đề bài viết không được vượt quá 255 ký tự (hiện tại: ' + title.length + ' ký tự)!');
+        return false;
+    }
 
     // 2. Kiểm tra Danh mục bài viết
     var categoryIdEl = document.getElementById('categoryId');
@@ -408,6 +415,24 @@ function compileAndValidateForm(e) {
             showFormValidationError(
                 headingInput,
                 'Vui lòng nhập Tiêu đề đoạn của khối nội dung bổ sung số ' + sectionIndex + ' (không được để trống hoặc chỉ chứa khoảng trắng)!'
+            );
+            return false;
+        }
+
+        if (heading.length > 255) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            showFormValidationError(
+                headingInput,
+                'Tiêu đề đoạn của khối nội dung bổ sung số ' + sectionIndex + ' không được vượt quá 255 ký tự!'
+            );
+            return false;
+        }
+
+        if (caption && caption.length > 255) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            showFormValidationError(
+                captionInput,
+                'Chú thích hình ảnh của khối nội dung bổ sung số ' + sectionIndex + ' không được vượt quá 255 ký tự!'
             );
             return false;
         }

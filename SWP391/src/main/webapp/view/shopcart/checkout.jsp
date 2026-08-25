@@ -79,14 +79,14 @@
                                 <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="fullName" id="fullName" 
                                        value="${not empty paramFullName ? paramFullName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : '')}" 
-                                       placeholder="VD: Nguyễn Văn A">
+                                       placeholder="VD: Nguyễn Văn A" maxlength="100">
                                 <div class="field-error" id="fullNameError"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Email liên hệ <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" name="email" id="email" 
                                        value="${not empty paramEmail ? paramEmail : (sessionScope.account != null ? sessionScope.account.email : '')}" 
-                                       placeholder="email@example.com">
+                                       placeholder="email@example.com" maxlength="255">
                                 <div class="field-error" id="emailError"></div>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
                             <label class="form-label">Địa chỉ <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="address" id="address" 
                                     placeholder="Số nhà, tên đường, quận/huyện..." 
-                                    value="${not empty paramAddress ? paramAddress : 'Hồ Chí Minh, Việt Nam'}">
+                                    value="${not empty paramAddress ? paramAddress : 'Hồ Chí Minh, Việt Nam'}" maxlength="255">
                             <div class="field-error" id="addressError"></div>
                         </div>
                     </div>
@@ -163,7 +163,7 @@
                                 <div class="mb-0">
                                     <label class="form-label">Tên in trên thẻ (Name on Card) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control text-uppercase" id="cardName" name="cardName" 
-                                           placeholder="NGUYEN VAN A" 
+                                           placeholder="NGUYEN VAN A" maxlength="100"
                                            value="${not empty paramCardName ? paramCardName : (sessionScope.account != null ? (not empty sessionScope.account.fullName ? sessionScope.account.fullName : sessionScope.account.username) : 'NGUYEN VAN A')}">
                                     <div class="field-error" id="cardNameError"></div>
                                 </div>

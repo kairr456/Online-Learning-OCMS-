@@ -92,7 +92,7 @@
                     <label for="title">Tiêu đề bài viết <span class="required">*</span></label>
                     <input type="text" id="title" name="title" class="form-control ${not empty errorTitle ? 'has-error' : ''}" 
                            placeholder="Nhập tiêu đề bài viết (ví dụ: Lộ trình học Java từ con số 0)..." 
-                           value="<c:out value='${formTitle}' />" required
+                           value="<c:out value='${formTitle}' />" maxlength="255" required
                            style="${not empty errorTitle ? 'border-color: #D64545;' : ''}">
                     <c:if test="${not empty errorTitle}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorTitle}" /></span></div>

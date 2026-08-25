@@ -565,7 +565,7 @@
                         <!-- Ghi chú cho Admin (Tùy chọn) -->
                         <div class="mb-2">
                             <label for="withdrawNote" class="form-label fw-bold">Ghi chú (Tùy chọn)</label>
-                            <textarea name="note" id="withdrawNote" class="form-control" rows="2" placeholder="Ghi chú thêm nếu cần..."></textarea>
+                            <textarea name="note" id="withdrawNote" class="form-control" rows="2" placeholder="Ghi chú thêm nếu cần..." maxlength="255"></textarea>
                         </div>
                     </div>
                     

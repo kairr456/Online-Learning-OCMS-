@@ -189,6 +189,10 @@ public class BlogApprovalController extends HttpServlet {
             writeJsonResponse(response, false, "Vui lòng nhập lý do từ chối bài viết.");
             return;
         }
+        if (reason.trim().length() > 500) {
+            writeJsonResponse(response, false, "Lý do từ chối không được vượt quá 500 ký tự.");
+            return;
+        }
 
         boolean ok = new BlogApprovalDAO().rejectBlog(id, reason.trim());
         if (ok) {

@@ -610,6 +610,9 @@ public class BlogController extends HttpServlet {
         if (title.isEmpty()) {
             request.setAttribute("errorTitle", "Vui lòng nhập Tiêu đề bài viết!");
             hasError = true;
+        } else if (title.length() > 255) {
+            request.setAttribute("errorTitle", "Tiêu đề bài viết không được vượt quá 255 ký tự!");
+            hasError = true;
         }
         if (categoryId <= 0) {
             request.setAttribute("errorCategory", "Vui lòng chọn Danh mục bài viết!");
