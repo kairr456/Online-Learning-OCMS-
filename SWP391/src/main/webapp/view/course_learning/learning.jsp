@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
@@ -184,9 +184,17 @@
                                         <c:forEach var="q" items="${quizQuestions}" varStatus="qs">
                                             <div class="quiz-question">
                                                 <div class="quiz-question-title">${qs.index + 1}. ${q.questionText}</div>
+                                                <c:set var="isMulti" value="${quizQuestionMultipleChoiceMap[q.id]}" />
                                                 <c:forEach var="a" items="${quizAnswers[q.id]}">
                                                     <label class="quiz-answer">
-                                                        <input type="radio" name="answer_${q.id}" value="${a.id}">
+                                                        <c:choose>
+                                                            <c:when test="${isMulti}">
+                                                                <input type="checkbox" name="answer_${q.id}" value="${a.id}">
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <input type="radio" name="answer_${q.id}" value="${a.id}">
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                         <span>${a.answerText}</span>
                                                     </label>
                                                 </c:forEach>
