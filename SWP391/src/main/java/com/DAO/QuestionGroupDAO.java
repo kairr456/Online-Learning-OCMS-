@@ -1,6 +1,7 @@
 package com.DAO;
 
 import com.entity.QuestionGroup;
+import com.validator.DbTextValidator;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,6 +35,8 @@ public class QuestionGroupDAO extends DBContext {
     }
 
     public int createGroup(int courseId, String name) {
+        DbTextValidator.validateLength(name, 255, "Tên nhóm câu hỏi");
+
         String sql = "INSERT INTO question_group (course_id, name) VALUES (?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, courseId);
