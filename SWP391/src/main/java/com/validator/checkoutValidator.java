@@ -8,9 +8,9 @@ import java.util.regex.Pattern;
  */
 public class checkoutValidator {
 
-    // Regex kiểm tra định dạng email: ^[^\s@]+@[^\s@]+$
+    // Regex kiểm tra định dạng email
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[^\\s@]+@[^\\s@]+$");
+            Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     // Regex kiểm tra chỉ chứa chữ cái (bao gồm tiếng Việt có dấu), khoảng trắng, dấu gạch nối/dấu nháy
     private static final Pattern NAME_PATTERN =
@@ -65,6 +65,9 @@ public class checkoutValidator {
         if (isBlank(address)) {
             return "Thiếu trường chưa điền: Vui lòng nhập Địa chỉ.";
         }
+        if (address.trim().length() > 255) {
+            return "Địa chỉ không được vượt quá 255 ký tự.";
+        }
 
         // 2. Validate Họ và tên (phải là chữ, không được chứa số)
         String trimmedFullName = fullName.trim();
@@ -77,8 +80,14 @@ public class checkoutValidator {
         if (trimmedFullName.length() < 2) {
             return "Họ và tên phải có ít nhất 2 ký tự.";
         }
+        if (trimmedFullName.length() > 100) {
+            return "Họ và tên không được vượt quá 100 ký tự.";
+        }
 
         // 3. Validate Email
+        if (email.trim().length() > 255) {
+            return "Email liên hệ không được vượt quá 255 ký tự.";
+        }
         if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
             return "Email liên hệ không đúng định dạng vd:user01@gmai.com";
         }
@@ -128,6 +137,9 @@ public class checkoutValidator {
             }
             if (!NAME_PATTERN.matcher(trimmedCardName).matches()) {
                 return "Tên in trên thẻ không hợp lệ (chỉ được chứa chữ cái và khoảng trắng).";
+            }
+            if (trimmedCardName.length() > 100) {
+                return "Tên in trên thẻ không được vượt quá 100 ký tự.";
             }
         }
 

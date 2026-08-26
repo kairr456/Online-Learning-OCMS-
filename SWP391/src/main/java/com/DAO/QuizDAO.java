@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.entity.QuizQuestion;
+import com.validator.DbTextValidator;
 
 public class QuizDAO extends DBContext {
 
@@ -159,6 +160,10 @@ public class QuizDAO extends DBContext {
 
     // 4. Create new Quiz (Lesson)
     public int insertQuizLesson(com.entity.Lesson lesson, int createdBy) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+        DbTextValidator.validateLength(lesson.getDescription(), 65535, "Mô tả bài học");
+        DbTextValidator.validateLength(lesson.getStatus(), 20, "Trạng thái bài học");
+
         int lessonId = -1;
         String sql = "";
         
@@ -211,11 +216,8 @@ public class QuizDAO extends DBContext {
 
     // 6. Insert Quiz Question
     public int insertQuizQuestion(int quizId, String text, int points, int order) throws SQLException {
-<<<<<<< Updated upstream
-=======
-        DbTextValidator.validateLength(text, 1000, "Nội dung câu hỏi");
+        DbTextValidator.validateLength(text, 10000000, "Nội dung câu hỏi");
 
->>>>>>> Stashed changes
         // Find course_id and lesson_id
         int courseId = 0;
         int lessonId = 0;
@@ -550,6 +552,10 @@ public class QuizDAO extends DBContext {
     }
 
     public void updateQuizLesson(com.entity.Lesson lesson) {
+        DbTextValidator.validateLength(lesson.getTitle(), 255, "Tiêu đề bài học");
+        DbTextValidator.validateLength(lesson.getDescription(), 65535, "Mô tả bài học");
+        DbTextValidator.validateLength(lesson.getStatus(), 20, "Trạng thái bài học");
+
         String sql = "UPDATE lesson SET title = ?, description = ?, duration_minutes = ?, status = ? WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, lesson.getTitle());
@@ -691,11 +697,8 @@ public class QuizDAO extends DBContext {
     }
 
     public int insertQuestion(int courseId, int groupId, String questionText, int points) throws SQLException {
-<<<<<<< Updated upstream
-=======
-        DbTextValidator.validateLength(questionText, 1000, "Nội dung câu hỏi");
+        DbTextValidator.validateLength(questionText, 10000000, "Nội dung câu hỏi");
 
->>>>>>> Stashed changes
         String sql = "INSERT INTO question_bank (course_id, group_id, question_text, points, status) VALUES (?, ?, ?, ?, 'active')";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, courseId);
@@ -711,11 +714,8 @@ public class QuizDAO extends DBContext {
     }
 
     public void updateQuestion(int questionId, String questionText, int points) throws SQLException {
-<<<<<<< Updated upstream
-=======
-        DbTextValidator.validateLength(questionText, 1000, "Nội dung câu hỏi");
+        DbTextValidator.validateLength(questionText, 10000000, "Nội dung câu hỏi");
 
->>>>>>> Stashed changes
         String sql = "UPDATE question_bank SET question_text = ?, points = ? WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, questionText);

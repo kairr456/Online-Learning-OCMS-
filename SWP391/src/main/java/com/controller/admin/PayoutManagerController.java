@@ -118,24 +118,37 @@ public class PayoutManagerController extends HttpServlet {
 
             if ("approve".equals(action)) {
                 String transactionCode = request.getParameter("transactionCode");
-                boolean ok = walletDAO.approvePayout(payoutId, transactionCode != null ? transactionCode.trim() : "");
-                if (ok) {
-                    session.setAttribute("message", "Đã duyệt đơn rút #" + payoutId + " và xác nhận chuyển tiền thành công!");
-                    session.setAttribute("messageType", "success");
-                } else {
-                    session.setAttribute("message", "Không thể duyệt đơn rút #" + payoutId + ". Vui lòng thử lại!");
+                if (transactionCode == null || transactionCode.trim().isEmpty()) {
+                    session.setAttribute("message", "Vui lòng nhập Mã giao dịch ngân hàng (không được để trống hoặc chỉ chứa khoảng trắng)!");
                     session.setAttribute("messageType", "error");
+                } else {
+                    boolean ok = walletDAO.approvePayout(payoutId, transactionCode.trim());
+                    if (ok) {
+                        session.setAttribute("message", "Đã duyệt đơn rút #" + payoutId + " và xác nhận chuyển tiền thành công!");
+                        session.setAttribute("messageType", "success");
+                    } else {
+                        session.setAttribute("message", "Không thể duyệt đơn rút #" + payoutId + ". Vui lòng thử lại!");
+                        session.setAttribute("messageType", "error");
+                    }
                 }
 
             } else if ("reject".equals(action)) {
                 String adminNote = request.getParameter("adminNote");
-                boolean ok = walletDAO.rejectPayout(payoutId, adminNote != null ? adminNote.trim() : "");
-                if (ok) {
-                    session.setAttribute("message", "Đã từ chối đơn rút #" + payoutId + " và hoàn trả tiền về ví giảng viên!");
-                    session.setAttribute("messageType", "warning");
-                } else {
-                    session.setAttribute("message", "Không thể từ chối đơn rút #" + payoutId + ". Vui lòng thử lại!");
+                if (adminNote == null || adminNote.replaceAll("\\s+", "").isEmpty()) {
+                    session.setAttribute("message", "Vui lòng nhập Lý do từ chối (không được để trống hoặc chỉ chứa khoảng trắng)!");
                     session.setAttribute("messageType", "error");
+                } else if (adminNote.replaceAll("\\s+", "").length() > 100) {
+                    session.setAttribute("message", "Lý do từ chối không được vượt quá 100 ký tự!");
+                    session.setAttribute("messageType", "error");
+                } else {
+                    boolean ok = walletDAO.rejectPayout(payoutId, adminNote.trim());
+                    if (ok) {
+                        session.setAttribute("message", "Đã từ chối đơn rút #" + payoutId + " và hoàn trả tiền về ví giảng viên!");
+                        session.setAttribute("messageType", "warning");
+                    } else {
+                        session.setAttribute("message", "Không thể từ chối đơn rút #" + payoutId + ". Vui lòng thử lại!");
+                        session.setAttribute("messageType", "error");
+                    }
                 }
             }
         } catch (Exception e) {

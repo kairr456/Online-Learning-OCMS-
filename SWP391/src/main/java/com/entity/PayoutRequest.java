@@ -14,7 +14,8 @@ public class PayoutRequest {
     private BigDecimal amount;
     private String status; // 'pending', 'completed', 'rejected'
     private String transactionCode;
-    private String adminNote;
+    private String note; // Ghi chú của giảng viên khi gửi yêu cầu rút tiền
+    private String adminNote; // Lý do từ chối hoặc ghi chú của Admin
     private Timestamp createdAt;
     private Timestamp processedAt;
 
@@ -55,6 +56,9 @@ public class PayoutRequest {
 
     public String getTransactionCode() { return transactionCode; }
     public void setTransactionCode(String transactionCode) { this.transactionCode = transactionCode; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 
     public String getAdminNote() { return adminNote; }
     public void setAdminNote(String adminNote) { this.adminNote = adminNote; }

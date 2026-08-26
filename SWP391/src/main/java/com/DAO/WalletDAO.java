@@ -104,19 +104,35 @@ public class WalletDAO extends DBContext {
                     + "  `amount` DECIMAL(15,2) NOT NULL,"
                     + "  `status` VARCHAR(50) DEFAULT 'pending',"
                     + "  `transaction_code` VARCHAR(100) DEFAULT NULL,"
-                    + "  `admin_note` TEXT,"
+                    + "  `note` TEXT DEFAULT NULL,"
+                    + "  `admin_note` TEXT DEFAULT NULL,"
                     + "  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
                     + "  `processed_at` TIMESTAMP NULL DEFAULT NULL,"
                     + "  PRIMARY KEY (`id`),"
                     + "  KEY `idx_payout_teacher` (`teacher_id`)"
                     + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-            // Tự động mở rộng cột account_number lên VARCHAR(255) nếu DB đang dùng cấu trúc cũ
+            // Tự động mở rộng cột account_number lên VARCHAR(255) và thêm cột note nếu DB đang dùng cấu trúc cũ
             try {
                 stmt.execute("ALTER TABLE `teacher_bank_account` MODIFY COLUMN `account_number` VARCHAR(255) NOT NULL");
             } catch (Exception ignored) {}
             try {
                 stmt.execute("ALTER TABLE `payout_request` MODIFY COLUMN `account_number` VARCHAR(255) DEFAULT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("ALTER TABLE `payout_request` ADD COLUMN `note` TEXT DEFAULT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("ALTER TABLE `payout_request` MODIFY COLUMN `admin_note` TEXT DEFAULT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("UPDATE `payout_request` SET `note` = `admin_note`, `admin_note` = NULL WHERE (`note` IS NULL OR `note` = '') AND `admin_note` IS NOT NULL AND `status` IN ('completed', 'approved', 'pending')");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("UPDATE `payout_request` SET `admin_note` = NULL WHERE `status` IN ('completed', 'approved') AND `admin_note` IS NOT NULL");
+            } catch (Exception ignored) {}
+            try {
+                stmt.execute("ALTER TABLE `wallet_transaction` MODIFY COLUMN `description` TEXT DEFAULT NULL");
             } catch (Exception ignored) {}
 
             // Tự động mã hóa dữ liệu STK cũ chưa mã hóa trong Database
@@ -405,7 +421,19 @@ public class WalletDAO extends DBContext {
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}
                 try { po.setTransactionCode(resultSet.getString("transaction_code")); } catch (Exception ignored) {}
-                try { po.setAdminNote(resultSet.getString("admin_note")); } catch (Exception ignored) {}
+                String noteVal = null;
+                try { noteVal = resultSet.getString("note"); } catch (Exception ignored) {}
+                String adminNoteVal = null;
+                try { adminNoteVal = resultSet.getString("admin_note"); } catch (Exception ignored) {}
+                if ((noteVal == null || noteVal.isEmpty()) && adminNoteVal != null && !adminNoteVal.isEmpty() && !"rejected".equalsIgnoreCase(po.getStatus())) {
+                    noteVal = adminNoteVal;
+                    adminNoteVal = null;
+                }
+                if (!"rejected".equalsIgnoreCase(po.getStatus())) {
+                    adminNoteVal = null;
+                }
+                po.setNote(noteVal);
+                po.setAdminNote(adminNoteVal);
                 try { po.setCreatedAt(resultSet.getTimestamp("created_at")); } catch (Exception ignored) {}
                 try { po.setProcessedAt(resultSet.getTimestamp("processed_at")); } catch (Exception ignored) {}
                 list.add(po);
@@ -486,8 +514,8 @@ public class WalletDAO extends DBContext {
             psUpdate.close();
 
             // 4. Tạo bản ghi Payout Request
-            String insertPayoutSql = "INSERT INTO payout_request (teacher_id, bank_account_id, bank_code, bank_name, account_number, account_holder, amount, status, admin_note) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)";
+            String insertPayoutSql = "INSERT INTO payout_request (teacher_id, bank_account_id, bank_code, bank_name, account_number, account_holder, amount, status, note, admin_note) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, NULL)";
             PreparedStatement psPayout = conn.prepareStatement(insertPayoutSql, Statement.RETURN_GENERATED_KEYS);
             psPayout.setInt(1, teacherId);
             psPayout.setInt(2, bankId);
@@ -630,7 +658,19 @@ public class WalletDAO extends DBContext {
                 po.setAmount(resultSet.getBigDecimal("amount") != null ? resultSet.getBigDecimal("amount") : BigDecimal.ZERO);
                 try { po.setStatus(resultSet.getString("status")); } catch (Exception ignored) {}
                 try { po.setTransactionCode(resultSet.getString("transaction_code")); } catch (Exception ignored) {}
-                try { po.setAdminNote(resultSet.getString("admin_note")); } catch (Exception ignored) {}
+                String noteVal = null;
+                try { noteVal = resultSet.getString("note"); } catch (Exception ignored) {}
+                String adminNoteVal = null;
+                try { adminNoteVal = resultSet.getString("admin_note"); } catch (Exception ignored) {}
+                if ((noteVal == null || noteVal.isEmpty()) && adminNoteVal != null && !adminNoteVal.isEmpty() && !"rejected".equalsIgnoreCase(po.getStatus())) {
+                    noteVal = adminNoteVal;
+                    adminNoteVal = null;
+                }
+                if (!"rejected".equalsIgnoreCase(po.getStatus())) {
+                    adminNoteVal = null;
+                }
+                po.setNote(noteVal);
+                po.setAdminNote(adminNoteVal);
                 try { po.setCreatedAt(resultSet.getTimestamp("created_at")); } catch (Exception ignored) {}
                 try { po.setProcessedAt(resultSet.getTimestamp("processed_at")); } catch (Exception ignored) {}
                 try { po.setTeacherName(resultSet.getString("teacher_name")); } catch (Exception ignored) {}
@@ -672,8 +712,8 @@ public class WalletDAO extends DBContext {
             int teacherId = rs.getInt("teacher_id");
             BigDecimal amount = rs.getBigDecimal("amount");
 
-            // 2. Cập nhật trạng thái Payout
-            String updatePoSql = "UPDATE payout_request SET status = 'completed', transaction_code = ?, processed_at = NOW() WHERE id = ?";
+            // 2. Cập nhật trạng thái Payout (đặt admin_note = NULL để chắc chắn không hiển thị lý do từ chối)
+            String updatePoSql = "UPDATE payout_request SET status = 'completed', transaction_code = ?, admin_note = NULL, processed_at = NOW() WHERE id = ?";
             PreparedStatement psPo = conn.prepareStatement(updatePoSql);
             psPo.setString(1, transactionCode);
             psPo.setInt(2, payoutId);
@@ -755,7 +795,15 @@ public class WalletDAO extends DBContext {
                 psTx.setBigDecimal(2, amount);
                 psTx.setBigDecimal(3, refundedBal);
                 psTx.setInt(4, payoutId);
-                psTx.setString(5, "Hoàn tiền do từ chối yêu cầu rút đơn #PO-" + payoutId + (adminNote != null ? " (" + adminNote + ")" : ""));
+                String txDesc = "Hoàn tiền do từ chối yêu cầu rút đơn #PO-" + payoutId;
+                if (adminNote != null && !adminNote.trim().isEmpty()) {
+                    String cleanNote = adminNote.trim();
+                    if (cleanNote.length() > 200) {
+                        cleanNote = cleanNote.substring(0, 197) + "...";
+                    }
+                    txDesc += " (" + cleanNote + ")";
+                }
+                psTx.setString(5, txDesc);
                 psTx.executeUpdate();
             }
 

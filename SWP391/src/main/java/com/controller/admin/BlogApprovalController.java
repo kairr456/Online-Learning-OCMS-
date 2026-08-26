@@ -185,8 +185,12 @@ public class BlogApprovalController extends HttpServlet {
             writeJsonResponse(response, false, "ID bài viết không hợp lệ.");
             return;
         }
-        if (reason == null || reason.trim().isEmpty()) {
-            writeJsonResponse(response, false, "Vui lòng nhập lý do từ chối bài viết.");
+        if (reason == null || reason.replaceAll("\\s+", "").isEmpty()) {
+            writeJsonResponse(response, false, "Vui lòng nhập lý do từ chối bài viết (không được để trống hoặc chỉ chứa khoảng trắng).");
+            return;
+        }
+        if (reason.replaceAll("\\s+", "").length() > 300) {
+            writeJsonResponse(response, false, "Lý do từ chối không được vượt quá 300 ký tự.");
             return;
         }
 

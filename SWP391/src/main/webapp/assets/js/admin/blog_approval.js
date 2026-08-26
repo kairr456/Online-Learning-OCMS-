@@ -167,14 +167,83 @@
     // ==========================================
     // 3. REJECT BLOG (WITH REASON MODAL)
     // ==========================================
+    window.validateBlogRejectReason = function(el) {
+        const input = el || document.getElementById('rejectReasonInput');
+        if (!input) return true;
+        const maxChars = 300;
+        const rawVal = input.value || '';
+        // Loại bỏ hoàn toàn tất cả khoảng trắng, dấu cách, tab, xuống dòng khi đếm ký tự
+        const noSpaceStr = rawVal.replace(/\s/g, '');
+        const count = noSpaceStr.length;
+        const err = document.getElementById('blogRejectReasonError');
+        const counter = document.getElementById('rejectReasonCount');
+
+        if (counter) {
+            counter.innerText = count + '/' + maxChars + ' ký tự';
+            if (count > maxChars) {
+                counter.style.color = '#DC2626';
+                counter.style.fontWeight = 'bold';
+            } else {
+                counter.style.color = '#64748B';
+                counter.style.fontWeight = '500';
+            }
+        }
+
+        if (count === 0) {
+            if (rawVal.length > 0) {
+                if (err) {
+                    err.innerText = "Lý do từ chối không được chỉ chứa khoảng trắng.";
+                    err.style.display = "block";
+                }
+                input.classList.add('is-invalid');
+            } else {
+                if (err) {
+                    err.style.display = "none";
+                    err.innerText = "";
+                }
+                input.classList.remove('is-invalid');
+            }
+            return false;
+        } else if (count > maxChars) {
+            if (err) {
+                err.innerText = "Lý do từ chối không được vượt quá " + maxChars + " ký tự (hiện tại: " + count + " ký tự).";
+                err.style.display = "block";
+            }
+            input.classList.add('is-invalid');
+            return false;
+        } else {
+            if (err) {
+                err.style.display = "none";
+                err.innerText = "";
+            }
+            input.classList.remove('is-invalid');
+            return true;
+        }
+    };
+
     function openRejectModal(id, title) {
         const idInput = document.getElementById('rejectBlogId');
         const titleEl = document.getElementById('rejectBlogTitle');
         const reasonInput = document.getElementById('rejectReasonInput');
+        const err = document.getElementById('blogRejectReasonError');
+        const counter = document.getElementById('rejectReasonCount');
 
         if (idInput) idInput.value = id || '';
         if (titleEl) titleEl.textContent = title ? `Bài viết: "${title}"` : `Bài viết #${id}`;
-        if (reasonInput) reasonInput.value = '';
+        
+        if (reasonInput) {
+            reasonInput.value = '';
+            reasonInput.classList.remove('is-invalid');
+        }
+        if (err) {
+            err.style.display = 'none';
+            err.innerText = '';
+        }
+        if (counter) {
+            counter.innerText = '0/300 ký tự';
+            counter.style.color = '#64748B';
+            counter.style.fontWeight = '500';
+        }
 
         if (rejectModal) {
             rejectModal.style.display = 'flex';
@@ -196,6 +265,7 @@
         const idInput = document.getElementById('rejectBlogId');
         const reasonInput = document.getElementById('rejectReasonInput');
         const btnSubmit = document.getElementById('btnConfirmReject');
+        const err = document.getElementById('blogRejectReasonError');
 
         const id = idInput ? idInput.value : '';
         const reason = reasonInput ? reasonInput.value.trim() : '';
@@ -206,7 +276,23 @@
         }
 
         if (!reason) {
-            showToast('Vui lòng nhập lý do từ chối bài viết!', 'error');
+            if (err) {
+                if ((reasonInput ? reasonInput.value : '').length > 0) {
+                    err.innerText = "Lý do từ chối không được chỉ chứa khoảng trắng.";
+                } else {
+                    err.innerText = "Vui lòng nhập lý do từ chối bài viết.";
+                }
+                err.style.display = 'block';
+            }
+            if (reasonInput) {
+                reasonInput.classList.add('is-invalid');
+                reasonInput.focus();
+            }
+            return false;
+        }
+
+        // Bắt lỗi rỗng / khoảng trắng / quá ký tự trực tiếp dưới khung
+        if (!window.validateBlogRejectReason(reasonInput)) {
             if (reasonInput) reasonInput.focus();
             return false;
         }
@@ -234,16 +320,27 @@
                     closeRejectModal();
                     setTimeout(() => location.reload(), 700);
                 } else {
-                    showToast(data.error || 'Từ chối bài viết thất bại!', 'error');
+                    // Hiển thị lỗi từ backend trực tiếp dưới khung
+                    if (err) {
+                        err.innerText = data.error || 'Từ chối bài viết thất bại!';
+                        err.style.display = 'block';
+                    }
+                    if (reasonInput) {
+                        reasonInput.classList.add('is-invalid');
+                        reasonInput.focus();
+                    }
                 }
             })
-            .catch(err => {
-                console.error(err);
+            .catch(errFetch => {
+                console.error(errFetch);
                 if (btnSubmit) {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi lý do &amp; Từ chối';
                 }
-                showToast('Lỗi kết nối máy chủ!', 'error');
+                if (err) {
+                    err.innerText = 'Lỗi kết nối máy chủ, vui lòng thử lại!';
+                    err.style.display = 'block';
+                }
             });
 
         return false;
@@ -284,7 +381,24 @@
         }
     });
 
+    // Event listeners for real-time validation and character counting
+    document.addEventListener('DOMContentLoaded', function () {
+        const reasonInput = document.getElementById('rejectReasonInput');
+        if (reasonInput) {
+            reasonInput.addEventListener('input', function () {
+                window.validateBlogRejectReason(this);
+            });
+            reasonInput.addEventListener('keyup', function () {
+                window.validateBlogRejectReason(this);
+            });
+            reasonInput.addEventListener('paste', function () {
+                setTimeout(() => window.validateBlogRejectReason(this), 10);
+            });
+        }
+    });
+
     // Expose functions globally for JSP inline onclick handlers
+    window.validateBlogRejectReason = validateBlogRejectReason;
     window.openPreview = openPreview;
     window.closePreview = closePreview;
     window.approveBlog = approveBlog;

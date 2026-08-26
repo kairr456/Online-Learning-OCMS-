@@ -130,6 +130,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const fullNameVal = fullNameEl ? fullNameEl.value.trim() : '';
             if (!fullNameVal) {
                 showError('fullName', 'fullNameError', 'Thiếu trường chưa điền: Vui lòng nhập Họ và tên.');
+            } else if (fullNameVal.length > 100) {
+                showError('fullName', 'fullNameError', 'Họ và tên không được vượt quá 100 ký tự.');
             } else if (/\d/.test(fullNameVal)) {
                 showError('fullName', 'fullNameError', 'Họ và tên chỉ được chứa chữ cái, không được chứa số.');
             } else if (!/^[\p{L}\s'-]+$/u.test(fullNameVal)) {
@@ -139,9 +141,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // C. Kiểm tra Email
             const emailEl = document.getElementById('email');
             const emailVal = emailEl ? emailEl.value.trim() : '';
-            const emailRegex = /^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$/;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             if (!emailVal) {
                 showError('email', 'emailError', 'Thiếu trường chưa điền: Vui lòng nhập Email liên hệ.');
+            } else if (emailVal.length > 255) {
+                showError('email', 'emailError', 'Email liên hệ không được vượt quá 255 ký tự.');
             } else if (!emailRegex.test(emailVal)) {
                 showError('email', 'emailError', 'Email liên hệ không đúng định dạng.');
             }
@@ -151,6 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const addressVal = addressEl ? addressEl.value.trim() : '';
             if (!addressVal) {
                 showError('address', 'addressError', 'Thiếu trường chưa điền: Vui lòng nhập Địa chỉ.');
+            } else if (addressVal.length > 255) {
+                showError('address', 'addressError', 'Địa chỉ không được vượt quá 255 ký tự.');
             }
 
             // E. Kiểm tra Thẻ tín dụng/Ghi nợ (Nếu chọn phương thức Card)
@@ -187,6 +193,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const cardNameVal = cardNameEl ? cardNameEl.value.trim() : '';
                 if (!cardNameVal) {
                     showError('cardName', 'cardNameError', 'Thiếu trường chưa điền: Vui lòng nhập Tên in trên thẻ.');
+                } else if (cardNameVal.length > 100) {
+                    showError('cardName', 'cardNameError', 'Tên in trên thẻ không được vượt quá 100 ký tự.');
                 } else if (/\d/.test(cardNameVal)) {
                     showError('cardName', 'cardNameError', 'Tên in trên thẻ chỉ được chứa chữ cái, không được chứa số.');
                 } else if (!/^[\p{L}\s'-]+$/u.test(cardNameVal)) {

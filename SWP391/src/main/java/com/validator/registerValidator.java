@@ -24,23 +24,15 @@ public class registerValidator {
     public static final int PASSWORD_MAX_LENGTH = 20;
 
     public static final int FULL_NAME_MIN_LENGTH = 2;
-    public static final int FULL_NAME_MAX_LENGTH = 100;
-    public static final int EMAIL_MAX_LENGTH = 100;
-    public static final int PHONE_MAX_LENGTH = 11;
 
-    private static final Pattern USERNAME_PATTERN =
-            Pattern.compile("^[a-zA-Z0-9_]+$");
-
-    // Full name allows ONLY letters (including Vietnamese accented characters) and spaces.
-    // Numbers, special characters, and underscores are strictly prohibited.
-    private static final Pattern FULL_NAME_PATTERN =
-            Pattern.compile("^[a-zA-Z\\s\\u00C0-\\u024F\\u1EA0-\\u1EF9]+$");
-
-    // Email check: ^[^\s@]+@[^\s@]+$
+    // Good-enough email check for a registration form -- not RFC 5322-exact
+    // (nothing simple is), but catches the typo-shaped mistakes that matter:
+    // missing @, missing domain, no dot in the domain, stray spaces, etc.
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[^\\s@]+@[^\\s@]+$");
+            Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     // Simple Vietnamese-style mobile number: starts with 0, 9-10 more digits.
+    // Adjust this pattern if you need to support other country formats.
     private static final Pattern PHONE_PATTERN =
             Pattern.compile("^0\\d{9,10}$");
 
@@ -56,83 +48,54 @@ public class registerValidator {
                                    String role, String gender) {
 
         // --- required fields ---
-        if (isBlank(username)) {
-            return "Vui lòng nhập Tên đăng nhập.";
-        }
-        if (isBlank(fullName)) {
-            return "Vui lòng nhập Họ và tên.";
-        }
-        if (isBlank(email)) {
-            return "Vui lòng nhập Email.";
-        }
-        if (isBlank(phone)) {
-            return "Vui lòng nhập Số điện thoại.";
-        }
-        if (isBlank(password)) {
-            return "Vui lòng nhập Mật khẩu.";
-        }
-        if (isBlank(confirmPassword)) {
-            return "Vui lòng xác nhận Mật khẩu.";
-        }
-        if (isBlank(role)) {
-            return "Vui lòng chọn Vai trò.";
-        }
-        if (isBlank(gender)) {
-            return "Vui lòng chọn Giới tính.";
+        if (isBlank(username) || isBlank(password) || isBlank(confirmPassword)
+                || isBlank(email) || isBlank(phone) || isBlank(fullName)
+                || isBlank(role) || isBlank(gender)) {
+            return "Please fill in all required fields.";
         }
 
-        // --- username format & length ---
-        String u = username.trim();
-        if (u.length() < USERNAME_MIN_LENGTH || u.length() > USERNAME_MAX_LENGTH) {
-            return "Tên đăng nhập phải từ " + USERNAME_MIN_LENGTH
-                    + " đến " + USERNAME_MAX_LENGTH + " ký tự.";
-        }
-        if (!USERNAME_PATTERN.matcher(u).matches()) {
-            return "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới (_), không chứa khoảng trắng hoặc ký tự đặc biệt.";
-        }
-
-        // --- full name format & length ---
-        String fn = fullName.trim();
-        if (fn.length() < FULL_NAME_MIN_LENGTH || fn.length() > FULL_NAME_MAX_LENGTH) {
-            return "Họ và tên phải từ " + FULL_NAME_MIN_LENGTH + " đến " + FULL_NAME_MAX_LENGTH + " ký tự.";
-        }
-        if (!FULL_NAME_PATTERN.matcher(fn).matches()) {
-            return "Họ và tên chỉ được chứa chữ cái và khoảng trắng, không được chứa số, ký tự đặc biệt hoặc dấu gạch dưới.";
+        // --- username length ---
+        int usernameLength = username.trim().length();
+        if (usernameLength < USERNAME_MIN_LENGTH || usernameLength > USERNAME_MAX_LENGTH) {
+            return "Username must be between " + USERNAME_MIN_LENGTH
+                    + " and " + USERNAME_MAX_LENGTH + " characters.";
         }
 
         // --- password length ---
         if (password.length() < PASSWORD_MIN_LENGTH || password.length() > PASSWORD_MAX_LENGTH) {
-            return "Mật khẩu phải từ " + PASSWORD_MIN_LENGTH
-                    + " đến " + PASSWORD_MAX_LENGTH + " ký tự.";
+            return "Password must be between " + PASSWORD_MIN_LENGTH
+                    + " and " + PASSWORD_MAX_LENGTH + " characters.";
         }
 
         // --- confirm password ---
         if (!password.equals(confirmPassword)) {
-            return "Mật khẩu xác nhận không khớp.";
+            return "Passwords do not match.";
         }
 
-        // --- email format & length ---
-        String em = email.trim();
-        if (em.length() > EMAIL_MAX_LENGTH) {
-            return "Email không được vượt quá " + EMAIL_MAX_LENGTH + " ký tự.";
-        }
-        if (!EMAIL_PATTERN.matcher(em).matches()) {
-            return "Vui lòng nhập địa chỉ Email hợp lệ.";
+        // --- email format ---
+        if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            return "Please enter a valid email address.";
         }
 
-        // --- phone format & length ---
-        String ph = phone.trim();
-        if (ph.length() > PHONE_MAX_LENGTH) {
-            return "Số điện thoại không được vượt quá " + PHONE_MAX_LENGTH + " chữ số.";
+        // --- phone format ---
+        if (!PHONE_PATTERN.matcher(phone.trim()).matches()) {
+            return "Please enter a valid phone number.";
         }
-        if (!PHONE_PATTERN.matcher(ph).matches()) {
-            return "Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số, bắt đầu bằng 0).";
+
+        // --- full name ---
+        if (fullName.trim().length() < FULL_NAME_MIN_LENGTH) {
+            return "Please enter your full name.";
         }
 
         // --- role ---
         if (!"teacher".equalsIgnoreCase(role) && !"student".equalsIgnoreCase(role)) {
-            return "Vai trò đăng ký không hợp lệ.";
+            return "Invalid role.";
         }
+
+        // Gender is intentionally left permissive here (not restricted to an
+        // exact "male"/"female" match) to match the original controller's
+        // behavior -- genderValueFor() below treats anything other than
+        // "male" as false, so it never errors on unexpected values.
 
         return null; // all checks passed
     }

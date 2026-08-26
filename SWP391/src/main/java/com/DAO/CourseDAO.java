@@ -1,6 +1,7 @@
 package com.DAO;
 
 import com.entity.Course;
+import com.validator.DbTextValidator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -34,14 +35,11 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     @Override
     public boolean update(Course course) {
-<<<<<<< Updated upstream
-=======
-        DbTextValidator.validateLength(course.getName(), 150, "Tên khóa học");
-        DbTextValidator.validateLength(course.getDescription(), 5000, "Mô tả khóa học");
+        DbTextValidator.validateLength(course.getName(), 255, "Tên khóa học");
+        DbTextValidator.validateLength(course.getDescription(), 10000000, "Mô tả khóa học");
         DbTextValidator.validateLength(course.getThumbnail(), 65535, "Ảnh thumbnail");
         DbTextValidator.validateLength(course.getStatus(), 20, "Trạng thái khóa học");
 
->>>>>>> Stashed changes
         String sql = "UPDATE course SET name = ?, description = ?, thumbnail = ?, "
                 + "rating = ?, price = ?, status = ?, modified_date = ?, category_id = ? WHERE id = ?";
         try {
@@ -69,14 +67,11 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
 
     @Override
     public int insert(Course course) {
-<<<<<<< Updated upstream
-=======
-        DbTextValidator.validateLength(course.getName(), 150, "Tên khóa học");
-        DbTextValidator.validateLength(course.getDescription(), 5000, "Mô tả khóa học");
+        DbTextValidator.validateLength(course.getName(), 255, "Tên khóa học");
+        DbTextValidator.validateLength(course.getDescription(), 10000000, "Mô tả khóa học");
         DbTextValidator.validateLength(course.getThumbnail(), 65535, "Ảnh thumbnail");
         DbTextValidator.validateLength(course.getStatus(), 20, "Trạng thái khóa học");
 
->>>>>>> Stashed changes
         String sql = "INSERT INTO course (name, description, thumbnail, rating, price, status, "
                 + "created_date, modified_date, created_by, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
