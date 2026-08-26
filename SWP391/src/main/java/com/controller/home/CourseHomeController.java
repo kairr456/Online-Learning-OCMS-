@@ -44,7 +44,15 @@ public class CourseHomeController extends HttpServlet {
             String[] categoryParams = request.getParameterValues("category");
             String[] ratingParams = request.getParameterValues("rating");
             String teacherName = request.getParameter("teacherName");
+            if (teacherName != null) {
+                teacherName = teacherName.trim();
+                if (teacherName.isEmpty()) teacherName = null;
+            }
             String courseName = request.getParameter("courseName");
+            if (courseName != null) {
+                courseName = courseName.trim();
+                if (courseName.isEmpty()) courseName = null;
+            }
             String sort = request.getParameter("sort");
 //            if (sort == null || sort.isEmpty()) {
 //            sort = "Latest"; // Mặc định sắp xếp mới nhất

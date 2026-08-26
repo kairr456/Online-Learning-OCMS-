@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class MyLearningValidator {
 
     private static final Pattern REMINDER_TIME_PATTERN =
-            Pattern.compile("^(?:[01]\\d|2[0-3]):[0-5]\\d$");
+            Pattern.compile("^(?:[01]?\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d)?$");
 
     private MyLearningValidator() {
     }

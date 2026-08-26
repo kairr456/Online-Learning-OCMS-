@@ -50,8 +50,11 @@
                 </div>
 
                 <div class="learning-search">
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeydown="if(event.key==='Enter'){filterCourses();}">
-                    <button type="button" onclick="filterCourses()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." 
+                           oninput="filterCourses()" 
+                           onblur="this.value=this.value.trim(); filterCourses();" 
+                           onkeydown="if(event.key==='Enter'){ this.value=this.value.trim(); filterCourses(); }">
+                    <button type="button" onclick="const i=document.getElementById('courseSearchInput'); if(i){i.value=i.value.trim();} filterCourses();"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
                 </div>
             </div>
 
@@ -171,7 +174,7 @@
     </script>
 
     <!-- Script xử lý logic JavaScript -->
-    <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js?v=1.2"></script>
 </body>
 
 </html>

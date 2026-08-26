@@ -18,7 +18,8 @@ function populateCategoryFilter() {
 }
 
 function filterCourses() {
-    const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+    const searchInput = document.getElementById('courseSearchInput');
+    const keyword = searchInput ? searchInput.value.trim().toLowerCase().replace(/\s+/g, ' ') : '';
     const categoryFilter = document.getElementById('filterCategory').value;
     const sortBy = document.getElementById('sortBy').value;
 
@@ -28,7 +29,7 @@ function filterCourses() {
         const title = card.getAttribute('data-title').toLowerCase();
         const category = card.getAttribute('data-category') || '';
 
-        const matchesKeyword = title.includes(keyword);
+        const matchesKeyword = !keyword || title.includes(keyword);
         const matchesCategory = categoryFilter === 'all' || category === categoryFilter;
 
         card.style.display = (matchesKeyword && matchesCategory) ? 'block' : 'none';
@@ -54,6 +55,11 @@ function filterCourses() {
     });
 
     document.getElementById('noResults').style.display = visibleCards.length === 0 ? 'block' : 'none';
+}
+
+const searchInputWishlist = document.getElementById('courseSearchInput');
+if (searchInputWishlist) {
+    searchInputWishlist.addEventListener('input', filterCourses);
 }
 
 function removeFromWishlist(btn) {
