@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <div class="account-manager-container"
      data-flash-message="${flashMessage != null ? flashMessage : sessionScope.message}"
@@ -90,6 +91,11 @@
                                 <td>
                                     <strong>${p.teacherName}</strong><br/>
                                     <small class="payout-muted-text">${p.teacherEmail}</small>
+                                    <c:if test="${not empty p.note}">
+                                        <div style="margin-top: 5px; font-size: 0.82rem; color: #334155; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; border-left: 3px solid #6366f1; word-break: break-word; line-height: 1.35;">
+                                            <i class="fa-solid fa-comment-dots text-primary me-1"></i><strong>Ghi chú:</strong> <c:out value="${p.note}"/>
+                                        </div>
+                                    </c:if>
                                 </td>
                                 <td>
                                     <strong class="payout-amount-text">
@@ -98,7 +104,16 @@
                                 </td>
                                 <td>
                                     <span class="payout-bank-text"><i class="fa-solid fa-building-columns"></i> ${p.bankName} (${p.bankCode})</span><br/>
-                                    <span>STK: <strong class="payout-stk-text">${p.accountNumber}</strong></span><br/>
+                                    <span>STK: <strong class="payout-stk-text">
+                                        <c:choose>
+                                            <c:when test="${not empty p.accountNumber && fn:length(p.accountNumber) > 4}">
+                                                ${fn:substring(p.accountNumber, 0, fn:length(p.accountNumber) - 4)}****
+                                            </c:when>
+                                            <c:otherwise>
+                                                ${not empty p.accountNumber ? '****' : '-'}
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </strong></span><br/>
                                     <small class="payout-muted-text">Chủ TK: ${p.accountHolder}</small>
                                 </td>
                                 <td>
@@ -119,21 +134,53 @@
                                     </c:choose>
                                 </td>
                                 <td>
-                                    <div class="action-cell">
-                                        <c:if test="${p.status == 'pending'}">
-                                            <button type="button" class="btn-qr-action"
-                                                    onclick="openProcessModal('${p.id}', '${p.teacherName}', '${p.amount}', '${p.bankCode}', '${p.bankName}', '${p.accountNumber}', '${p.accountHolder}')">
-                                                <i class="fa-solid fa-qrcode"></i> Quét QR & Duyệt
-                                            </button>
-                                            <button type="button" class="btn-action delete" title="Từ chối"
-                                                    onclick="openRejectModal('${p.id}', '${p.teacherName}', '${p.amount}')">
-                                                <i class="fa-solid fa-xmark"></i>
-                                            </button>
-                                        </c:if>
-                                        <c:if test="${p.status != 'pending'}">
-                                            <small class="payout-muted-text">Mã GD: ${p.transactionCode != null ? p.transactionCode : 'Không có'}</small>
-                                        </c:if>
-                                    </div>
+                                    <c:choose>
+                                        <c:when test="${p.status == 'pending'}">
+                                            <div class="action-cell">
+                                                <button type="button" class="btn-qr-action"
+                                                        onclick="openProcessModal('${p.id}', '<c:out value="${p.teacherName}"/>', '${p.amount}', '${p.bankCode}', '${p.bankName}', '${p.accountNumber}', '<c:out value="${p.accountHolder}"/>', '<c:out value="${p.note != null ? p.note : ''}"/>')">
+                                                    <i class="fa-solid fa-qrcode"></i> Quét QR & Duyệt
+                                                </button>
+                                                <button type="button" class="btn-action delete" title="Từ chối"
+                                                        onclick="openRejectModal('${p.id}', '<c:out value="${p.teacherName}"/>', '${p.amount}', '<c:out value="${p.note != null ? p.note : ''}"/>')">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="payout-action-info">
+                                                <c:choose>
+                                                    <c:when test="${p.status == 'completed' || p.status == 'approved'}">
+                                                        <c:if test="${not empty p.transactionCode}">
+                                                            <span class="payout-txcode-text" title="Mã GD: <c:out value='${p.transactionCode}' />">
+                                                                Mã GD: <c:out value="${p.transactionCode}" />
+                                                            </span>
+                                                        </c:if>
+                                                        <c:if test="${empty p.transactionCode}">
+                                                            <span class="payout-txcode-text" style="color: #059669;">
+                                                                <i class="fa-solid fa-circle-check me-1"></i>Thành công
+                                                            </span>
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:when test="${p.status == 'rejected'}">
+                                                        <c:if test="${not empty p.adminNote}">
+                                                            <span class="payout-reject-reason" title="Lý do từ chối: <c:out value='${p.adminNote}' />">
+                                                                <strong>Lý do:</strong> <c:out value="${p.adminNote}" />
+                                                            </span>
+                                                        </c:if>
+                                                        <c:if test="${empty p.adminNote}">
+                                                            <span class="payout-reject-reason" style="color: #94a3b8;">
+                                                                <em>Không có lý do</em>
+                                                            </span>
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <small class="payout-muted-text">-</small>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -202,18 +249,23 @@
             <span class="label">Chủ tài khoản:</span>
             <span class="val" id="modalAccountHolder">-</span>
         </div>
+        <div class="payout-detail-row" id="modalNoteRow" style="display:none;">
+            <span class="label">Ghi chú của GV:</span>
+            <span class="val" id="modalTeacherNote" style="color: #4338ca; font-weight: 500; word-break: break-word;">-</span>
+        </div>
 
         <div class="payout-amount-highlight">
             <span>Số tiền cần chuyển:</span>
             <span id="modalAmountDisplay">0 ₫</span>
         </div>
 
-        <form action="${pageContext.request.contextPath}/admin/payouts" method="POST">
+        <form action="${pageContext.request.contextPath}/admin/payouts" method="POST" id="approvePayoutForm" novalidate>
             <input type="hidden" name="action" value="approve">
             <input type="hidden" name="payoutId" id="modalPayoutId">
 
-            <label>Mã giao dịch ngân hàng / Ủy nhiệm chi *</label>
-            <input type="text" name="transactionCode" id="transactionCodeInput" placeholder="Ví dụ: FT24081812345678" required>
+            <label for="transactionCodeInput">Mã giao dịch ngân hàng / Ủy nhiệm chi <span style="color:#ef4444;">*</span></label>
+            <input type="text" name="transactionCode" id="transactionCodeInput" placeholder="Ví dụ: FT24081812345678" maxlength="100" oninput="validateTransactionCode(this)">
+            <div id="transactionCodeError" class="payout-field-error" style="display: none;"></div>
 
             <div class="modal-action-btn-group">
                 <button type="submit" class="btn-modal-confirm-success">
@@ -237,16 +289,30 @@
             Từ chối đơn rút của giảng viên: <strong id="rejectTeacherName"></strong>
         </p>
 
-        <div class="payout-refund-notice">
-            <i class="fa-solid fa-info-circle"></i> Số tiền <strong id="rejectAmountDisplay"></strong> sẽ được <strong>hoàn trả lại ví</strong> giảng viên.
+        <div id="rejectNoteRow" style="display: none; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; border-left: 3px solid #6366f1; margin-bottom: 12px; font-size: 13px; line-height: 1.4;">
+            <div style="font-weight: 600; color: #475569; margin-bottom: 2px;">
+                <i class="fa-solid fa-comment-dots text-primary me-1"></i>Ghi chú của GV:
+            </div>
+            <div id="rejectTeacherNote" style="color: #1e293b; word-break: break-word; font-style: italic;">-</div>
         </div>
 
-        <form action="${pageContext.request.contextPath}/admin/payouts" method="POST">
+        <div class="payout-refund-notice">
+            <i class="fa-solid fa-circle-info" style="flex-shrink: 0; font-size: 15px; margin-top: 1px;"></i>
+            <div style="flex: 1; line-height: 1.4;">
+                Số tiền <strong id="rejectAmountDisplay"></strong> sẽ được <strong>hoàn trả lại ví</strong> giảng viên.
+            </div>
+        </div>
+
+        <form action="${pageContext.request.contextPath}/admin/payouts" method="POST" id="rejectPayoutForm" novalidate>
             <input type="hidden" name="action" value="reject">
             <input type="hidden" name="payoutId" id="rejectPayoutId">
 
-            <label>Lý do từ chối *</label>
-            <textarea name="adminNote" id="rejectReason" rows="3" placeholder="Ví dụ: STK không tồn tại, đơn hàng đang bị tranh chấp..." required></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <label for="rejectReason" style="margin: 0;">Lý do từ chối <span style="color:#ef4444;">*</span></label>
+                <span id="rejectReasonCount" style="font-size: 12px; color: #64748b;">0/100 ký tự</span>
+            </div>
+            <textarea name="adminNote" id="rejectReason" rows="3" maxlength="100" placeholder="Ví dụ: STK không tồn tại, thông tin tài khoản không khớp..." oninput="validateRejectReason(this)"></textarea>
+            <div id="rejectReasonError" class="payout-field-error" style="display: none;"></div>
 
             <div class="modal-action-btn-group">
                 <button type="submit" class="btn-modal-confirm-reject">
@@ -259,4 +325,4 @@
 </div>
 
 <!-- Custom Payouts JS -->
-<script src="${pageContext.request.contextPath}/assets/js/admin/payouts.js?v=1.0"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/payouts.js?v=1.5"></script>

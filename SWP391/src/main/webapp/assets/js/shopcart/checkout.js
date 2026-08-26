@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // C. Kiểm tra Email
             const emailEl = document.getElementById('email');
             const emailVal = emailEl ? emailEl.value.trim() : '';
-            const emailRegex = /^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$/;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             if (!emailVal) {
                 showError('email', 'emailError', 'Thiếu trường chưa điền: Vui lòng nhập Email liên hệ.');
             } else if (emailVal.length > 255) {

@@ -283,14 +283,21 @@
             </div>
         </div>
 
-        <form id="rejectForm" onsubmit="submitReject(event)">
+        <form id="rejectForm" onsubmit="submitReject(event)" novalidate>
             <input type="hidden" id="rejectBlogId" value="">
             
             <div style="margin-bottom:18px;">
-                <label for="rejectReasonInput" style="display:block; font-size:13.5px; font-weight:600; color:#1E293B; margin-bottom:6px;">
-                    Lý do từ chối <span style="color:#DC2626;">*</span>
-                </label>
-                <textarea id="rejectReasonInput" rows="4" style="width:100%; padding:10px 14px; border:1.5px solid #CBD5E1; border-radius:8px; font-family:inherit; font-size:13.5px; color:#0F172A; outline:none; box-sizing:border-box; resize:vertical;" placeholder="Nhập lý do từ chối bài viết để tác giả có thể chỉnh sửa lại (ví dụ: Nội dung chưa đạt chuẩn, hình ảnh lỗi, thiếu nguồn tham khảo...)" required></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label for="rejectReasonInput" style="display:block; font-size:13.5px; font-weight:600; color:#1E293B; margin:0;">
+                        Lý do từ chối <span style="color:#DC2626;">*</span>
+                    </label>
+                    <span id="rejectReasonCount" style="font-size:12px; color:#64748B; font-weight:500;">0/300 ký tự</span>
+                </div>
+                <textarea id="rejectReasonInput" class="reject-reason-textarea" rows="4" maxlength="1000" 
+                          style="width: 100% !important; min-height: 120px; box-sizing: border-box; resize: vertical; display: block;"
+                          placeholder="Nhập lý do từ chối bài viết để tác giả có thể chỉnh sửa lại (ví dụ: Nội dung chưa đạt chuẩn, hình ảnh lỗi, thiếu nguồn tham khảo...)" 
+                          oninput="validateBlogRejectReason(this)"></textarea>
+                <div id="blogRejectReasonError" class="blog-reject-error-msg"></div>
                 <div style="font-size:12px; color:#64748B; margin-top:4px;">Lý do này sẽ hiển thị trực tiếp cho tác giả trên trang quản lý bài viết của họ.</div>
             </div>
 
@@ -309,4 +316,4 @@
 <script>
     window.CONTEXT_PATH = '${pageContext.request.contextPath}';
 </script>
-<script src="${pageContext.request.contextPath}/assets/js/admin/blog_approval.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/blog_approval.js?v=1.4"></script>

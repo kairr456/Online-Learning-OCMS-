@@ -367,6 +367,11 @@ function compileAndValidateForm(e) {
         showFormValidationError(briefInfoEl, 'Vui lòng nhập Mô tả tóm tắt của bài viết (không được để trống hoặc chỉ chứa khoảng trắng)!');
         return false;
     }
+    if (briefInfo.length > 500) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        showFormValidationError(briefInfoEl, 'Mô tả tóm tắt không được vượt quá 500 ký tự (hiện tại: ' + briefInfo.length + ' ký tự)!');
+        return false;
+    }
 
     // 4. Kiểm tra Nội dung chi tiết (Content)
     var mainContentEl = document.getElementById('mainContent');

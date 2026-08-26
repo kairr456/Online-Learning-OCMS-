@@ -621,6 +621,9 @@ public class BlogController extends HttpServlet {
         if (briefInfo.isEmpty()) {
             request.setAttribute("errorBrief", "Vui lòng nhập Mô tả tóm tắt của bài viết!");
             hasError = true;
+        } else if (briefInfo.length() > 500) {
+            request.setAttribute("errorBrief", "Mô tả tóm tắt bài viết không được vượt quá 500 ký tự!");
+            hasError = true;
         }
         if (content.isEmpty()) {
             request.setAttribute("errorContent", "Vui lòng nhập Nội dung chi tiết của bài viết!");

@@ -124,6 +124,37 @@ public class walletValidator {
     }
 
     /**
+     * Đếm số từ trong chuỗi văn bản.
+     *
+     * @param text Chuỗi cần đếm từ
+     * @return Số từ
+     */
+    public static int countWords(String text) {
+        if (isBlank(text)) {
+            return 0;
+        }
+        String[] words = text.trim().split("\\s+");
+        return words.length;
+    }
+
+    /**
+     * Kiểm tra tính hợp lệ của ghi chú rút tiền (tối đa 50 ký tự).
+     *
+     * @param note Ghi chú của giảng viên khi gửi yêu cầu rút tiền
+     * @return Thông báo lỗi nếu vượt quá 50 ký tự, hoặc null nếu hợp lệ.
+     */
+    public static String validateWithdrawNote(String note) {
+        if (isBlank(note)) {
+            return null; // Ghi chú là tùy chọn
+        }
+        String trimmed = note.trim();
+        if (trimmed.length() > 50) {
+            return "Ghi chú không được vượt quá 50 ký tự (hiện tại: " + trimmed.length() + " ký tự).";
+        }
+        return null;
+    }
+
+    /**
      * Kiểm tra chuỗi rỗng
      */
     public static boolean isBlank(String value) {

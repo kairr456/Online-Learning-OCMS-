@@ -139,12 +139,12 @@
                 <div class="form-group">
                     <label for="briefInfo">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
                     <textarea id="briefInfo" name="briefInfo" class="form-control ${not empty errorBrief ? 'has-error' : ''}" rows="3" 
-                              placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu..." required
+                              placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu (tối đa 500 ký tự)..." maxlength="500" required
                               style="${not empty errorBrief ? 'border-color: #D64545;' : ''}"><c:out value="${formBriefInfo}" /></textarea>
                     <c:if test="${not empty errorBrief}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorBrief}" /></span></div>
                     </c:if>
-                    <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách.</div>
+                    <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách (Tối đa 500 ký tự).</div>
                 </div>
 
                 <!-- Nội dung chi tiết chính của bài viết -->

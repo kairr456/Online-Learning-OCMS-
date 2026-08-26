@@ -52,6 +52,39 @@ function handleTaxCodeInput(el) {
     }
 }
 
+function handleNoteInput(el) {
+    const maxChars = 50;
+    const count = (el.value || '').length;
+    const counter = document.getElementById('noteCharCount') || document.getElementById('noteWordCount');
+    const err = document.getElementById('withdrawNoteError');
+
+    if (counter) {
+        counter.innerText = count + '/' + maxChars + ' ký tự';
+        if (count > maxChars) {
+            counter.classList.add('text-danger', 'fw-bold');
+            counter.classList.remove('text-muted');
+        } else {
+            counter.classList.remove('text-danger', 'fw-bold');
+            counter.classList.add('text-muted');
+        }
+    }
+
+    if (err) {
+        if (count > maxChars) {
+            err.innerText = "Ghi chú không được vượt quá 50 ký tự (hiện tại: " + count + " ký tự).";
+            err.style.display = "block";
+            el.classList.add("is-invalid");
+        } else {
+            err.style.display = "none";
+            el.classList.remove("is-invalid");
+        }
+    }
+}
+
+function handleNoteWordCount(el) {
+    handleNoteInput(el);
+}
+
 // ==========================================================================
 // 2. Modal & Quick Action Handlers
 // ==========================================================================
@@ -384,6 +417,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 showToast("Số tiền rút không được vượt quá số dư khả dụng.", "error");
                 amountInput.focus();
                 return false;
+            }
+
+            const noteInput = document.getElementById('withdrawNote');
+            if (noteInput && noteInput.value.trim() !== '') {
+                const noteLength = noteInput.value.trim().length;
+                if (noteLength > 50) {
+                    e.preventDefault();
+                    showToast("Ghi chú không được vượt quá 50 ký tự (hiện tại: " + noteLength + " ký tự).", "error");
+                    noteInput.focus();
+                    return false;
+                }
             }
         });
     }

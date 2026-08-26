@@ -29,7 +29,7 @@ public class registerValidator {
     // (nothing simple is), but catches the typo-shaped mistakes that matter:
     // missing @, missing domain, no dot in the domain, stray spaces, etc.
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
+            Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     // Simple Vietnamese-style mobile number: starts with 0, 9-10 more digits.
     // Adjust this pattern if you need to support other country formats.

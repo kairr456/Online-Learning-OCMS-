@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css?v=2">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css?v=3">
 </head>
 <body>
 

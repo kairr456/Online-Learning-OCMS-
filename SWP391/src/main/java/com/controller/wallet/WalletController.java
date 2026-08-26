@@ -152,6 +152,9 @@ public class WalletController extends HttpServlet {
                 // Server-side validation
                 BigDecimal balanceToCheck = (currentWallet != null && currentWallet.getBalance() != null) ? currentWallet.getBalance() : BigDecimal.ZERO;
                 String error = walletValidator.validateWithdrawAmount(amountStr, balanceToCheck);
+                if (error == null) {
+                    error = walletValidator.validateWithdrawNote(note);
+                }
                 if (error != null) {
                     session.setAttribute("message", error);
                     session.setAttribute("messageType", "error");
