@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
@@ -230,9 +230,9 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Group Name / Tag <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="groupNameInput" class="form-control" required
+                            <input type="text" name="name" id="groupNameInput" class="form-control" maxlength="255" spellcheck="false" required
                                    placeholder="e.g. Chapter 1, Hard Questions, Midterm Pool">
-                            <div class="form-text">Tên nhóm câu hỏi không được trùng lặp trong cùng khóa học.</div>
+                            <div class="char-limit-feedback form-text mt-1 d-flex justify-content-between align-items-center small"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -259,8 +259,9 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Question Text <span class="text-danger">*</span></label>
-                            <textarea name="questionText" id="questionTextInput" class="form-control" rows="3" required
+                            <textarea name="questionText" id="questionTextInput" class="form-control" rows="3" maxlength="1000" spellcheck="false" required
                                       placeholder="Enter your question here..."></textarea>
+                            <div class="char-limit-feedback form-text mt-1 d-flex justify-content-between align-items-center small"></div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -284,13 +285,16 @@
                         </div>
                         <div id="answersContainer">
                             <c:forEach begin="0" end="3" var="i">
-                                <div class="input-group mb-2">
-                                    <div class="input-group-text bg-white">
-                                        <input class="form-check-input mt-0 answer-check" type="radio" name="correctAnswers" value="${i}"
-                                               <c:if test="${i == 0}">checked</c:if>>
+                                <div class="mb-2">
+                                    <div class="input-group">
+                                        <div class="input-group-text bg-white">
+                                            <input class="form-check-input mt-0 answer-check" type="radio" name="correctAnswers" value="${i}"
+                                                   <c:if test="${i == 0}">checked</c:if>>
+                                        </div>
+                                        <input type="text" name="answers" class="form-control answer-input" maxlength="500" spellcheck="false"
+                                               placeholder="Answer option ${i + 1}">
                                     </div>
-                                    <input type="text" name="answers" class="form-control answer-input"
-                                           placeholder="Answer option ${i + 1}">
+                                    <div class="char-limit-feedback form-text mt-1 d-flex justify-content-between align-items-center small"></div>
                                 </div>
                             </c:forEach>
                         </div>
@@ -325,6 +329,11 @@
             const nameVal = nameInput ? nameInput.value.trim() : '';
             if (!nameVal) {
                 alert('Vui lòng nhập tên nhóm câu hỏi!');
+                if (nameInput) nameInput.focus();
+                return false;
+            }
+            if (nameVal.length > 255) {
+                alert('Tên nhóm câu hỏi không được vượt quá 255 ký tự!');
                 if (nameInput) nameInput.focus();
                 return false;
             }
@@ -368,9 +377,14 @@
             const qTextInput = form.querySelector('textarea[name="questionText"]');
             const qText = qTextInput ? qTextInput.value.trim() : '';
 
-            // 1. Kiểm tra nội dung câu hỏi trống
+            // 1. Kiểm tra nội dung câu hỏi trống hoặc quá dài
             if (!qText) {
                 alert('Vui lòng nhập nội dung câu hỏi!');
+                if (qTextInput) qTextInput.focus();
+                return false;
+            }
+            if (qText.length > 1000) {
+                alert('Nội dung câu hỏi (Question Text) không được vượt quá 1000 ký tự (hiện tại: ' + qText.length + ')!');
                 if (qTextInput) qTextInput.focus();
                 return false;
             }
@@ -391,10 +405,14 @@
             let filledAnswers = [];
             let checkedIndices = [];
             let duplicateAnswer = null;
+            let tooLongAnswer = null;
 
             answerInputs.forEach((inp, idx) => {
                 const val = inp.value ? inp.value.trim() : '';
                 if (val !== '') {
+                    if (val.length > 500) {
+                        tooLongAnswer = val;
+                    }
                     // Check trùng câu trả lời trong cùng 1 câu hỏi
                     const lower = val.toLowerCase();
                     if (filledAnswers.some(a => a.toLowerCase() === lower)) {
@@ -434,6 +452,61 @@
 
             return true;
         }
+
+        function setupCharLimitFeedback(inputElem, maxLen, fieldName) {
+            if (!inputElem) return;
+            inputElem.setAttribute('maxlength', maxLen);
+            inputElem.setAttribute('spellcheck', 'false');
+
+            let container = inputElem.closest('.mb-2') || inputElem.closest('.mb-3') || inputElem.parentElement;
+            let counterElem = container.querySelector('.char-limit-feedback');
+            if (!counterElem) {
+                counterElem = document.createElement('div');
+                counterElem.className = 'char-limit-feedback form-text mt-1 d-flex justify-content-between align-items-center small';
+                container.appendChild(counterElem);
+            }
+
+            function updateFeedback() {
+                const currentLen = inputElem.value ? inputElem.value.length : 0;
+                if (currentLen >= maxLen) {
+                    counterElem.innerHTML = '<span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i>Đã đạt giới hạn tối đa ' + maxLen + ' ký tự cho ' + fieldName + '!</span><span class="badge bg-danger ms-2">' + currentLen + '/' + maxLen + '</span>';
+                } else {
+                    const isNear = currentLen >= (maxLen * 0.85);
+                    const badgeClass = isNear ? 'bg-warning text-dark' : 'bg-light text-muted border';
+                    counterElem.innerHTML = '<span class="text-muted">' + fieldName + ' (tối đa ' + maxLen + ' ký tự)</span><span class="badge ' + badgeClass + '">' + currentLen + '/' + maxLen + '</span>';
+                }
+            }
+
+            if (!inputElem.dataset.charLimitBound) {
+                inputElem.dataset.charLimitBound = "true";
+                inputElem.addEventListener('input', updateFeedback);
+            }
+            updateFeedback();
+        }
+
+        function initQBankCharLimits() {
+            const grpInput = document.getElementById('groupNameInput');
+            if (grpInput) setupCharLimitFeedback(grpInput, 255, "Tên nhóm câu hỏi");
+
+            const qInput = document.getElementById('questionTextInput');
+            if (qInput) setupCharLimitFeedback(qInput, 1000, "Nội dung câu hỏi");
+
+            document.querySelectorAll('.answer-input').forEach((el, idx) => {
+                setupCharLimitFeedback(el, 500, "Phương án " + (idx + 1));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initQBankCharLimits();
+            const addGroupModal = document.getElementById('addGroupModal');
+            if (addGroupModal) {
+                addGroupModal.addEventListener('shown.bs.modal', initQBankCharLimits);
+            }
+            const addQuestionModal = document.getElementById('addQuestionModal');
+            if (addQuestionModal) {
+                addQuestionModal.addEventListener('shown.bs.modal', initQBankCharLimits);
+            }
+        });
     </script>
 </body>
 </html>

@@ -8,9 +8,9 @@ import java.util.regex.Pattern;
  */
 public class checkoutValidator {
 
-    // Regex kiểm tra định dạng email
+    // Regex kiểm tra định dạng email: ^[^\s@]+@[^\s@]+$
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
+            Pattern.compile("^[^\\s@]+@[^\\s@]+$");
 
     // Regex kiểm tra chỉ chứa chữ cái (bao gồm tiếng Việt có dấu), khoảng trắng, dấu gạch nối/dấu nháy
     private static final Pattern NAME_PATTERN =

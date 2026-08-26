@@ -18,14 +18,14 @@ public class TeacherProfileDAO extends DBContext {
 
     public boolean insert(TeacherProfile profile) {
         String sql = "INSERT INTO teacher_profiles "
-                + "(account_id, specialization, bio, experience_years, cv_url, portfolio_url, approval_status, created_at, updated_at) "
+                + "(account_id, bio, specialization, experience_years, cv_url, portfolio_url, approval_status, created_at, updated_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setInt(1, profile.getAccountId());
-            ps.setString(2, profile.getSpecialization());
-            ps.setString(3, profile.getBio());
+            ps.setString(2, profile.getBio());
+            ps.setString(3, profile.getSpecialization());
             ps.setInt(4, profile.getExperienceYears());
             ps.setString(5, profile.getCvUrl());
             ps.setString(6, profile.getPortfolioUrl());
@@ -82,14 +82,14 @@ public class TeacherProfileDAO extends DBContext {
 
     public boolean update(TeacherProfile profile) {
         String sql = "UPDATE teacher_profiles SET "
-                + "specialization = ?, bio = ?, experience_years = ?, cv_url = ?, portfolio_url = ?, "
+                + "bio = ?, specialization = ?, experience_years = ?, cv_url = ?, portfolio_url = ?, "
                 + "approval_status = ?, rejected_reason = ?, updated_at = NOW() "
                 + "WHERE id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, profile.getSpecialization());
-            ps.setString(2, profile.getBio());
+            ps.setString(1, profile.getBio());
+            ps.setString(2, profile.getSpecialization());
             ps.setInt(3, profile.getExperienceYears());
             ps.setString(4, profile.getCvUrl());
             ps.setString(5, profile.getPortfolioUrl());

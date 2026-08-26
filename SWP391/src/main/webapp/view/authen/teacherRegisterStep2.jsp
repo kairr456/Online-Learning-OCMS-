@@ -185,7 +185,6 @@
                     name="specialization"
                     placeholder="Ví dụ: Senior Java Developer, Giảng viên ĐH..."
                     value="<%= request.getAttribute("specialization") != null ? request.getAttribute("specialization") : "" %>"
-                    maxlength="255"
                     required
                 >
 
@@ -346,6 +345,16 @@
             textEl.textContent = this.files[0].name;
         } else {
             textEl.textContent = 'Chọn file CV...';
+        }
+    });
+
+    document.getElementById('teacherProfileForm').addEventListener('submit', function(e) {
+        const spec = document.getElementById('specialization').value.trim();
+        if (spec.length > 255) {
+            e.preventDefault();
+            alert('Chuyên môn không được vượt quá 255 ký tự.');
+            document.getElementById('specialization').focus();
+            return false;
         }
     });
 </script>

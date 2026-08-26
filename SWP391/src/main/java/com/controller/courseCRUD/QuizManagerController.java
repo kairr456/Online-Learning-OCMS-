@@ -513,6 +513,11 @@ public class QuizManagerController extends HttpServlet {
                 }
 
                 String trimmedName = name.trim();
+                if (trimmedName.length() > 255) {
+                    session.setAttribute("errorMsg", "Tên nhóm câu hỏi không được vượt quá 255 ký tự!");
+                    response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId);
+                    return;
+                }
                 if (groupDAO.checkGroupNameExists(courseId, trimmedName)) {
                     session.setAttribute("errorMsg", "Tên nhóm câu hỏi \"" + trimmedName + "\" đã tồn tại trong khóa học này!");
                     response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId);
@@ -539,6 +544,12 @@ public class QuizManagerController extends HttpServlet {
                 }
 
                 String trimmedText = text.trim();
+                if (trimmedText.length() > 1000) {
+                    session.setAttribute("errorMsg", "Nội dung câu hỏi (Question Text) không được vượt quá 1000 ký tự (độ dài hiện tại: " + trimmedText.length() + ")!");
+                    response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&groupId=" + groupId);
+                    return;
+                }
+
                 if (quizDAO.checkQuestionExistsInGroup(groupId, trimmedText)) {
                     session.setAttribute("errorMsg", "Câu hỏi \"" + trimmedText + "\" đã tồn tại trong nhóm này! Vui lòng không tạo trùng câu hỏi.");
                     response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&groupId=" + groupId);
@@ -581,6 +592,11 @@ public class QuizManagerController extends HttpServlet {
                     for (int i = 0; i < answers.length; i++) {
                         if (answers[i] != null && !answers[i].trim().isEmpty()) {
                             String trimmedAns = answers[i].trim();
+                            if (trimmedAns.length() > 500) {
+                                session.setAttribute("errorMsg", "Nội dung câu trả lời không được vượt quá 500 ký tự (độ dài hiện tại: " + trimmedAns.length() + ")!");
+                                response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&groupId=" + groupId);
+                                return;
+                            }
                             if (!uniqueAnswers.add(trimmedAns.toLowerCase())) {
                                 session.setAttribute("errorMsg", "Các phương án trả lời không được trùng lặp nội dung: \"" + trimmedAns + "\"!");
                                 response.sendRedirect(request.getContextPath() + "/question-bank?courseId=" + courseId + "&groupId=" + groupId);

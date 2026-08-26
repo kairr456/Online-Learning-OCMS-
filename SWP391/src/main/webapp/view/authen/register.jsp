@@ -132,7 +132,9 @@
                     type="text"
                     id="username"
                     name="username"
-                    placeholder="Enter your username"
+                    maxlength="20"
+                    spellcheck="false"
+                    placeholder="Enter your username (max 20 chars)"
                     value="<%= request.getParameter("username") != null
                         ? request.getParameter("username")
                         : "" %>"
@@ -157,7 +159,9 @@
                     type="text"
                     id="fullName"
                     name="fullName"
-                    placeholder="Enter your full name"
+                    maxlength="100"
+                    spellcheck="false"
+                    placeholder="Enter your full name (max 100 chars)"
                     value="<%= request.getParameter("fullName") != null
                         ? request.getParameter("fullName")
                         : "" %>"
@@ -181,7 +185,9 @@
                     type="email"
                     id="email"
                     name="email"
-                    placeholder="Enter your email"
+                    maxlength="100"
+                    spellcheck="false"
+                    placeholder="Enter your email (max 100 chars)"
                     value="<%= request.getParameter("email") != null
                         ? request.getParameter("email")
                         : "" %>"
@@ -206,7 +212,9 @@
                     type="tel"
                     id="phone"
                     name="phone"
-                    placeholder="Enter your phone number"
+                    maxlength="11"
+                    spellcheck="false"
+                    placeholder="Enter your phone number (10-11 digits)"
                     value="<%= request.getParameter("phone") != null
                         ? request.getParameter("phone")
                         : "" %>"
@@ -233,7 +241,8 @@
                         type="password"
                         id="password"
                         name="password"
-                        placeholder="Create a password"
+                        maxlength="20"
+                        placeholder="Create a password (6-20 chars)"
                         autocomplete="new-password"
                         required
                     >
@@ -268,7 +277,8 @@
                         type="password"
                         id="confirmPassword"
                         name="confirmPassword"
-                        placeholder="Confirm your password"
+                        maxlength="20"
+                        placeholder="Confirm your password (6-20 chars)"
                         autocomplete="new-password"
                         required
                     >
@@ -462,6 +472,46 @@
             });
 
         });
+
+    function setupCharLimitFeedback(inputElem, maxLen, fieldName) {
+        if (!inputElem || inputElem.dataset.charLimitBound) return;
+        inputElem.dataset.charLimitBound = "true";
+        inputElem.setAttribute('maxlength', maxLen);
+
+        let fieldContainer = inputElem.closest('.register-field');
+        if (!fieldContainer) fieldContainer = inputElem.parentElement;
+
+        let counterElem = fieldContainer.querySelector('.char-limit-feedback');
+        if (!counterElem) {
+            counterElem = document.createElement('div');
+            counterElem.className = 'char-limit-feedback';
+            counterElem.style.cssText = 'display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; margin-top:4px; font-family:sans-serif; width:100%;';
+            fieldContainer.appendChild(counterElem);
+        }
+
+        function updateFeedback() {
+            const currentLen = inputElem.value ? inputElem.value.length : 0;
+            if (currentLen >= maxLen) {
+                counterElem.innerHTML = '<span style="color:#dc3545; font-weight:bold;">&#9888; Đã đạt giới hạn tối đa ' + maxLen + ' ký tự cho ' + fieldName + '!</span><span style="background-color:#dc3545; color:#fff; border-radius:4px; padding:1px 6px; font-size:0.75rem; font-weight:bold;">' + currentLen + '/' + maxLen + '</span>';
+            } else {
+                const isNear = currentLen >= (maxLen * 0.85);
+                const badgeStyle = isNear ? 'background-color:#ffc107; color:#000; font-weight:bold;' : 'background-color:#f1f3f5; color:#6c757d; border:1px solid #ced4da;';
+                counterElem.innerHTML = '<span style="color:#6c757d;">' + fieldName + ' (tối đa ' + maxLen + ' ký tự)</span><span style="border-radius:4px; padding:1px 6px; font-size:0.75rem; ' + badgeStyle + '">' + currentLen + '/' + maxLen + '</span>';
+            }
+        }
+
+        inputElem.addEventListener('input', updateFeedback);
+        updateFeedback();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCharLimitFeedback(document.getElementById('username'), 20, "Tên đăng nhập");
+        setupCharLimitFeedback(document.getElementById('fullName'), 100, "Họ và tên");
+        setupCharLimitFeedback(document.getElementById('email'), 100, "Email");
+        setupCharLimitFeedback(document.getElementById('phone'), 11, "Số điện thoại");
+        setupCharLimitFeedback(document.getElementById('password'), 20, "Mật khẩu");
+        setupCharLimitFeedback(document.getElementById('confirmPassword'), 20, "Xác nhận mật khẩu");
+    });
 
 </script>
 

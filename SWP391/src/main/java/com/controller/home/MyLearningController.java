@@ -43,6 +43,11 @@ public class MyLearningController extends HttpServlet {
 
         CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
         List<Course> myCourses = registrationDAO.getCoursesByAccountId(account.getId());
+
+        // Tự động kiểm tra và cấp chứng chỉ còn thiếu cho các khóa học đã hoàn thành 100%
+        com.DAO.CertificateDAO certDAO = new com.DAO.CertificateDAO();
+        certDAO.autoIssuePendingCertificatesForStudent(account.getId());
+        request.setAttribute("certTemplateIds", certDAO.getTemplateCourseIds());
         
         // Also add courses that the user created
         com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();

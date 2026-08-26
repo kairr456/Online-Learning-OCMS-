@@ -67,7 +67,7 @@
                         <div class="tab-pane fade show active" id="info-content" role="tabpanel">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Course Title <span class="text-danger">*</span></label>
-                                <input type="text" name="courseName" id="courseName" class="form-control" value="${course != null ? fn:escapeXml(course.name) : ''}" placeholder="Nhập tên khóa học">
+                                <input type="text" name="courseName" id="courseName" class="form-control" maxlength="150" value="${course != null ? fn:escapeXml(course.name) : ''}" placeholder="Nhập tên khóa học (tối đa 150 ký tự)">
                             </div>
                             
                             <div class="mb-3">
@@ -82,7 +82,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Overview / Description <span class="text-danger">*</span></label>
-                                <textarea name="courseDescription" id="courseDescription" rows="5" class="form-control" placeholder="Nhập mô tả tổng quan về khóa học">${course != null ? fn:escapeXml(course.description) : ''}</textarea>
+                                <textarea name="courseDescription" id="courseDescription" rows="5" class="form-control" maxlength="5000" placeholder="Nhập mô tả tổng quan về khóa học (tối đa 5000 ký tự)">${course != null ? fn:escapeXml(course.description) : ''}</textarea>
                             </div>
 
                             <div class="mb-3">
@@ -112,7 +112,7 @@
                                                 <input type="hidden" name="sectionId_${sStat.index}" value="${section.id}">
                                                 <div class="mb-3">
                                                     <label class="form-label fw-bold">Section Title <span class="text-danger">*</span></label>
-                                                    <input type="text" name="sectionTitle_${sStat.index}" class="form-control section-title-input" value="${fn:escapeXml(section.title)}" placeholder="e.g. Chapter 1: Introduction">
+                                                    <input type="text" name="sectionTitle_${sStat.index}" class="form-control section-title-input" maxlength="255" value="${fn:escapeXml(section.title)}" placeholder="e.g. Chapter 1: Introduction (tối đa 255 ký tự)">
                                                 </div>
                                                 <div id="lessons-container_${sStat.index}" class="ps-4 border-start border-3 border-warning mt-4 lessons-container">
                                                     <c:forEach var="lesson" items="${lessonsMap[section.id]}" varStatus="lStat">
@@ -282,7 +282,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Section Title <span class="text-danger">*</span></label>
-                            <input type="text" name="sectionTitle_\${secId}" class="form-control section-title-input" placeholder="e.g. Chapter 1: Introduction">
+                            <input type="text" name="sectionTitle_\${secId}" class="form-control section-title-input" maxlength="255" placeholder="e.g. Chapter 1: Introduction (tối đa 255 ký tự)">
                         </div>
                         <div id="lessons-container_\${secId}" class="ps-4 border-start border-3 border-warning mt-4 lessons-container"></div>
                         <div class="mt-4">
@@ -313,7 +313,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Lesson Title <span class="text-danger">*</span></label>
-                            <input type="text" name="lessonTitle_\${lessonKey}" class="form-control lesson-title-input" placeholder="Nhập tên bài học">
+                            <input type="text" name="lessonTitle_\${lessonKey}" class="form-control lesson-title-input" maxlength="255" placeholder="Nhập tên bài học (tối đa 255 ký tự)">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Lesson Type</label>
@@ -528,12 +528,17 @@
             const submitter = event.submitter;
             const isDraft = (submitter && (submitter.value === 'continue' || submitter.value === 'goto_qbank' || submitter.getAttribute('formnovalidate') !== null));
 
+            const nameInput = document.getElementById('courseName');
+            const nameVal = nameInput ? nameInput.value.trim() : '';
+            if (nameInput) nameInput.value = nameVal;
+
+            const descInput = document.getElementById('courseDescription');
+            const descVal = descInput ? descInput.value.trim() : '';
+            if (descInput) descInput.value = descVal;
+
             if (isDraft) {
                 // For draft save, only require basic Course Title if empty, or allow saving
                 clearAllValidationErrors();
-                const nameInput = document.getElementById('courseName');
-                const nameVal = nameInput ? nameInput.value.trim() : '';
-                if (nameInput) nameInput.value = nameVal;
 
                 if (!nameVal) {
                     markInvalid(nameInput, 'Vui lòng nhập Tên khóa học để lưu bản nháp (Draft)!');
@@ -544,6 +549,24 @@
                     if (event) event.preventDefault();
                     return false;
                 }
+                if (nameVal.length > 150) {
+                    markInvalid(nameInput, 'Tên khóa học không được vượt quá 150 ký tự (hiện tại: ' + nameVal.length + ')!');
+                    const summary = document.getElementById('validationSummary');
+                    if (summary) summary.style.display = 'block';
+                    const list = document.getElementById('validationErrorsList');
+                    if (list) list.innerHTML = '<li>Tên khóa học vượt quá 150 ký tự.</li>';
+                    if (event) event.preventDefault();
+                    return false;
+                }
+                if (descVal && descVal.length > 5000) {
+                    markInvalid(descInput, 'Mô tả khóa học không được vượt quá 5000 ký tự (hiện tại: ' + descVal.length + ')!');
+                    const summary = document.getElementById('validationSummary');
+                    if (summary) summary.style.display = 'block';
+                    const list = document.getElementById('validationErrorsList');
+                    if (list) list.innerHTML = '<li>Mô tả khóa học vượt quá 5000 ký tự.</li>';
+                    if (event) event.preventDefault();
+                    return false;
+                }
                 return true; // Bypass all other checks for draft
             }
 
@@ -551,13 +574,12 @@
             const errors = [];
 
             // 1. Validate Course Title
-            const nameInput = document.getElementById('courseName');
-            const nameVal = nameInput ? nameInput.value.trim() : '';
-            if (nameInput) nameInput.value = nameVal;
-
             if (!nameVal) {
                 markInvalid(nameInput, 'Vui lòng nhập tên khóa học!');
                 errors.push('Tên khóa học không được để trống.');
+            } else if (nameVal.length > 150) {
+                markInvalid(nameInput, 'Tên khóa học không được vượt quá 150 ký tự (hiện tại: ' + nameVal.length + ')!');
+                errors.push('Tên khóa học vượt quá 150 ký tự.');
             } else {
                 const isDuplicateCourse = existingCourseNames.some(n => n.trim().toLowerCase() === nameVal.toLowerCase());
                 if (isDuplicateCourse) {
@@ -574,12 +596,12 @@
             }
 
             // 3. Validate Overview / Description
-            const descInput = document.getElementById('courseDescription');
-            const descVal = descInput ? descInput.value.trim() : '';
-            if (descInput) descInput.value = descVal;
             if (!descVal) {
                 markInvalid(descInput, 'Vui lòng nhập mô tả khóa học!');
                 errors.push('Mô tả khóa học không được để trống.');
+            } else if (descVal.length > 5000) {
+                markInvalid(descInput, 'Mô tả khóa học không được vượt quá 5000 ký tự (hiện tại: ' + descVal.length + ')!');
+                errors.push('Mô tả khóa học vượt quá 5000 ký tự.');
             }
 
             // 4. Validate Price
@@ -619,6 +641,9 @@
                 if (!secVal) {
                     markInvalid(secTitleInput, 'Vui lòng nhập tiêu đề cho Section!');
                     errors.push('Section #' + (sIdx + 1) + ': Tiêu đề không được để trống.');
+                } else if (secVal.length > 255) {
+                    markInvalid(secTitleInput, 'Tiêu đề Section không được vượt quá 255 ký tự!');
+                    errors.push('Section #' + (sIdx + 1) + ': Tiêu đề vượt quá 255 ký tự.');
                 } else {
                     const secLower = secVal.toLowerCase();
                     if (seenSectionTitles[secLower]) {
@@ -643,6 +668,9 @@
                     if (!lesVal) {
                         markInvalid(lesTitleInput, 'Vui lòng nhập tiêu đề bài học!');
                         errors.push('Bài học #' + (lIdx + 1) + ' trong Section "' + (secVal || '#' + (sIdx + 1)) + '": Tiêu đề không được để trống.');
+                    } else if (lesVal.length > 255) {
+                        markInvalid(lesTitleInput, 'Tiêu đề bài học không được vượt quá 255 ký tự!');
+                        errors.push('Bài học #' + (lIdx + 1) + ' trong Section "' + (secVal || '#' + (sIdx + 1)) + '": Tiêu đề vượt quá 255 ký tự.');
                     } else {
                         const lesLower = lesVal.toLowerCase();
                         if (seenLessonTitles[lesLower]) {
@@ -673,6 +701,9 @@
                                     if (!bTextVal) {
                                         markInvalid(bTextInput, 'Nội dung khối văn bản không được để trống!');
                                         errors.push('Khối văn bản #' + (bIdx + 1) + ' trong bài học "' + (lesVal || '#' + (lIdx + 1)) + '" không được để trống.');
+                                    } else if (bTextVal.length > 5000) {
+                                        markInvalid(bTextInput, 'Nội dung khối văn bản không được vượt quá 5000 ký tự (hiện tại: ' + bTextVal.length + ')!');
+                                        errors.push('Khối văn bản #' + (bIdx + 1) + ' trong bài học "' + (lesVal || '#' + (lIdx + 1)) + '" vượt quá 5000 ký tự.');
                                     }
                                 } else if (bFileInput) {
                                     const hasExisting = existingFileInput && existingFileInput.value.trim() !== '';
@@ -697,6 +728,9 @@
                         if (!videoVal) {
                             markInvalid(videoInput, 'Vui lòng nhập đường dẫn YouTube cho bài học!');
                             errors.push('Bài học "' + (lesVal || '#' + (lIdx + 1)) + '": Đường dẫn YouTube không được để trống.');
+                        } else if (videoVal.length > 500) {
+                            markInvalid(videoInput, 'Đường dẫn YouTube không được vượt quá 500 ký tự!');
+                            errors.push('Bài học "' + (lesVal || '#' + (lIdx + 1)) + '": Đường dẫn YouTube vượt quá 500 ký tự.');
                         }
                     } else if (type === 'quiz') {
                         const qGroupSelect = lesCard.querySelector('.quiz-group-select');
@@ -771,6 +805,46 @@
             return true;
         }
 
+        function setupCharLimitFeedback(inputElem, maxLen, fieldName) {
+            if (!inputElem || inputElem.dataset.charLimitBound) return;
+            inputElem.dataset.charLimitBound = "true";
+            inputElem.setAttribute('maxlength', maxLen);
+
+            let counterElem = inputElem.parentElement.querySelector('.char-limit-feedback');
+            if (!counterElem) {
+                counterElem = document.createElement('div');
+                counterElem.className = 'char-limit-feedback form-text mt-1 d-flex justify-content-between align-items-center small';
+                inputElem.parentElement.appendChild(counterElem);
+            }
+
+            function updateFeedback() {
+                const currentLen = inputElem.value ? inputElem.value.length : 0;
+                if (currentLen >= maxLen) {
+                    counterElem.innerHTML = '<span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i>Đã đạt giới hạn tối đa ' + maxLen + ' ký tự cho ' + fieldName + '!</span><span class="badge bg-danger ms-2">' + currentLen + '/' + maxLen + '</span>';
+                } else {
+                    const isNear = currentLen >= (maxLen * 0.9);
+                    const badgeClass = isNear ? 'bg-warning text-dark' : 'bg-light text-muted border';
+                    counterElem.innerHTML = '<span class="text-muted">' + fieldName + ' (tối đa ' + maxLen + ' ký tự)</span><span class="badge ' + badgeClass + '">' + currentLen + '/' + maxLen + '</span>';
+                }
+            }
+
+            inputElem.addEventListener('input', updateFeedback);
+            updateFeedback();
+        }
+
+        function initAllCharLimitFeedbacks() {
+            const nameElem = document.getElementById('courseName');
+            if (nameElem) setupCharLimitFeedback(nameElem, 150, "Tên khóa học");
+
+            const descElem = document.getElementById('courseDescription');
+            if (descElem) setupCharLimitFeedback(descElem, 5000, "Mô tả khóa học");
+
+            document.querySelectorAll('.section-title-input').forEach(el => setupCharLimitFeedback(el, 255, "Tên chương học"));
+            document.querySelectorAll('.lesson-title-input').forEach(el => setupCharLimitFeedback(el, 255, "Tên bài học"));
+            document.querySelectorAll('.block-text-input').forEach(el => setupCharLimitFeedback(el, 5000, "Khối văn bản bài học"));
+            document.querySelectorAll('.lesson-video-input').forEach(el => setupCharLimitFeedback(el, 500, "Link YouTube"));
+        }
+
         window.onload = function() {
             if (sectionIndex === 0) {
                 addSection();
@@ -790,6 +864,8 @@
                     </c:forEach>
                 </c:forEach>
             }
+
+            initAllCharLimitFeedbacks();
         }
     </script>
 </body>

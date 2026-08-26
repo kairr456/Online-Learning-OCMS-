@@ -13,6 +13,8 @@ public class CertificateTemplate {
     private String courseName;   // tên khóa (JOIN, chỉ dùng hiển thị)
     private String backgroundUrl;
     private String title;
+    private boolean showTitle = true;
+    private int topOffset = 140;
     private int createdBy;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
@@ -30,6 +32,10 @@ public class CertificateTemplate {
     public void setBackgroundUrl(String backgroundUrl) { this.backgroundUrl = backgroundUrl; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    public boolean isShowTitle() { return showTitle; }
+    public void setShowTitle(boolean showTitle) { this.showTitle = showTitle; }
+    public int getTopOffset() { return topOffset; }
+    public void setTopOffset(int topOffset) { this.topOffset = topOffset; }
     public int getCreatedBy() { return createdBy; }
     public void setCreatedBy(int createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedDate() { return createdDate; }

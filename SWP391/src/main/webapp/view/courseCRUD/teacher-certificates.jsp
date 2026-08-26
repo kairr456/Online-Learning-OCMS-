@@ -102,19 +102,24 @@
 
     <!-- Modal: Add/Edit template -->
     <div class="modal-backdrop" id="templateModal">
-        <div class="modal-box">
-            <h3 id="modalTitle">Add Certificate</h3>
+        <div class="modal-box" style="width: 520px;">
+            <h3 id="modalTitle" style="margin-bottom: 16px;">Add Certificate</h3>
             <div id="fError" class="f-error" style="display:none;"></div>
+            
             <form id="templateForm" enctype="multipart/form-data" method="post" action="${pageContext.request.contextPath}/teacher-certificates">
                 <input type="hidden" name="action" id="fAction">
                 <input type="hidden" name="courseId" id="fCourseId">
+
                 <label for="fTitle">Certificate Title</label>
-                <input type="text" id="fTitle" name="title" value="Certificate of Completion">
+                <input type="text" id="fTitle" name="title" value="Certificate of Completion" style="margin-bottom: 16px;">
+
                 <label for="fBackground">Background Image</label>
                 <input type="file" id="fBackground" name="background" accept="image/*">
-                <div class="modal-actions">
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px; margin-bottom: 16px;">Khuyên dùng ảnh ngang (tỷ lệ A4 Ngang)</small>
+
+                <div class="modal-actions" style="margin-top:20px;">
                     <button type="button" class="btn-sm btn-cancel" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn-sm btn-save">Save</button>
+                    <button type="submit" class="btn-sm btn-save">Save Template</button>
                 </div>
             </form>
         </div>
@@ -122,6 +127,14 @@
 
     <script>
         var CONTEXT_PATH = '${pageContext.request.contextPath}';
+        var templatesData = {
+            <c:forEach var="entry" items="${templatesMap}" varStatus="status">
+                "${entry.key}": {
+                    "title": "${entry.value.title}",
+                    "backgroundUrl": "${entry.value.backgroundUrl}"
+                }${not status.last ? ',' : ''}
+            </c:forEach>
+        };
 
         function openModal(courseId, courseName, action) {
             hideError();
@@ -129,6 +142,14 @@
             document.getElementById('fCourseId').value = courseId;
             document.getElementById('modalTitle').textContent = (action === 'add' ? 'Add Certificate' : 'Edit Certificate') + ' - ' + courseName;
             document.getElementById('fBackground').value = '';
+            
+            var t = templatesData[courseId];
+            if (t) {
+                document.getElementById('fTitle').value = t.title || 'Certificate of Completion';
+            } else {
+                document.getElementById('fTitle').value = 'Certificate of Completion';
+            }
+
             document.getElementById('templateModal').classList.add('show');
         }
 

@@ -75,6 +75,12 @@ public class CourseManagerController extends HttpServlet {
         }
 
         String courseName = request.getParameter("courseName");
+        if (courseName != null) {
+            courseName = courseName.trim();
+            if (courseName.isEmpty()) {
+                courseName = null;
+            }
+        }
         String sort = request.getParameter("sort");
         String categoryParam = request.getParameter("category");
 

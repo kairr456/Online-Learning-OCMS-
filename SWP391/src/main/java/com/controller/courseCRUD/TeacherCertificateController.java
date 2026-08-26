@@ -46,12 +46,15 @@ public class TeacherCertificateController extends HttpServlet {
 
         List<Course> courses = new CourseDAO().findByCreator(account.getId());
         Set<Integer> templateCourseIds = new HashSet<>();
+        java.util.Map<Integer, com.entity.CertificateTemplate> templatesMap = new java.util.HashMap<>();
         for (com.entity.CertificateTemplate t : new CertificateDAO().getTemplatesByCreator(account.getId())) {
             templateCourseIds.add(t.getCourseId());
+            templatesMap.put(t.getCourseId(), t);
         }
 
         request.setAttribute("courses", courses);
         request.setAttribute("templateCourseIds", templateCourseIds);
+        request.setAttribute("templatesMap", templatesMap);
         request.getRequestDispatcher("/view/courseCRUD/teacher-certificates.jsp").forward(request, response);
     }
 
@@ -71,32 +74,42 @@ public class TeacherCertificateController extends HttpServlet {
         boolean ok = false;
 
         try {
-            if ("add".equals(action)) {
+            if ("add".equals(action) || "edit".equals(action)) {
                 int courseId = Integer.parseInt(request.getParameter("courseId"));
                 String title = request.getParameter("title");
                 if (title == null || title.trim().isEmpty()) {
                     title = "Certificate of Completion";
                 }
-                // Chỉ khóa active (đã duyệt) và thuộc GV này mới được tạo template
-                Course course = new CourseDAO().findById(courseId);
-                if (course == null || !"active".equals(course.getStatus()) || course.getCreatedBy() != account.getId()) {
-                    writeJson(response, false, "Course not found or not approved");
-                    return;
-                }
-                if (dao.hasTemplate(courseId)) {
-                    writeJson(response, false, "This course already has a certificate");
-                    return;
-                }
+                boolean showTitle = "true".equalsIgnoreCase(request.getParameter("showTitle"))
+                        || "on".equalsIgnoreCase(request.getParameter("showTitle"))
+                        || "1".equals(request.getParameter("showTitle"));
+                
+                int topOffset = 140;
+                try {
+                    topOffset = Integer.parseInt(request.getParameter("topOffset"));
+                } catch (Exception ignored) {}
+
                 String backgroundUrl = saveBackground(request);
-                ok = dao.insertTemplate(courseId, backgroundUrl, title, account.getId());
-            } else if ("edit".equals(action)) {
-                int courseId = Integer.parseInt(request.getParameter("courseId"));
-                String title = request.getParameter("title");
-                if (title == null || title.trim().isEmpty()) {
-                    title = "Certificate of Completion";
+
+                if ("add".equals(action)) {
+                    Course course = new CourseDAO().findById(courseId);
+                    if (course == null || !"active".equals(course.getStatus()) || course.getCreatedBy() != account.getId()) {
+                        writeJson(response, false, "Course not found or not approved");
+                        return;
+                    }
+                    if (dao.hasTemplate(courseId)) {
+                        writeJson(response, false, "This course already has a certificate");
+                        return;
+                    }
+                    ok = dao.insertTemplate(courseId, backgroundUrl, title, account.getId(), showTitle, topOffset);
+                } else {
+                    ok = dao.updateTemplate(courseId, backgroundUrl, title, showTitle, topOffset);
                 }
-                String backgroundUrl = saveBackground(request); // null nếu không chọn file mới
-                ok = dao.updateTemplate(courseId, backgroundUrl, title);
+                
+                if (ok) {
+                    // Tự động cấp bổ sung chứng chỉ cho tất cả học viên đã đạt 100% tiến độ trước đó
+                    dao.autoIssueCertificatesForCourse(courseId);
+                }
             } else if ("delete".equals(action)) {
                 int courseId = Integer.parseInt(request.getParameter("courseId"));
                 ok = dao.deleteTemplate(courseId);

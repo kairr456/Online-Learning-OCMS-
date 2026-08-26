@@ -27,8 +27,11 @@ public class TeacherProfileValidator {
             return "Chuyên môn không được để trống.";
         }
         String spec = specialization.trim();
-        if (spec.length() < 5 || spec.length() > 255) {
-            return "Chuyên môn phải từ 5 đến 255 ký tự.";
+        if (spec.length() < 5) {
+            return "Chuyên môn phải có ít nhất 5 ký tự.";
+        }
+        if (spec.length() > 255) {
+            return "Chuyên môn không được vượt quá 255 ký tự.";
         }
 
         // --- bio (required) ---
@@ -36,8 +39,11 @@ public class TeacherProfileValidator {
             return "Giới thiệu bản thân không được để trống.";
         }
         String b = bio.trim();
-        if (b.length() < 50 || b.length() > 2000) {
-            return "Giới thiệu bản thân phải từ 50 đến 2000 ký tự.";
+        if (b.length() < 50) {
+            return "Giới thiệu bản thân phải có ít nhất 50 ký tự.";
+        }
+        if (b.length() > 2000) {
+            return "Giới thiệu bản thân không được vượt quá 2000 ký tự.";
         }
 
         // --- experienceYears (required) ---

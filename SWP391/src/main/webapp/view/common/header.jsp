@@ -166,6 +166,8 @@
                             <a href="<%= ctx %>/my-purchases">My Purchases</a>
                         <% } else if (headerAccount.getRoleId() == 2) { %>
                             <a href="<%= ctx %>/teacher-transactions">Sales Report</a>
+                        <% } else if (headerAccount.getRoleId() == 1) { %>
+                            <a href="<%= ctx %>/admin/dashboard">Admin Dashboard</a>
                         <% } %>
                         <a href="<%= ctx %>/view/common/profile.jsp">Account</a>
                         <% if (headerAccount.getRoleId() == 2) { %>

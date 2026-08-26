@@ -25,6 +25,9 @@ public class RegisterController extends HttpServlet {
     // GET
     // =========================================================
 
+    private static final java.util.logging.Logger LOGGER =
+            java.util.logging.Logger.getLogger(RegisterController.class.getName());
+
     @Override
     protected void doGet(
             HttpServletRequest request,
@@ -81,15 +84,14 @@ public class RegisterController extends HttpServlet {
         // =====================================================
         // Validate form fields
         // =====================================================
-        // All the field-level rules (required, length limits, email/phone
-        // format, role validity, etc.) now live in RegisterValidator --
-        // edit the constants/regex there rather than here.
 
         String validationError = registerValidator.validate(
                 username, password, confirmPassword, email, phone, fullName, role, gender
         );
 
         if (validationError != null) {
+            LOGGER.warning("Registration validation failed: " + validationError
+                    + " [username=" + username + ", email=" + email + "]");
 
             request.setAttribute("errorMessage", validationError);
 
@@ -154,10 +156,11 @@ public class RegisterController extends HttpServlet {
             // =================================================
 
             if (new AccountDAO().isUsernameExists(username)) {
+                LOGGER.warning("Registration failed: Username already exists [" + username + "]");
 
                 request.setAttribute(
                         "errorMessage",
-                        "Username already exists."
+                        "Tên đăng nhập đã tồn tại trên hệ thống."
                 );
 
                 request.getRequestDispatcher(
@@ -173,10 +176,11 @@ public class RegisterController extends HttpServlet {
             // =================================================
 
             if (new AccountDAO().isEmailExists(email)) {
+                LOGGER.warning("Registration failed: Email already exists [" + email + "]");
 
                 request.setAttribute(
                         "errorMessage",
-                        "Email already exists."
+                        "Địa chỉ Email đã tồn tại trên hệ thống."
                 );
 
                 request.getRequestDispatcher(

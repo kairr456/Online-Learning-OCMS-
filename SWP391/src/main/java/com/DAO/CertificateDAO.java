@@ -15,6 +15,21 @@ import java.util.UUID;
  */
 public class CertificateDAO extends DBContext {
 
+    static {
+        try {
+            java.sql.Connection conn = new DBContext().connection;
+            if (conn != null) {
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("ALTER TABLE certificate_template ADD COLUMN show_title TINYINT(1) DEFAULT 1");
+                } catch (Exception ignored) {}
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("ALTER TABLE certificate_template ADD COLUMN top_offset INT DEFAULT 140");
+                } catch (Exception ignored) {}
+                conn.close();
+            }
+        } catch (Exception ignored) {}
+    }
+
     /** Thông điệp lỗi SQL cuối cùng (để controller hiển thị cho người dùng). */
     private String lastError;
 
@@ -66,6 +81,31 @@ public class CertificateDAO extends DBContext {
     }
 
     public boolean insertTemplate(int courseId, String backgroundUrl, String title, int createdBy) {
+        return insertTemplate(courseId, backgroundUrl, title, createdBy, true, 140);
+    }
+
+    public boolean insertTemplate(int courseId, String backgroundUrl, String title, int createdBy, boolean showTitle, int topOffset) {
+        String sql = "INSERT INTO certificate_template (course_id, background_url, title, created_by, show_title, top_offset) VALUES (?, ?, ?, ?, ?, ?)";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, courseId);
+            statement.setString(2, backgroundUrl);
+            statement.setString(3, title);
+            statement.setInt(4, createdBy);
+            statement.setBoolean(5, showTitle);
+            statement.setInt(6, topOffset);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.out.println("Error insertTemplate with new cols: " + ex.getMessage() + ", trying fallback standard insert");
+            // Fallback if show_title / top_offset don't exist in DB schema yet
+            return insertTemplateFallback(courseId, backgroundUrl, title, createdBy);
+        } finally {
+            closeResources();
+        }
+    }
+
+    private boolean insertTemplateFallback(int courseId, String backgroundUrl, String title, int createdBy) {
         String sql = "INSERT INTO certificate_template (course_id, background_url, title, created_by) VALUES (?, ?, ?, ?)";
         try {
             connection = new DBContext().connection;
@@ -76,7 +116,7 @@ public class CertificateDAO extends DBContext {
             statement.setInt(4, createdBy);
             return statement.executeUpdate() > 0;
         } catch (SQLException ex) {
-            System.out.println("Error insertTemplate: " + ex.getMessage());
+            System.out.println("Error insertTemplateFallback: " + ex.getMessage());
             lastError = ex.getMessage();
             return false;
         } finally {
@@ -86,6 +126,36 @@ public class CertificateDAO extends DBContext {
 
     /** Cập nhật template: backgroundUrl null/empty nghĩa là giữ ảnh cũ (không chọn file mới). */
     public boolean updateTemplate(int courseId, String backgroundUrl, String title) {
+        return updateTemplate(courseId, backgroundUrl, title, true, 140);
+    }
+
+    public boolean updateTemplate(int courseId, String backgroundUrl, String title, boolean showTitle, int topOffset) {
+        StringBuilder sql = new StringBuilder("UPDATE certificate_template SET title = ?, show_title = ?, top_offset = ?");
+        if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
+            sql.append(", background_url = ?");
+        }
+        sql.append(", updated_date = NOW() WHERE course_id = ?");
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql.toString());
+            int idx = 1;
+            statement.setString(idx++, title);
+            statement.setBoolean(idx++, showTitle);
+            statement.setInt(idx++, topOffset);
+            if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
+                statement.setString(idx++, backgroundUrl);
+            }
+            statement.setInt(idx, courseId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.out.println("Error updateTemplate with new cols: " + ex.getMessage() + ", trying fallback standard update");
+            return updateTemplateFallback(courseId, backgroundUrl, title);
+        } finally {
+            closeResources();
+        }
+    }
+
+    private boolean updateTemplateFallback(int courseId, String backgroundUrl, String title) {
         StringBuilder sql = new StringBuilder("UPDATE certificate_template SET title = ?");
         if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
             sql.append(", background_url = ?");
@@ -102,7 +172,7 @@ public class CertificateDAO extends DBContext {
             statement.setInt(idx, courseId);
             return statement.executeUpdate() > 0;
         } catch (SQLException ex) {
-            System.out.println("Error updateTemplate: " + ex.getMessage());
+            System.out.println("Error updateTemplateFallback: " + ex.getMessage());
             lastError = ex.getMessage();
             return false;
         } finally {
@@ -217,11 +287,103 @@ public class CertificateDAO extends DBContext {
         }
     }
 
+    /**
+     * Tự động cấp chứng chỉ cho TẤT CẢ học viên đã hoàn thành 100% khóa học này
+     * nhưng trước đây chưa được cấp chứng chỉ (do giảng viên tạo template sau).
+     */
+    public void autoIssueCertificatesForCourse(int courseId) {
+        if (!hasTemplate(courseId)) {
+            return;
+        }
+        List<Integer> studentIds = new ArrayList<>();
+        // Tìm tất cả học viên có đăng ký khóa học HOẶC có tiến độ học tập trong khóa này
+        String sql = "SELECT DISTINCT account_id FROM ("
+                + "SELECT account_id FROM registration WHERE course_id = ? "
+                + "UNION "
+                + "SELECT lp.account_id FROM lesson_progress lp JOIN lesson l ON lp.lesson_id = l.id JOIN section s ON l.section_id = s.id WHERE s.course_id = ?"
+                + ") AS all_students";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, courseId);
+            statement.setInt(2, courseId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                studentIds.add(resultSet.getInt("account_id"));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error autoIssueCertificatesForCourse finding students: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+
+        LearningDAO learningDAO = new LearningDAO();
+        for (int studentId : studentIds) {
+            if (!hasCertificate(studentId, courseId)) {
+                int progress = learningDAO.getCourseProgress(studentId, courseId);
+                if (progress >= 100) {
+                    issueCertificate(studentId, courseId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Tự động kiểm tra và cấp bổ sung mọi chứng chỉ còn thiếu cho 1 học viên
+     * (các khóa học viên đạt 100% tiến độ và đã có template nhưng chưa cấp).
+     */
+    public void autoIssuePendingCertificatesForStudent(int accountId) {
+        List<Integer> candidateCourseIds = new ArrayList<>();
+        // Lấy tất cả các khóa học đã có template chứng chỉ nhưng học viên này chưa được cấp chứng chỉ
+        String sql = "SELECT ct.course_id FROM certificate_template ct "
+                + "WHERE NOT EXISTS (SELECT 1 FROM certificate c WHERE c.account_id = ? AND c.course_id = ct.course_id)";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                candidateCourseIds.add(resultSet.getInt("course_id"));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error autoIssuePendingCertificatesForStudent finding courseIds: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+
+        LearningDAO learningDAO = new LearningDAO();
+        for (int courseId : candidateCourseIds) {
+            int progress = learningDAO.getCourseProgress(accountId, courseId);
+            if (progress >= 100) {
+                issueCertificate(accountId, courseId);
+            }
+        }
+    }
+
+    /** Lấy Set tất cả course_id đã có template chứng chỉ. */
+    public java.util.Set<Integer> getTemplateCourseIds() {
+        java.util.Set<Integer> set = new java.util.HashSet<>();
+        String sql = "SELECT course_id FROM certificate_template";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                set.add(resultSet.getInt("course_id"));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getTemplateCourseIds: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return set;
+    }
+
     /** JOIN certificate_template để lấy ảnh nền + tiêu đề cho trang hiển thị. */
     public List<Certificate> getCertificatesByAccount(int accountId) {
         List<Certificate> list = new ArrayList<>();
-        String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
-                + "FROM certificate c LEFT JOIN certificate_template ct ON c.template_id = ct.id "
+        String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title, ct.show_title AS show_title, ct.top_offset AS top_offset "
+                + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
                 + "WHERE c.account_id = ? ORDER BY c.issued_date DESC, c.id DESC";
         try {
             connection = new DBContext().connection;
@@ -232,7 +394,21 @@ public class CertificateDAO extends DBContext {
                 list.add(mapCertificate(resultSet));
             }
         } catch (SQLException ex) {
-            System.out.println("Error getCertificatesByAccount: " + ex.getMessage());
+            System.out.println("Error getCertificatesByAccount primary query: " + ex.getMessage());
+            String fallbackSql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
+                    + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
+                    + "WHERE c.account_id = ? ORDER BY c.issued_date DESC, c.id DESC";
+            try {
+                connection = new DBContext().connection;
+                statement = connection.prepareStatement(fallbackSql);
+                statement.setInt(1, accountId);
+                resultSet = statement.executeQuery();
+                while (resultSet.next()) {
+                    list.add(mapCertificate(resultSet));
+                }
+            } catch (SQLException ex2) {
+                System.out.println("Error getCertificatesByAccount fallback query: " + ex2.getMessage());
+            }
         } finally {
             closeResources();
         }
@@ -241,8 +417,8 @@ public class CertificateDAO extends DBContext {
 
     public Certificate getCertificateByCode(String code) {
         Certificate c = null;
-        String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
-                + "FROM certificate c LEFT JOIN certificate_template ct ON c.template_id = ct.id "
+        String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title, ct.show_title AS show_title, ct.top_offset AS top_offset "
+                + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
                 + "WHERE c.certificate_code = ?";
         try {
             connection = new DBContext().connection;
@@ -253,7 +429,21 @@ public class CertificateDAO extends DBContext {
                 c = mapCertificate(resultSet);
             }
         } catch (SQLException ex) {
-            System.out.println("Error getCertificateByCode: " + ex.getMessage());
+            System.out.println("Error getCertificateByCode primary query: " + ex.getMessage());
+            String fallbackSql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
+                    + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
+                    + "WHERE c.certificate_code = ?";
+            try {
+                connection = new DBContext().connection;
+                statement = connection.prepareStatement(fallbackSql);
+                statement.setString(1, code);
+                resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    c = mapCertificate(resultSet);
+                }
+            } catch (SQLException ex2) {
+                System.out.println("Error getCertificateByCode fallback query: " + ex2.getMessage());
+            }
         } finally {
             closeResources();
         }
@@ -267,6 +457,17 @@ public class CertificateDAO extends DBContext {
         t.setCourseName(rs.getString("course_name"));
         t.setBackgroundUrl(rs.getString("background_url"));
         t.setTitle(rs.getString("title"));
+        try {
+            t.setShowTitle(rs.getBoolean("show_title"));
+        } catch (Exception e) {
+            t.setShowTitle(true);
+        }
+        try {
+            int offset = rs.getInt("top_offset");
+            t.setTopOffset(offset > 0 ? offset : 140);
+        } catch (Exception e) {
+            t.setTopOffset(140);
+        }
         t.setCreatedBy(rs.getInt("created_by"));
         java.sql.Timestamp cd = rs.getTimestamp("created_date");
         t.setCreatedDate(cd != null ? cd.toLocalDateTime() : null);
@@ -289,6 +490,17 @@ public class CertificateDAO extends DBContext {
         c.setIssuedDate(ts != null ? ts.toLocalDateTime() : null);
         c.setBackgroundUrl(rs.getString("background_url"));
         c.setTitle(rs.getString("template_title"));
+        try {
+            c.setShowTitle(rs.getBoolean("show_title"));
+        } catch (Exception e) {
+            c.setShowTitle(true);
+        }
+        try {
+            int offset = rs.getInt("top_offset");
+            c.setTopOffset(offset > 0 ? offset : 140);
+        } catch (Exception e) {
+            c.setTopOffset(140);
+        }
         return c;
     }
 }

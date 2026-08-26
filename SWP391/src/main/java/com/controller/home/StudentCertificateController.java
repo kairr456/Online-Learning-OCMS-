@@ -45,6 +45,9 @@ public class StudentCertificateController extends HttpServlet {
             return;
         }
 
+        // Tự động kiểm tra và cấp chứng chỉ bổ sung cho các khóa đã đạt 100% tiến độ nhưng chưa được cấp
+        dao.autoIssuePendingCertificatesForStudent(account.getId());
+
         List<Certificate> certificates = dao.getCertificatesByAccount(account.getId());
         request.setAttribute("certificates", certificates);
         request.getRequestDispatcher("/view/course_learning/my-certificates.jsp").forward(request, response);

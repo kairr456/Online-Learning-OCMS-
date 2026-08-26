@@ -70,6 +70,9 @@
                                     </div>
                                     <div class="btn-action-group">
                                         <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=all-courses" class="btn-purple">Start Course</a>
+                                        <c:if test="${item.progress >= 100 && (empty certTemplateIds || certTemplateIds.contains(item.id))}">
+                                            <a href="${pageContext.request.contextPath}/my-certificates" class="btn btn-outline-success" title="View Certificate"><i class="fa-solid fa-award"></i></a>
+                                        </c:if>
                                         <button type="button" class="btn btn-outline-secondary" title="Archive" onclick="archiveCourse(${item.id}, '${item.name}')"><i class="fa-solid fa-box-archive"></i></button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="openAddToListModal('${item.id}', '${item.name}')">+</button>
                                     </div>

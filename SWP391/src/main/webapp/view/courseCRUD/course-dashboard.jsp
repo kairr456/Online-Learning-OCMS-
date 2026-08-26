@@ -28,9 +28,17 @@
         
         <div class="filter-bar">
             <div class="search-wrapper">
-                <input type="text" name="courseName" placeholder="Search course by name..." value="${courseName != null ? courseName : ''}" onkeydown="if(event.key === 'Enter'){ document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit(); }">
-                <i class="fa-solid fa-magnifying-glass" onclick="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();"></i>
+                <input type="text" id="searchInput" name="courseName" placeholder="Search course by name..." value="${courseName != null ? courseName : ''}" onkeydown="if(event.key === 'Enter'){ submitSearch(); }">
+                <i class="fa-solid fa-magnifying-glass" onclick="submitSearch();"></i>
             </div>
+            <script>
+                function submitSearch() {
+                    var sInput = document.getElementById('searchInput');
+                    if (sInput) sInput.value = sInput.value.trim();
+                    document.getElementById('pageInput').value = 1;
+                    document.getElementById('filterForm').submit();
+                }
+            </script>
             
             <div class="filter-controls">
                 <select name="category" class="filter-select" onchange="document.getElementById('pageInput').value=1; document.getElementById('filterForm').submit();">

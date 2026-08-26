@@ -19,6 +19,8 @@ public class Certificate {
     private LocalDateTime issuedDate;
     private String backgroundUrl;  // JOIN certificate_template (render)
     private String title;          // JOIN certificate_template (render)
+    private boolean showTitle = true;
+    private int topOffset = 140;
 
     public Certificate() {
     }
@@ -43,6 +45,10 @@ public class Certificate {
     public void setBackgroundUrl(String backgroundUrl) { this.backgroundUrl = backgroundUrl; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    public boolean isShowTitle() { return showTitle; }
+    public void setShowTitle(boolean showTitle) { this.showTitle = showTitle; }
+    public int getTopOffset() { return topOffset; }
+    public void setTopOffset(int topOffset) { this.topOffset = topOffset; }
 
     /** fmt:formatDate cần java.util.Date (JSP không format được LocalDateTime). */
     public java.util.Date getIssuedDateAsDate() {
