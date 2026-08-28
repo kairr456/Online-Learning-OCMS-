@@ -128,6 +128,16 @@ public class LoginController extends HttpServlet {
         Account account = authenticate(user, pass);
 
         if (account != null) {
+            if (!account.isActive()) {
+                request.setAttribute("errorMessage", "Tài khoản của bạn đã bị inactive!");
+                if (rememberMe) {
+                    request.setAttribute("rememberedUsername", user);
+                    request.setAttribute("rememberChecked", true);
+                }
+                request.getRequestDispatcher("/view/authen/login.jsp").forward(request, response);
+                return;
+            }
+
             // Login successful: Create session
             HttpSession session = request.getSession();
             storeAuthenticatedAccount(session, account);
