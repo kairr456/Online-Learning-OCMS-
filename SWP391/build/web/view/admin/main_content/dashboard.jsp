@@ -203,7 +203,7 @@
                         </div>
                     </div>
                     <strong>Hoàn thành bài</strong>
-                    <small>Tỷ lệ hoàn thành lesson</small>
+                    <small>Tỷ lệ hoàn thành khóa học</small>
                 </div>
 
             </div>

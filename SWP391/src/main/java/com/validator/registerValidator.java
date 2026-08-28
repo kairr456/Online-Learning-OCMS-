@@ -38,11 +38,7 @@ public class registerValidator {
 
     // Email check: ^[^\s@]+@[^\s@]+$
     private static final Pattern EMAIL_PATTERN =
-<<<<<<< Updated upstream
             Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-=======
-            Pattern.compile("^[^\\s@]+@[^\\s@]+$");
->>>>>>> Stashed changes
 
     // Simple Vietnamese-style mobile number: starts with 0, 9-10 more digits.
     private static final Pattern PHONE_PATTERN =

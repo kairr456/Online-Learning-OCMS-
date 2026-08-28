@@ -198,16 +198,12 @@ public class MyLearningController extends HttpServlet {
                 }
                 body.append("\nKeep up the good work!\nOCMS");
                 try {
-<<<<<<< Updated upstream
-                    EmailService.sendEmail(recipientEmail, "OCMS - Learning Reminder (Test)", body.toString());
-=======
                     String userEmail = account.getEmail();
                     if (userEmail == null || userEmail.trim().isEmpty()) {
                         out.print("{\"status\":\"error\", \"message\":\"Tài khoản hiện tại chưa có email!\"}");
                         return;
                     }
                     EmailService.sendEmail(userEmail, "OCMS - Learning Reminder (Test)", body.toString());
->>>>>>> Stashed changes
                 } catch (Exception e) {
                     e.printStackTrace();
                     out.print("{\"status\":\"error\", \"message\":\"Failed to send email: " + e.getMessage() + "\"}");

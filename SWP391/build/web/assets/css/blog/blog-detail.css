@@ -81,11 +81,8 @@ body {
     border: 1px solid var(--border-color);
     padding: 40px;
     box-shadow: var(--shadow-subtle);
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 
 .article-cat-badge {
@@ -107,11 +104,8 @@ body {
     line-height: 1.35;
     color: var(--text-dark) !important;
     margin: 0 0 18px;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 
 .article-meta {
@@ -243,11 +237,8 @@ body {
     padding: 16px 20px;
     border-radius: 0 8px 8px 0;
     margin-bottom: 30px;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 
 /* Body Content */
@@ -255,7 +246,6 @@ body {
     font-size: 15.5px;
     line-height: 1.8;
     color: #2D3748;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
 }
@@ -272,8 +262,6 @@ body {
 .article-content figcaption {
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 .article-content p {
     margin-bottom: 1.4em;

@@ -94,12 +94,7 @@ public class LessonDAO extends DBContext {
     }
 
     public void insertLessonText(int lessonId, String content) {
-<<<<<<< Updated upstream
         DbTextValidator.validateLength(content, 10000000, "Nội dung bài học dạng văn bản");
-
-=======
-        DbTextValidator.validateLength(content, 5000, "Nội dung bài học dạng văn bản");
->>>>>>> Stashed changes
         String sql = "INSERT INTO lesson_text (lesson_id, content) VALUES (?, ?)";
         try {
             connection = new DBContext().connection;
@@ -348,12 +343,7 @@ public class LessonDAO extends DBContext {
     }
 
     public void upsertLessonText(int lessonId, String content) {
-<<<<<<< Updated upstream
         DbTextValidator.validateLength(content, 10000000, "Nội dung bài học dạng văn bản");
-
-=======
-        DbTextValidator.validateLength(content, 5000, "Nội dung bài học dạng văn bản");
->>>>>>> Stashed changes
         String sqlCheck = "SELECT lesson_id FROM lesson_text WHERE lesson_id = ?";
         boolean exists = false;
         try {

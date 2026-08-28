@@ -50,16 +50,8 @@
                 </div>
 
                 <div class="learning-search">
-<<<<<<< Updated upstream
-                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." 
-                           oninput="filterCourses()" 
-                           onblur="this.value=this.value.trim(); filterCourses();" 
-                           onkeydown="if(event.key==='Enter'){ this.value=this.value.trim(); filterCourses(); }">
-                    <button type="button" onclick="const i=document.getElementById('courseSearchInput'); if(i){i.value=i.value.trim();} filterCourses();"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-=======
                     <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeydown="if(event.key==='Enter'){ const i=document.getElementById('courseSearchInput'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); } filterCourses(); }">
                     <button type="button" onclick="const i=document.getElementById('courseSearchInput'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); } filterCourses();"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
->>>>>>> Stashed changes
                 </div>
             </div>
 
@@ -190,11 +182,7 @@
     </script>
 
     <!-- Script xử lý logic JavaScript -->
-<<<<<<< Updated upstream
-    <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js?v=1.2"></script>
-=======
     <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js?v=<%=System.currentTimeMillis()%>"></script>
->>>>>>> Stashed changes
 </body>
 
 </html>

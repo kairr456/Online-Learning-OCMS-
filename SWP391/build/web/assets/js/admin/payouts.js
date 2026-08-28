@@ -7,7 +7,6 @@ const processModalEl = document.getElementById('processModal');
 const rejectModalEl = document.getElementById('rejectModal');
 
 /**
-<<<<<<< HEAD
  * Kiểm tra và hiển thị lỗi cho trường Mã giao dịch (không được để trống hoặc chỉ có khoảng trắng)
  */
 function validateTransactionCode(el) {
@@ -86,46 +85,30 @@ function validateRejectReason(el) {
  * Mở modal Quét VietQR và xác nhận chuyển tiền
  */
 function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNumber, accountHolder, note) {
-=======
- * Mở modal Quét VietQR và xác nhận chuyển tiền
- */
-function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNumber, accountHolder) {
->>>>>>> main
     const modalPayoutId = document.getElementById('modalPayoutId');
     const modalTeacherName = document.getElementById('modalTeacherName');
     const modalBankName = document.getElementById('modalBankName');
     const modalAccountNumber = document.getElementById('modalAccountNumber');
     const modalAccountHolder = document.getElementById('modalAccountHolder');
-<<<<<<< HEAD
     const modalNoteRow = document.getElementById('modalNoteRow');
     const modalTeacherNote = document.getElementById('modalTeacherNote');
     const modalAmountDisplay = document.getElementById('modalAmountDisplay');
     const vietQrImg = document.getElementById('vietQrImg');
     const transactionCodeInput = document.getElementById('transactionCodeInput');
     const transactionCodeError = document.getElementById('transactionCodeError');
-=======
-    const modalAmountDisplay = document.getElementById('modalAmountDisplay');
-    const vietQrImg = document.getElementById('vietQrImg');
-    const transactionCodeInput = document.getElementById('transactionCodeInput');
->>>>>>> main
 
     if (modalPayoutId) modalPayoutId.value = id;
     if (modalTeacherName) modalTeacherName.innerText = teacherName;
     if (modalBankName) modalBankName.innerText = bankName + ' (' + bankCode + ')';
-<<<<<<< HEAD
     const maskAcc = (accountNumber && accountNumber.trim().length > 4)
         ? (accountNumber.trim().substring(0, accountNumber.trim().length - 4) + '****')
         : (accountNumber ? '****' : '-');
     if (modalAccountNumber) modalAccountNumber.innerText = maskAcc;
-=======
-    if (modalAccountNumber) modalAccountNumber.innerText = accountNumber;
->>>>>>> main
     if (modalAccountHolder) modalAccountHolder.innerText = accountHolder;
     if (modalAmountDisplay) {
         modalAmountDisplay.innerText = Number(amount).toLocaleString('vi-VN') + ' ₫';
     }
 
-<<<<<<< HEAD
     if (modalNoteRow && modalTeacherNote) {
         if (note && note.trim() !== '') {
             modalTeacherNote.innerText = note;
@@ -143,10 +126,6 @@ function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNu
     if (transactionCodeError) {
         transactionCodeError.style.display = 'none';
         transactionCodeError.innerText = '';
-=======
-    if (transactionCodeInput) {
-        transactionCodeInput.value = '';
->>>>>>> main
     }
 
     // Tạo URL VietQR động theo chuẩn Napas247
@@ -177,7 +156,6 @@ function closeProcessModal() {
 /**
  * Mở modal Từ chối yêu cầu rút tiền
  */
-<<<<<<< HEAD
 function openRejectModal(id, teacherName, amount, note) {
     const rejectPayoutId = document.getElementById('rejectPayoutId');
     const rejectTeacherName = document.getElementById('rejectTeacherName');
@@ -187,20 +165,12 @@ function openRejectModal(id, teacherName, amount, note) {
     const rejectReason = document.getElementById('rejectReason');
     const rejectReasonError = document.getElementById('rejectReasonError');
     const rejectReasonCount = document.getElementById('rejectReasonCount');
-=======
-function openRejectModal(id, teacherName, amount) {
-    const rejectPayoutId = document.getElementById('rejectPayoutId');
-    const rejectTeacherName = document.getElementById('rejectTeacherName');
-    const rejectAmountDisplay = document.getElementById('rejectAmountDisplay');
-    const rejectReason = document.getElementById('rejectReason');
->>>>>>> main
 
     if (rejectPayoutId) rejectPayoutId.value = id;
     if (rejectTeacherName) rejectTeacherName.innerText = teacherName;
     if (rejectAmountDisplay) {
         rejectAmountDisplay.innerText = Number(amount).toLocaleString('vi-VN') + ' ₫';
     }
-<<<<<<< HEAD
 
     if (rejectNoteRow && rejectTeacherNote) {
         if (note && note.trim() !== '') {
@@ -224,10 +194,6 @@ function openRejectModal(id, teacherName, amount) {
         rejectReasonCount.innerText = '0/100 ký tự';
         rejectReasonCount.style.color = '#64748b';
         rejectReasonCount.style.fontWeight = 'normal';
-=======
-    if (rejectReason) {
-        rejectReason.value = '';
->>>>>>> main
     }
 
     const modal = document.getElementById('rejectModal');
@@ -297,7 +263,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (flashMsg && flashMsg.trim() !== '') {
         showPayoutToast(flashMsg, flashType);
     }
-<<<<<<< HEAD
 
     // Gắn submit listener cho form Duyệt rút tiền
     const approveForm = document.getElementById('approvePayoutForm');
@@ -324,6 +289,4 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-=======
->>>>>>> main
 });

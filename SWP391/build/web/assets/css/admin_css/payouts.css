@@ -211,7 +211,6 @@
     font-size: 13px;
     margin-bottom: 14px;
     display: flex;
-<<<<<<< HEAD
     align-items: flex-start;
     justify-content: flex-start !important;
     gap: 8px;
@@ -231,10 +230,6 @@
     margin-top: 4px;
     font-weight: 500;
     line-height: 1.35;
-=======
-    align-items: center;
-    gap: 8px;
->>>>>>> main
 }
 
 .modal-action-btn-group {
@@ -262,7 +257,6 @@
 }
 
 .btn-modal-cancel { flex: 1; cursor: pointer; }
-<<<<<<< HEAD
 
 /* ── Compact Table & Word Wrap Controls ── */
 .table-responsive {
@@ -342,5 +336,3 @@
     box-sizing: border-box;
     text-decoration: none !important;
 }
-=======
->>>>>>> main

@@ -309,7 +309,6 @@ public class CertificateDAO extends DBContext {
         }
     }
 
-<<<<<<< HEAD
     /**
      * Tự động cấp chứng chỉ cho TẤT CẢ học viên đã hoàn thành 100% khóa học này
      * nhưng trước đây chưa được cấp chứng chỉ (do giảng viên tạo template sau).
@@ -370,28 +369,12 @@ public class CertificateDAO extends DBContext {
     public java.util.Map<Integer, String> getCertificateCodeMapByAccount(int accountId) {
         java.util.Map<Integer, String> map = new java.util.HashMap<>();
         String sql = "SELECT course_id, certificate_code FROM certificate WHERE account_id = ?";
+        try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
             statement.setInt(1, accountId);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
-<<<<<<< HEAD
-                candidateCourseIds.add(resultSet.getInt("course_id"));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error autoIssuePendingCertificatesForStudent finding courseIds: " + ex.getMessage());
-        } finally {
-            closeResources();
-        }
-
-        LearningDAO learningDAO = new LearningDAO();
-        for (int courseId : candidateCourseIds) {
-            int progress = learningDAO.getCourseProgress(accountId, courseId);
-            if (progress >= 100) {
-                issueCertificate(accountId, courseId);
-            }
-        }
-=======
                 map.put(resultSet.getInt("course_id"), resultSet.getString("certificate_code"));
             }
         } catch (SQLException ex) {
@@ -400,7 +383,6 @@ public class CertificateDAO extends DBContext {
             closeResources();
         }
         return map;
->>>>>>> main
     }
 
     /** Lấy Set tất cả course_id đã có template chứng chỉ. */

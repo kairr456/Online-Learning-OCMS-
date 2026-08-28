@@ -241,21 +241,15 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
     transition: color 0.2s ease;
 }
 .blog-item__title a {
     color: var(--text-dark) !important;
     text-decoration: none;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 .blog-item:hover .blog-item__title a {
     color: var(--accent-amber-hover) !important;
@@ -269,11 +263,8 @@ body {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-<<<<<<< HEAD
     word-break: break-word;
     overflow-wrap: anywhere;
-=======
->>>>>>> main
 }
 .blog-item__footer {
     margin-top: auto;
