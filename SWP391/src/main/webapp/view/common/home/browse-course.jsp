@@ -138,7 +138,12 @@
                                                         data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
                                                         onclick="submitAddToCart(this);">ENROLL NOW</button>
                                             </div>
-                                            <span class="course-price"><fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>₫</span>
+                                            <span class="course-price">
+                                                <c:choose>
+                                                    <c:when test="${course.price == 0}">Free</c:when>
+                                                    <c:otherwise><fmt:formatNumber value='${course.price}' maxFractionDigits='0'/>₫</c:otherwise>
+                                                </c:choose>
+                                            </span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>

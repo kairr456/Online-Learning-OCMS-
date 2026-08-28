@@ -249,15 +249,17 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     margin-top: auto;
     padding-top: 15px;
     border-top: 1px dashed var(--border-light);
+    flex-wrap: nowrap;
+    overflow: hidden;
 }
 .course-footer__actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
 }
 .course-footer__actions .wishlist-heart {
@@ -267,24 +269,28 @@ body {
     background-color: var(--accent-yellow);
     color: var(--primary-dark);
     border: none;
-    padding: 8px 20px;
-    font-size: 14px;
+    padding: 7px 12px;
+    font-size: 12px;
     font-weight: 700;
     border-radius: 20px;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 .enroll-btn:hover {
     background-color: #e0a800; /* Darker yellow */
     transform: translateY(-2px);
 }
 .course-price {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
     color: var(--primary-dark);
+    white-space: nowrap;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 /* Pagination */
