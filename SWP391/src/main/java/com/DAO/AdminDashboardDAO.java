@@ -254,21 +254,23 @@ public class AdminDashboardDAO extends DBContext {
     }
 
     // Tỷ lệ học viên đỗ quiz:
-    // Đánh giá theo từng cặp (account_id, quiz_id):
-    // - Nếu làm nhiều lần mà có ít nhất 1 lần đỗ (passed = 1) -> tính 1 lần là đã đỗ.
-    // - Nếu làm nhiều lần mà tất cả đều trượt -> tính 1 lần là trượt.
-    // - Nếu chỉ làm 1 lần và đỗ -> tính 1 lần là đỗ.
+    // Đánh giá theo từng cặp (account_id, quiz_id) cho các khóa học đã được đăng ký hợp lệ:
+    // - Nhiều lần làm, đỗ ít nhất 1 lần -> Tính 1 ĐỖ.
+    // - Nhiều lần làm, tất cả trượt -> Tính 1 TRƯỢT.
+    // - 1 lần làm, đỗ -> Tính 1 ĐỖ.
+    // Tỷ lệ = (Số cặp đỗ ít nhất 1 lần / Tổng số cặp đã thực hiện bài làm) * 100
     public int getQuizPassRate() {
         int passedCount = 0, totalCount = 0;
         try {
-            // 1. Đếm số cặp (account_id, quiz_id) đã đỗ ít nhất 1 lần
+            // 1. Đếm số cặp (account_id, quiz_id) đã đỗ ít nhất 1 lần đối với các khóa học được đăng ký/mua
             String sqlPassed = "SELECT COUNT(*) FROM (" +
                     "SELECT qa.account_id, qa.quiz_id " +
                     "FROM quiz_attempt qa " +
                     "JOIN lesson_quiz lq ON lq.id = qa.quiz_id " +
                     "JOIN lesson l ON l.id = lq.lesson_id " +
                     "JOIN section s ON s.id = l.section_id " +
-                    "WHERE qa.passed = 1 " +
+                    "JOIN registration r ON r.course_id = s.course_id AND r.account_id = qa.account_id " +
+                    "WHERE qa.passed = 1 AND LOWER(r.status) IN ('approved', 'success', 'active') " +
                     "GROUP BY qa.account_id, qa.quiz_id" +
                     ") AS passed_pairs";
 
@@ -279,13 +281,15 @@ public class AdminDashboardDAO extends DBContext {
             }
             resultSet.close();
 
-            // 2. Đếm tổng số cặp (account_id, quiz_id) đã từng làm quiz
+            // 2. Đếm tổng số cặp (account_id, quiz_id) đã thực hiện bài làm đối với các khóa học được đăng ký/mua
             String sqlTotal = "SELECT COUNT(*) FROM (" +
                     "SELECT qa.account_id, qa.quiz_id " +
                     "FROM quiz_attempt qa " +
                     "JOIN lesson_quiz lq ON lq.id = qa.quiz_id " +
                     "JOIN lesson l ON l.id = lq.lesson_id " +
                     "JOIN section s ON s.id = l.section_id " +
+                    "JOIN registration r ON r.course_id = s.course_id AND r.account_id = qa.account_id " +
+                    "WHERE LOWER(r.status) IN ('approved', 'success', 'active') " +
                     "GROUP BY qa.account_id, qa.quiz_id" +
                     ") AS total_pairs";
 
@@ -293,6 +297,25 @@ public class AdminDashboardDAO extends DBContext {
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 totalCount = resultSet.getInt(1);
+            }
+            resultSet.close();
+
+            // Fallback nếu không có lượt đăng ký chính thức tương ứng
+            if (totalCount == 0) {
+                String fallbackPassed = "SELECT COUNT(*) FROM (" +
+                        "SELECT account_id, quiz_id FROM quiz_attempt WHERE passed = 1 GROUP BY account_id, quiz_id" +
+                        ") AS p";
+                statement = connection.prepareStatement(fallbackPassed);
+                resultSet = statement.executeQuery();
+                if (resultSet.next()) passedCount = resultSet.getInt(1);
+                resultSet.close();
+
+                String fallbackTotal = "SELECT COUNT(*) FROM (" +
+                        "SELECT account_id, quiz_id FROM quiz_attempt GROUP BY account_id, quiz_id" +
+                        ") AS t";
+                statement = connection.prepareStatement(fallbackTotal);
+                resultSet = statement.executeQuery();
+                if (resultSet.next()) totalCount = resultSet.getInt(1);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -322,7 +345,8 @@ public class AdminDashboardDAO extends DBContext {
     }
 
     // Tỷ lệ hoàn thành khóa học:
-    // Tính dựa trên tổng số lượt mua khóa học (registration) đã hoàn thành 100% tất cả lesson.
+    // Tính dựa trên tổng số lượt mua/đăng ký khóa học (registration) đã hoàn thành 100% tất cả bài học (lesson_progress.completed = 1).
+    // Tỷ lệ = (Số khóa học hoàn thành 100% / Tổng số lượt mua khóa học) * 100
     public int getLessonCompletionRate() {
         int completedCourses = 0, totalPurchasedCourses = 0;
         try {
@@ -349,6 +373,7 @@ public class AdminDashboardDAO extends DBContext {
                     "        AND s.course_id = r.course_id " +
                     "    ) AS completed_lessons " +
                     "  FROM registration r " +
+                    "  WHERE LOWER(r.status) IN ('approved', 'success', 'active') " +
                     ") AS course_lessons";
 
             statement = connection.prepareStatement(sql);
@@ -359,25 +384,26 @@ public class AdminDashboardDAO extends DBContext {
             }
             resultSet.close();
 
-            // Nếu không có dữ liệu registration, fallback tính theo lesson_progress trực tiếp
+            // Nếu không có lượt mua có trạng thái Approved/Success/Active, fallback lấy tất cả lượt trong registration
             if (totalPurchasedCourses == 0) {
-                statement = connection.prepareStatement(
-                        "SELECT COUNT(DISTINCT lp.account_id, lp.lesson_id) "
-                                + "FROM lesson_progress lp WHERE lp.completed = 1");
-                resultSet = statement.executeQuery();
-                int compLessons = 0;
-                if (resultSet.next()) {
-                    compLessons = resultSet.getInt(1);
-                }
-                resultSet.close();
+                String fallbackSql = "SELECT " +
+                        "  COUNT(CASE WHEN course_lessons.total_lessons > 0 AND course_lessons.completed_lessons >= course_lessons.total_lessons THEN 1 END) AS completed_courses, " +
+                        "  COUNT(*) AS total_purchased_courses " +
+                        "FROM (" +
+                        "  SELECT " +
+                        "    r.account_id, " +
+                        "    r.course_id, " +
+                        "    (SELECT COUNT(DISTINCT l.id) FROM section s JOIN lesson l ON l.section_id = s.id WHERE s.course_id = r.course_id) AS total_lessons, " +
+                        "    (SELECT COUNT(DISTINCT lp.lesson_id) FROM lesson_progress lp JOIN lesson l ON l.id = lp.lesson_id JOIN section s ON s.id = l.section_id WHERE lp.account_id = r.account_id AND lp.completed = 1 AND s.course_id = r.course_id) AS completed_lessons " +
+                        "  FROM registration r " +
+                        ") AS course_lessons";
 
-                statement = connection.prepareStatement("SELECT COUNT(*) FROM lesson_progress");
+                statement = connection.prepareStatement(fallbackSql);
                 resultSet = statement.executeQuery();
-                int totLessons = 0;
                 if (resultSet.next()) {
-                    totLessons = resultSet.getInt(1);
+                    completedCourses = resultSet.getInt("completed_courses");
+                    totalPurchasedCourses = resultSet.getInt("total_purchased_courses");
                 }
-                return totLessons == 0 ? 0 : (int) Math.round((double) compLessons / totLessons * 100);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
