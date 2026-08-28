@@ -258,32 +258,28 @@
 
 .btn-modal-cancel { flex: 1; cursor: pointer; }
 
-/* ── Compact Table & Word Wrap Controls ── */
-.table-responsive {
-    overflow-x: hidden !important;
-}
-
-.table-responsive .account-table {
+/* ── Compact Table & Word Wrap Controls for Payouts ── */
+.table-responsive .payouts-table {
     table-layout: fixed;
     width: 100%;
 }
 
-.table-responsive .account-table th:nth-child(1) { width: 9%; }   /* Mã đơn */
-.table-responsive .account-table th:nth-child(2) { width: 20%; }  /* Giảng viên */
-.table-responsive .account-table th:nth-child(3) { width: 13%; }  /* Số tiền rút */
-.table-responsive .account-table th:nth-child(4) { width: 22%; }  /* Thông tin NH */
-.table-responsive .account-table th:nth-child(5) { width: 12%; }  /* Thời gian gửi */
-.table-responsive .account-table th:nth-child(6) { width: 11%; }  /* Trạng thái */
-.table-responsive .account-table th:nth-child(7) { width: 13%; text-align: center; }  /* Hành động */
+.table-responsive .payouts-table th:nth-child(1) { width: 9%; }   /* Mã đơn */
+.table-responsive .payouts-table th:nth-child(2) { width: 20%; }  /* Giảng viên */
+.table-responsive .payouts-table th:nth-child(3) { width: 13%; }  /* Số tiền rút */
+.table-responsive .payouts-table th:nth-child(4) { width: 22%; }  /* Thông tin NH */
+.table-responsive .payouts-table th:nth-child(5) { width: 12%; }  /* Thời gian gửi */
+.table-responsive .payouts-table th:nth-child(6) { width: 11%; }  /* Trạng thái */
+.table-responsive .payouts-table th:nth-child(7) { width: 13%; text-align: center; }  /* Hành động */
 
-.table-responsive .account-table td {
+.table-responsive .payouts-table td {
     white-space: normal;
     word-break: break-word;
     overflow-wrap: anywhere;
     padding: 10px 12px;
 }
 
-.table-responsive .account-table th {
+.table-responsive .payouts-table th {
     padding: 12px;
 }
 

@@ -70,7 +70,7 @@
 
     <!-- Payout Data Table -->
     <div class="table-responsive">
-        <table class="account-table">
+        <table class="account-table payouts-table">
             <thead>
                 <tr>
                     <th>Mã đơn</th>

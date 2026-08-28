@@ -57,7 +57,7 @@
                     <th>Gender</th>
                     <th>Status</th>
                     <th>Role</th>
-                    <th>Actions</th>
+                    <th class="action-cell">Actions</th>
                 </tr>
             </thead>
             <tbody>

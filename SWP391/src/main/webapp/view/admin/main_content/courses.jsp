@@ -62,7 +62,7 @@
                     <th>Created By</th>
                     <th>Category</th>
                     <th>Created Date</th>
-                    <th>Actions</th>
+                    <th class="action-cell">Actions</th>
                 </tr>
             </thead>
             <tbody>

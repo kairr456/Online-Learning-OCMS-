@@ -483,8 +483,13 @@ input, textarea, select, button, p, span, div, h1, h2, h3, h4, h5, h6, label, td
 }
 
 /* Action buttons */
+td.action-cell, th.action-cell {
+    text-align: center !important;
+    white-space: nowrap;
+}
+
 .action-cell {
-    display: flex;
+    display: inline-flex;
     gap: 6px;
     justify-content: center;
     align-items: center;
