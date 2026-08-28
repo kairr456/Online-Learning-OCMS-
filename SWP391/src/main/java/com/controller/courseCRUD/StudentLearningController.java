@@ -529,6 +529,8 @@ public class StudentLearningController extends HttpServlet {
                 q.put("selectedAnswerIds", selectedAnswerIds);
             }
 
+            int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
+            request.setAttribute("courseId", courseId);
             request.setAttribute("lesson", lesson);
             request.setAttribute("lessonQuiz", lessonQuiz);
             request.setAttribute("userAttempts", userAttempts);

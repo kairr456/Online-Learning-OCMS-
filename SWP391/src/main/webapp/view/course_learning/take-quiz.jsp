@@ -120,9 +120,18 @@
                                 </span>
                             </c:otherwise>
                         </c:choose>
-                        <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary px-4 py-2 quiz-back-btn">
-                            <i class="fas fa-arrow-left me-2"></i> Back to Course
-                        </a>
+                        <c:choose>
+                            <c:when test="${not empty courseId && courseId > 0}">
+                                <a href="${pageContext.request.contextPath}/learning?courseId=${courseId}&lessonId=${lesson.id}" class="btn btn-primary px-4 py-2 quiz-back-btn">
+                                    <i class="fas fa-arrow-left me-2"></i> Quay lại học tiếp
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <a href="${pageContext.request.contextPath}/course?id=${courseId}" class="btn btn-primary px-4 py-2 quiz-back-btn">
+                                    <i class="fas fa-arrow-left me-2"></i> Back to Course
+                                </a>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>

@@ -217,6 +217,11 @@ public class LearningController extends HttpServlet {
             lessonDocument.setDocumentUrl(normalizeLocalUrl(lessonDocument.getDocumentUrl(), request));
         }
 
+        String fromParam = request.getParameter("from");
+        if (fromParam != null && !fromParam.trim().isEmpty()) {
+            request.setAttribute("fromParam", fromParam.trim());
+        }
+
         request.setAttribute("allLessons", allLessons);
         request.setAttribute("currentLesson", currentLesson);
         request.setAttribute("prevLesson", prevLesson);

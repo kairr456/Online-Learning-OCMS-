@@ -21,9 +21,18 @@
         <div class="result-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Kết quả: ${lesson.title}</h2>
-                <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> Quay lại bài học
-                </a>
+                <c:choose>
+                    <c:when test="${not empty courseId && courseId > 0}">
+                        <a href="${pageContext.request.contextPath}/learning?courseId=${courseId}&lessonId=${lesson.id}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Quay lại bài học
+                        </a>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Quay lại bài học
+                        </a>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <!-- Attempt Selector -->

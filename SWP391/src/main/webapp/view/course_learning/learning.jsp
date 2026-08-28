@@ -20,25 +20,28 @@
     <!-- Common Header (project-wide) -->
     <jsp:include page="/view/common/header.jsp" />
 
+    <c:set var="fromVal" value="${not empty param.from ? param.from : fromParam}" />
+    <c:set var="fromQuery" value="${not empty fromVal ? '&from='.concat(fromVal) : ''}" />
+
     <!-- Learning-specific Topbar -->
     <div class="learn-topbar">
         <div class="tb-nav">
             <c:choose>
-                    <c:when test="${param.from == 'archived'}">
-                        <a href="${pageContext.request.contextPath}/archived"><i class="fa-solid fa-arrow-left"></i> Archived</a>
-                    </c:when>
-                    <c:otherwise>
-                        <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
-                    </c:otherwise>
-                </c:choose>
+                <c:when test="${fromVal == 'archived'}">
+                    <a href="${pageContext.request.contextPath}/archived"><i class="fa-solid fa-arrow-left"></i> Archived</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/all-courses"><i class="fa-solid fa-arrow-left"></i> All Courses</a>
+                </c:otherwise>
+            </c:choose>
         </div>
         <div class="tb-title">${course.name}</div>
         <div class="tb-nav">
             <c:if test="${not empty prevLesson}">
-                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${prevLesson.id}"><i class="fa-solid fa-chevron-left"></i> Previous</a>
+                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${prevLesson.id}${fromQuery}"><i class="fa-solid fa-chevron-left"></i> Previous</a>
             </c:if>
             <c:if test="${not empty nextLesson}">
-                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${nextLesson.id}">Next <i class="fa-solid fa-chevron-right"></i></a>
+                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${nextLesson.id}${fromQuery}">Next <i class="fa-solid fa-chevron-right"></i></a>
             </c:if>
         </div>
     </div>
@@ -58,7 +61,7 @@
                         <ul class="section-lessons">
                             <c:forEach var="lesson" items="${lessonsMap[section.id]}">
                                 <li>
-                                    <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${lesson.id}"
+                                    <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${lesson.id}${fromQuery}"
                                        class="${lesson.id == currentLesson.id ? 'active' : ''}">
                                         <span class="les-icon">
                                             <c:choose>
@@ -223,7 +226,7 @@
                                 <span class="quiz-result pass"><i class="fa-solid fa-circle-check"></i> Completed</span>
                             </c:if>
                             <c:if test="${not empty nextLesson}">
-                                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${nextLesson.id}" class="btn-outline">Next: ${nextLesson.title} <i class="fa-solid fa-chevron-right"></i></a>
+                                <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${nextLesson.id}${fromQuery}" class="btn-outline">Next: ${nextLesson.title} <i class="fa-solid fa-chevron-right"></i></a>
                             </c:if>
                         </div>
                     </c:otherwise>
