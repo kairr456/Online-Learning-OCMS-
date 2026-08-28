@@ -393,6 +393,9 @@ public class QuizManagerController extends HttpServlet {
 
         String courseIdStr = request.getParameter("courseId");
         String search = request.getParameter("search");
+        if (search != null) {
+            search = search.trim().replaceAll("\\s+", " ");
+        }
         List<Map<String, Object>> teacherQuizzes = quizDAO.getQuizzesByTeacher(account.getId(), search, courseIdStr, null);
         request.setAttribute("teacherQuizzes", teacherQuizzes);
         request.setAttribute("selectedCourseId", courseIdStr);

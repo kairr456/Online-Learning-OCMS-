@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -81,8 +82,8 @@
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:if>
-                                        <button type="button" class="btn btn-outline-secondary" title="Archive" onclick="archiveCourse(${item.id}, '${item.name}')"><i class="fa-solid fa-box-archive"></i></button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="openAddToListModal('${item.id}', '${item.name}')">+</button>
+                                        <button type="button" class="btn btn-outline-secondary" title="Archive" data-name="${fn:escapeXml(item.name)}" onclick="archiveCourse(${item.id}, this.getAttribute('data-name'))"><i class="fa-solid fa-box-archive"></i></button>
+                                        <button type="button" class="btn btn-outline-secondary" data-name="${fn:escapeXml(item.name)}" onclick="openAddToListModal(${item.id}, this.getAttribute('data-name'))">+</button>
                                     </div>
                                 </div>
                             </div>

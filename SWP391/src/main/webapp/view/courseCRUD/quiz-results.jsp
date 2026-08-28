@@ -193,7 +193,7 @@
             
             <!-- Filters Bar -->
             <div class="filter-box shadow-sm">
-                <form action="${pageContext.request.contextPath}/quiz-results" method="get" class="row g-3 align-items-center">
+                <form action="${pageContext.request.contextPath}/quiz-results" method="get" class="row g-3 align-items-center" onsubmit="const i=this.querySelector('input[name=search]'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); }">
                     <div class="col-md-5">
                         <label class="form-label fw-bold text-secondary mb-1">Lọc theo Khóa học:</label>
                         <select name="courseId" class="form-select" onchange="this.form.submit()">
@@ -206,8 +206,8 @@
                     <div class="col-md-5">
                         <label class="form-label fw-bold text-secondary mb-1">Tìm kiếm bài Quiz:</label>
                         <div class="input-group">
-                            <input type="text" name="search" class="form-control" placeholder="Nhập tên bài quiz..." value="${fn:escapeXml(searchKeyword)}">
-                            <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i> Tìm</button>
+                            <input type="text" name="search" id="quizSearchInput" class="form-control" placeholder="Nhập tên bài quiz..." value="${fn:escapeXml(searchKeyword)}" onkeydown="if(event.key==='Enter'){ this.value=this.value.trim().replace(/\s+/g, ' '); }">
+                            <button class="btn btn-primary" type="submit" onclick="const i=document.getElementById('quizSearchInput'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); }"><i class="fas fa-search"></i> Tìm</button>
                         </div>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">

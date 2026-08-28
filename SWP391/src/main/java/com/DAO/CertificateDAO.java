@@ -353,12 +353,29 @@ public class CertificateDAO extends DBContext {
     public void autoIssuePendingCertificatesForStudent(int accountId) {
         CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
         List<Course> enrolled = regDAO.getCoursesByAccountId(accountId);
+        CourseDAO courseDAO = new CourseDAO();
+        List<Course> created = courseDAO.findByCreator(accountId);
+        for (Course c : created) {
+            boolean exists = false;
+            for (Course e : enrolled) {
+                if (e.getId() == c.getId()) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                enrolled.add(c);
+            }
+        }
         LearningDAO learningDAO = new LearningDAO();
         java.util.Map<Integer, Integer> progressMap = learningDAO.getCourseProgressMap(accountId);
 
         for (Course c : enrolled) {
             Integer p = progressMap.get(c.getId());
-            if (p != null && p >= 100) {
+            if (p == null) {
+                p = learningDAO.getCourseProgress(accountId, c.getId());
+            }
+            if (p >= 100) {
                 if (!hasCertificate(accountId, c.getId())) {
                     issueCertificate(accountId, c.getId());
                 }
