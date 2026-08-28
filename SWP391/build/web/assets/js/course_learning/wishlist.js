@@ -18,17 +18,30 @@ function populateCategoryFilter() {
 }
 
 function filterCourses() {
+<<<<<<< HEAD
     const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+=======
+    const rawSearch = document.getElementById('courseSearchInput').value || '';
+    const cleanedKeyword = rawSearch.trim().replace(/\s+/g, ' ').toLowerCase();
+>>>>>>> main
     const categoryFilter = document.getElementById('filterCategory').value;
     const sortBy = document.getElementById('sortBy').value;
 
     const cards = Array.from(document.querySelectorAll('#courseGrid .course-card'));
 
     cards.forEach(function (card) {
+<<<<<<< HEAD
         const title = card.getAttribute('data-title').toLowerCase();
         const category = card.getAttribute('data-category') || '';
 
         const matchesKeyword = title.includes(keyword);
+=======
+        const rawTitle = card.getAttribute('data-title') || '';
+        const title = rawTitle.trim().replace(/\s+/g, ' ').toLowerCase();
+        const category = card.getAttribute('data-category') || '';
+
+        const matchesKeyword = !cleanedKeyword || title.includes(cleanedKeyword);
+>>>>>>> main
         const matchesCategory = categoryFilter === 'all' || category === categoryFilter;
 
         card.style.display = (matchesKeyword && matchesCategory) ? 'block' : 'none';

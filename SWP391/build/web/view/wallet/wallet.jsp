@@ -18,7 +18,11 @@
     <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
     
     <!-- Custom Wallet CSS -->
+<<<<<<< HEAD
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/wallet/wallet.css?v=2.3">
+=======
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/wallet/wallet.css?v=2.2">
+>>>>>>> main
 </head>
 <body data-has-bank="${not empty bankAccount}"
     data-wallet-balance="${wallet.balance != null ? wallet.balance : 0}"
@@ -272,20 +276,36 @@
 
                                     <!-- TAB 2: Lịch sử rút tiền (Payouts) -->
                                     <div id="tabPayoutsContent" class="wallet-tab-content" style="display: none;">
+<<<<<<< HEAD
                                         <div class="table-responsive" style="overflow-x: auto; width: 100%;">
                                             <table class="wallet-table" style="table-layout: fixed; width: 100%;">
                                                 <thead>
                                                     <tr>
                                                         <th style="width: 12%;">Mã đơn</th>
                                                         <th style="width: 20%;" class="wallet-sort-col-btn" onclick="toggleWalletSort()"
+=======
+                                        <div class="table-responsive">
+                                            <table class="wallet-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mã đơn</th>
+                                                        <th class="wallet-sort-col-btn" onclick="toggleWalletSort()"
+>>>>>>> main
                                                             title="Nhấn để đổi sắp xếp mới nhất / lâu nhất">
                                                             Ngày yêu cầu <i id="sortIconPo"
                                                                 class="fa-solid fa-arrow-down-wide-short ms-1 text-primary"></i>
                                                         </th>
+<<<<<<< HEAD
                                                         <th style="width: 16%;">Số tiền rút</th>
                                                         <th style="width: 24%;">Tài khoản nhận</th>
                                                         <th style="width: 14%;">Trạng thái</th>
                                                         <th style="width: 14%;">Mã GD</th>
+=======
+                                                        <th>Số tiền rút</th>
+                                                        <th>Tài khoản nhận</th>
+                                                        <th>Trạng thái</th>
+                                                        <th>Ghi chú / Mã GD</th>
+>>>>>>> main
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -304,6 +324,7 @@
                                                                                 type="currency" currencySymbol="₫"
                                                                                 maxFractionDigits="2" />
                                                                         </span></td>
+<<<<<<< HEAD
                                                                     <td style="word-break: break-word; overflow-wrap: anywhere;">
                                                                         ${po.bankName} (
                                                                         <c:choose>
@@ -316,6 +337,9 @@
                                                                         </c:choose>
                                                                         )
                                                                     </td>
+=======
+                                                                    <td>${po.bankName} (${po.accountNumber})</td>
+>>>>>>> main
                                                                     <td>
                                                                         <c:choose>
                                                                             <c:when test="${po.status == 'pending'}">
@@ -345,6 +369,7 @@
                                                                             </c:otherwise>
                                                                         </c:choose>
                                                                     </td>
+<<<<<<< HEAD
                                                                     <td style="word-break: break-word; overflow-wrap: anywhere;">
                                                                         <c:choose>
                                                                             <c:when test="${(po.status == 'completed' || po.status == 'approved') && not empty po.transactionCode}">
@@ -359,6 +384,20 @@
                                                                                 <span class="text-muted">-</span>
                                                                             </c:otherwise>
                                                                         </c:choose>
+=======
+                                                                    <td>
+                                                                        <c:if test="${not empty po.transactionCode}">
+                                                                            <code>${po.transactionCode}</code>
+                                                                        </c:if>
+                                                                        <c:if test="${not empty po.adminNote}">
+                                                                            <small
+                                                                                class="text-danger d-block">${po.adminNote}</small>
+                                                                        </c:if>
+                                                                        <c:if
+                                                                            test="${empty po.transactionCode && empty po.adminNote}">
+                                                                            <span class="text-muted">-</span>
+                                                                        </c:if>
+>>>>>>> main
                                                                     </td>
                                                                 </tr>
                                                             </c:forEach>
@@ -577,6 +616,7 @@
 
                         <!-- Ghi chú cho Admin (Tùy chọn) -->
                         <div class="mb-2">
+<<<<<<< HEAD
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label for="withdrawNote" class="form-label fw-bold mb-0">Ghi chú (Tùy chọn)</label>
                                 <span class="small text-muted" id="noteCharCount">0/50 ký tự</span>
@@ -586,6 +626,10 @@
                                       maxlength="50"
                                       oninput="handleNoteInput(this)"></textarea>
                             <div id="withdrawNoteError" class="text-danger small mt-1" style="display: none;"></div>
+=======
+                            <label for="withdrawNote" class="form-label fw-bold">Ghi chú (Tùy chọn)</label>
+                            <textarea name="note" id="withdrawNote" class="form-control" rows="2" placeholder="Ghi chú thêm nếu cần..."></textarea>
+>>>>>>> main
                         </div>
                     </div>
                     
@@ -684,6 +728,10 @@
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <!-- Custom Wallet JS -->
+<<<<<<< HEAD
     <script src="${pageContext.request.contextPath}/assets/js/wallet/wallet.js?v=1.2"></script>
+=======
+    <script src="${pageContext.request.contextPath}/assets/js/wallet/wallet.js?v=1.0"></script>
+>>>>>>> main
 </body>
 </html>

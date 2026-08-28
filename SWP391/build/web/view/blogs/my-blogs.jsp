@@ -16,7 +16,11 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+<<<<<<< HEAD
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=6">
+=======
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/my-blogs.css?v=3">
+>>>>>>> main
 </head>
 <body>
 
@@ -209,11 +213,19 @@
                             <thead>
                                 <tr>
                                     <th class="col-stt">STT</th>
+<<<<<<< HEAD
                                     <th class="col-post">Bài Viết</th>
                                     <th class="col-cat">Danh Mục</th>
                                     <th class="col-status">Trạng Thái</th>
                                     <th class="col-date">Ngày Tạo</th>
                                     <th class="col-date">Cập Nhật</th>
+=======
+                                    <th>Bài Viết</th>
+                                    <th>Danh Mục</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Ngày Tạo</th>
+                                    <th>Cập Nhật</th>
+>>>>>>> main
                                     <th class="col-action-head">Thao Tác</th>
                                 </tr>
                             </thead>
@@ -242,7 +254,11 @@
                                                     <a href="${pageContext.request.contextPath}/blog-detail?id=${b.id}" class="post-title-link" title="${b.title}">
                                                         <c:out value="${b.title}" />
                                                     </a>
+<<<<<<< HEAD
                                                     <div class="post-brief" title="${b.briefInfo}"><c:out value="${b.briefInfo}" /></div>
+=======
+                                                    <div class="post-brief"><c:out value="${b.briefInfo}" /></div>
+>>>>>>> main
                                                 </div>
                                             </div>
                                         </td>
@@ -310,7 +326,11 @@
                                                 <!-- Nút Xóa: Cho phép xóa khi là Admin, Draft, Đã duyệt (Active), hoặc Bị từ chối. Không cho xóa khi Chờ duyệt (Inactive) -->
                                                 <c:choose>
                                                     <c:when test="${sessionScope.account.roleId == 1 or b.status != 'Inactive'}">
+<<<<<<< HEAD
                                                         <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" data-id="${b.id}" data-title="<c:out value="${b.title}" />" onclick="confirmDelete(this.getAttribute('data-id'), this.getAttribute('data-title'), '${pageContext.request.contextPath}')">
+=======
+                                                        <button type="button" class="btn-action btn-action--delete" title="Xóa bài viết" onclick="confirmDelete(${b.id}, '${b.title}', '${pageContext.request.contextPath}')">
+>>>>>>> main
                                                             <i class="fa-regular fa-trash-can"></i>
                                                         </button>
                                                     </c:when>
@@ -327,10 +347,13 @@
                             </tbody>
                         </table>
                     </div>
+<<<<<<< HEAD
                     <!-- Phân trang danh sách bài viết -->
                     <div class="myblog-pagination-wrapper">
                         <div class="myblog-pagination" id="myBlogPagination"></div>
                     </div>
+=======
+>>>>>>> main
                 </c:otherwise>
             </c:choose>
         </div>
@@ -358,6 +381,10 @@
     <jsp:include page="/view/common/footer.jsp" />
 
     <!-- JS riêng biệt cho My Blogs -->
+<<<<<<< HEAD
     <script src="${pageContext.request.contextPath}/assets/js/blog/my-blogs.js?v=3"></script>
+=======
+    <script src="${pageContext.request.contextPath}/assets/js/blog/my-blogs.js"></script>
+>>>>>>> main
 </body>
 </html>

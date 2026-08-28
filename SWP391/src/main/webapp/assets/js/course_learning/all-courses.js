@@ -185,20 +185,48 @@ function populateCategoryFilter() {
     });
 }
 
+function executeSearch() {
+    const inputElem = document.getElementById('courseSearchInput');
+    if (inputElem) {
+        inputElem.value = inputElem.value.trim().replace(/\s+/g, ' ');
+    }
+    filterCourses();
+}
+
 function filterCourses() {
-    const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+<<<<<<< Updated upstream
+    const searchInput = document.getElementById('courseSearchInput');
+    const rawVal = searchInput ? searchInput.value : '';
+    const keyword = rawVal.trim().toLowerCase().replace(/\s+/g, ' ');
+    const progressFilter = document.getElementById('filterProgress') ? document.getElementById('filterProgress').value : 'all';
+    const categoryFilter = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
+    const sortBy = document.getElementById('sortBy') ? document.getElementById('sortBy').value : 'title-asc';
+=======
+    const rawSearch = document.getElementById('courseSearchInput').value || '';
+    // Trim leading/trailing whitespace and collapse consecutive middle spaces
+    const cleanedKeyword = rawSearch.trim().replace(/\s+/g, ' ').toLowerCase();
     const progressFilter = document.getElementById('filterProgress').value;
     const categoryFilter = document.getElementById('filterCategory').value;
     const sortBy = document.getElementById('sortBy').value;
+>>>>>>> Stashed changes
 
     const cards = Array.from(document.querySelectorAll('#courseGrid .course-card'));
 
     cards.forEach(function (card) {
-        const title = card.getAttribute('data-title').toLowerCase();
+        const rawTitle = card.getAttribute('data-title') || '';
+<<<<<<< Updated upstream
+        const title = rawTitle.toLowerCase().replace(/\s+/g, ' ');
         const progress = parseInt(card.getAttribute('data-progress'), 10) || 0;
         const category = card.getAttribute('data-category') || '';
 
-        const matchesKeyword = title.includes(keyword);
+        const matchesKeyword = (keyword === '') || title.includes(keyword);
+=======
+        const title = rawTitle.trim().replace(/\s+/g, ' ').toLowerCase();
+        const progress = parseInt(card.getAttribute('data-progress'), 10) || 0;
+        const category = card.getAttribute('data-category') || '';
+
+        const matchesKeyword = !cleanedKeyword || title.includes(cleanedKeyword);
+>>>>>>> Stashed changes
         const matchesProgress = progressFilter === 'all'
             || (progressFilter === 'not-started' && progress === 0)
             || (progressFilter === 'in-progress' && progress > 0 && progress < 100)
@@ -214,20 +242,30 @@ function filterCourses() {
 
     if (sortBy === 'title-asc') {
         visibleCards.sort(function (a, b) {
-            return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'), undefined, { numeric: true, sensitivity: 'base' });
+            return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '', undefined, { numeric: true, sensitivity: 'base' });
         });
     } else if (sortBy === 'title-desc') {
         visibleCards.sort(function (a, b) {
-            return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'), undefined, { numeric: true, sensitivity: 'base' });
+            return (b.getAttribute('data-title') || '').localeCompare(a.getAttribute('data-title') || '', undefined, { numeric: true, sensitivity: 'base' });
         });
     }
 
     const grid = document.getElementById('courseGrid');
-    visibleCards.forEach(function (card) {
-        grid.appendChild(card);
-    });
+    if (grid) {
+        visibleCards.forEach(function (card) {
+            grid.appendChild(card);
+        });
+    }
 
-    document.getElementById('noResults').style.display = visibleCards.length === 0 ? 'block' : 'none';
+    const noResults = document.getElementById('noResults');
+    if (noResults) {
+        noResults.style.display = visibleCards.length === 0 ? 'block' : 'none';
+    }
+}
+
+const searchInputElem = document.getElementById('courseSearchInput');
+if (searchInputElem) {
+    searchInputElem.addEventListener('input', filterCourses);
 }
 
 populateCategoryFilter();

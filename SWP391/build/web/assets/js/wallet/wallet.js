@@ -52,6 +52,7 @@ function handleTaxCodeInput(el) {
     }
 }
 
+<<<<<<< HEAD
 function handleNoteInput(el) {
     const maxChars = 50;
     const count = (el.value || '').length;
@@ -85,6 +86,8 @@ function handleNoteWordCount(el) {
     handleNoteInput(el);
 }
 
+=======
+>>>>>>> main
 // ==========================================================================
 // 2. Modal & Quick Action Handlers
 // ==========================================================================
@@ -418,6 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 amountInput.focus();
                 return false;
             }
+<<<<<<< HEAD
 
             const noteInput = document.getElementById('withdrawNote');
             if (noteInput && noteInput.value.trim() !== '') {
@@ -429,6 +433,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     return false;
                 }
             }
+=======
+>>>>>>> main
         });
     }
 });

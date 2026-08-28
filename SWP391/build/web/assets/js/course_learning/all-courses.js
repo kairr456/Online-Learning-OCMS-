@@ -185,8 +185,23 @@ function populateCategoryFilter() {
     });
 }
 
+<<<<<<< HEAD
 function filterCourses() {
     const keyword = document.getElementById('courseSearchInput').value.toLowerCase();
+=======
+function executeSearch() {
+    const inputElem = document.getElementById('courseSearchInput');
+    if (inputElem) {
+        inputElem.value = inputElem.value.trim().replace(/\s+/g, ' ');
+    }
+    filterCourses();
+}
+
+function filterCourses() {
+    const rawSearch = document.getElementById('courseSearchInput').value || '';
+    // Trim leading/trailing whitespace and collapse consecutive middle spaces
+    const cleanedKeyword = rawSearch.trim().replace(/\s+/g, ' ').toLowerCase();
+>>>>>>> main
     const progressFilter = document.getElementById('filterProgress').value;
     const categoryFilter = document.getElementById('filterCategory').value;
     const sortBy = document.getElementById('sortBy').value;
@@ -194,11 +209,20 @@ function filterCourses() {
     const cards = Array.from(document.querySelectorAll('#courseGrid .course-card'));
 
     cards.forEach(function (card) {
+<<<<<<< HEAD
         const title = card.getAttribute('data-title').toLowerCase();
         const progress = parseInt(card.getAttribute('data-progress'), 10) || 0;
         const category = card.getAttribute('data-category') || '';
 
         const matchesKeyword = title.includes(keyword);
+=======
+        const rawTitle = card.getAttribute('data-title') || '';
+        const title = rawTitle.trim().replace(/\s+/g, ' ').toLowerCase();
+        const progress = parseInt(card.getAttribute('data-progress'), 10) || 0;
+        const category = card.getAttribute('data-category') || '';
+
+        const matchesKeyword = !cleanedKeyword || title.includes(cleanedKeyword);
+>>>>>>> main
         const matchesProgress = progressFilter === 'all'
             || (progressFilter === 'not-started' && progress === 0)
             || (progressFilter === 'in-progress' && progress > 0 && progress < 100)

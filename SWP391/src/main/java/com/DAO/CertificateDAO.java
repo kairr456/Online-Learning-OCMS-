@@ -241,14 +241,32 @@ public class CertificateDAO extends DBContext {
      * - Snapshot course_name + student_name + tạo mã duy nhất (thử tối đa 5 lần).
      * - Trả về mã chứng chỉ nếu thành công, null nếu không.
      */
+    public String getCertificateCode(int accountId, int courseId) {
+        String sql = "SELECT certificate_code FROM certificate WHERE account_id = ? AND course_id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, accountId);
+            statement.setInt(2, courseId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("certificate_code");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getCertificateCode: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
     public String issueCertificate(int accountId, int courseId) {
         if (hasCertificate(accountId, courseId)) {
-            return null;
+            return getCertificateCode(accountId, courseId);
         }
         CertificateTemplate template = getTemplateByCourseId(courseId);
-        if (template == null) {
-            return null;
-        }
+        Integer templateId = (template != null) ? template.getId() : null;
+
         Course course = new CourseDAO().findById(courseId);
         Account student = new AccountDAO().getAccountById(accountId);
         String courseName = course != null ? course.getName() : "Course #" + courseId;
@@ -272,7 +290,11 @@ public class CertificateDAO extends DBContext {
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
-            statement.setInt(1, template.getId());
+            if (templateId != null) {
+                statement.setInt(1, templateId);
+            } else {
+                statement.setNull(1, java.sql.Types.INTEGER);
+            }
             statement.setInt(2, accountId);
             statement.setInt(3, courseId);
             statement.setString(4, courseName);
@@ -287,6 +309,7 @@ public class CertificateDAO extends DBContext {
         }
     }
 
+<<<<<<< HEAD
     /**
      * Tự động cấp chứng chỉ cho TẤT CẢ học viên đã hoàn thành 100% khóa học này
      * nhưng trước đây chưa được cấp chứng chỉ (do giảng viên tạo template sau).
@@ -328,21 +351,31 @@ public class CertificateDAO extends DBContext {
         }
     }
 
-    /**
-     * Tự động kiểm tra và cấp bổ sung mọi chứng chỉ còn thiếu cho 1 học viên
-     * (các khóa học viên đạt 100% tiến độ và đã có template nhưng chưa cấp).
-     */
     public void autoIssuePendingCertificatesForStudent(int accountId) {
-        List<Integer> candidateCourseIds = new ArrayList<>();
-        // Lấy tất cả các khóa học đã có template chứng chỉ nhưng học viên này chưa được cấp chứng chỉ
-        String sql = "SELECT ct.course_id FROM certificate_template ct "
-                + "WHERE NOT EXISTS (SELECT 1 FROM certificate c WHERE c.account_id = ? AND c.course_id = ct.course_id)";
-        try {
+        CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
+        List<Course> enrolled = regDAO.getCoursesByAccountId(accountId);
+        LearningDAO learningDAO = new LearningDAO();
+        java.util.Map<Integer, Integer> progressMap = learningDAO.getCourseProgressMap(accountId);
+
+        for (Course c : enrolled) {
+            Integer p = progressMap.get(c.getId());
+            if (p != null && p >= 100) {
+                if (!hasCertificate(accountId, c.getId())) {
+                    issueCertificate(accountId, c.getId());
+                }
+            }
+        }
+    }
+
+    public java.util.Map<Integer, String> getCertificateCodeMapByAccount(int accountId) {
+        java.util.Map<Integer, String> map = new java.util.HashMap<>();
+        String sql = "SELECT course_id, certificate_code FROM certificate WHERE account_id = ?";
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
             statement.setInt(1, accountId);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
+<<<<<<< HEAD
                 candidateCourseIds.add(resultSet.getInt("course_id"));
             }
         } catch (SQLException ex) {
@@ -358,6 +391,16 @@ public class CertificateDAO extends DBContext {
                 issueCertificate(accountId, courseId);
             }
         }
+=======
+                map.put(resultSet.getInt("course_id"), resultSet.getString("certificate_code"));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getCertificateCodeMapByAccount: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return map;
+>>>>>>> main
     }
 
     /** Lấy Set tất cả course_id đã có template chứng chỉ. */

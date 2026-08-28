@@ -48,6 +48,7 @@ public class MyLearningController extends HttpServlet {
         com.DAO.CertificateDAO certDAO = new com.DAO.CertificateDAO();
         certDAO.autoIssuePendingCertificatesForStudent(account.getId());
         request.setAttribute("certTemplateIds", certDAO.getTemplateCourseIds());
+        request.setAttribute("certCodeMap", certDAO.getCertificateCodeMapByAccount(account.getId()));
         
         // Also add courses that the user created
         com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
@@ -156,6 +157,14 @@ public class MyLearningController extends HttpServlet {
                 }
                 if (MyLearningValidator.isBlank(reminderTime)) {
                     reminderTime = "20:00";
+                } else {
+                    reminderTime = reminderTime.trim();
+                    if (reminderTime.length() == 4) {
+                        reminderTime = "0" + reminderTime;
+                    }
+                    if (reminderTime.length() > 5) {
+                        reminderTime = reminderTime.substring(0, 5);
+                    }
                 }
                 boolean enabled = "true".equalsIgnoreCase(request.getParameter("enabled"))
                         || "on".equalsIgnoreCase(request.getParameter("enabled"))
@@ -163,10 +172,23 @@ public class MyLearningController extends HttpServlet {
                 isSuccess = new ReminderDAO().upsert(account.getId(), days, reminderTime, enabled);
 
             } else if ("testReminder".equals(action)) {
+                Account currentAccount = new com.DAO.AccountDAO().getAccountById(account.getId());
+                if (currentAccount == null) {
+                    currentAccount = account;
+                } else {
+                    session.setAttribute("account", currentAccount);
+                }
+
+                String recipientEmail = currentAccount.getEmail();
+                if (MyLearningValidator.isBlank(recipientEmail)) {
+                    out.print("{\"status\":\"error\", \"message\":\"No email address found for your account.\"}");
+                    return;
+                }
+
                 StringBuilder body = new StringBuilder();
-                body.append("Hi ").append(account.getFullName() != null ? account.getFullName() : account.getUsername()).append(",\n\n");
+                body.append("Hi ").append(currentAccount.getFullName() != null && !currentAccount.getFullName().trim().isEmpty() ? currentAccount.getFullName() : currentAccount.getUsername()).append(",\n\n");
                 body.append("This is a test reminder from OCMS. Here is what you are currently learning:\n\n");
-                List<Course> enrolled = new CourseRegistrationDAO().getCoursesByAccountId(account.getId());
+                List<Course> enrolled = new CourseRegistrationDAO().getCoursesByAccountId(currentAccount.getId());
                 if (enrolled.isEmpty()) {
                     body.append("- You have not enrolled in any course yet.\n");
                 } else {
@@ -176,13 +198,22 @@ public class MyLearningController extends HttpServlet {
                 }
                 body.append("\nKeep up the good work!\nOCMS");
                 try {
-                    EmailService.sendEmail("ducduy8000pro@gmail.com", "OCMS - Learning Reminder (Test)", body.toString());
+<<<<<<< Updated upstream
+                    EmailService.sendEmail(recipientEmail, "OCMS - Learning Reminder (Test)", body.toString());
+=======
+                    String userEmail = account.getEmail();
+                    if (userEmail == null || userEmail.trim().isEmpty()) {
+                        out.print("{\"status\":\"error\", \"message\":\"Tài khoản hiện tại chưa có email!\"}");
+                        return;
+                    }
+                    EmailService.sendEmail(userEmail, "OCMS - Learning Reminder (Test)", body.toString());
+>>>>>>> Stashed changes
                 } catch (Exception e) {
                     e.printStackTrace();
                     out.print("{\"status\":\"error\", \"message\":\"Failed to send email: " + e.getMessage() + "\"}");
                     return;
                 }
-                out.print("{\"status\":\"success\",\"message\":\"Test reminder email sent\"}");
+                out.print("{\"status\":\"success\",\"message\":\"Test reminder email sent to " + recipientEmail + "\"}");
                 return;
 
             } else if ("create".equals(action)) {

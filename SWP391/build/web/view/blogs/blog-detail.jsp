@@ -12,7 +12,11 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/styles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/footer.css">
+<<<<<<< HEAD
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css?v=3">
+=======
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/blog/blog-detail.css?v=2">
+>>>>>>> main
 </head>
 <body>
 

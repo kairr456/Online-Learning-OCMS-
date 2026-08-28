@@ -167,6 +167,7 @@
     // ==========================================
     // 3. REJECT BLOG (WITH REASON MODAL)
     // ==========================================
+<<<<<<< HEAD
     window.validateBlogRejectReason = function(el) {
         const input = el || document.getElementById('rejectReasonInput');
         if (!input) return true;
@@ -221,10 +222,13 @@
         }
     };
 
+=======
+>>>>>>> main
     function openRejectModal(id, title) {
         const idInput = document.getElementById('rejectBlogId');
         const titleEl = document.getElementById('rejectBlogTitle');
         const reasonInput = document.getElementById('rejectReasonInput');
+<<<<<<< HEAD
         const err = document.getElementById('blogRejectReasonError');
         const counter = document.getElementById('rejectReasonCount');
 
@@ -244,6 +248,12 @@
             counter.style.color = '#64748B';
             counter.style.fontWeight = '500';
         }
+=======
+
+        if (idInput) idInput.value = id || '';
+        if (titleEl) titleEl.textContent = title ? `Bài viết: "${title}"` : `Bài viết #${id}`;
+        if (reasonInput) reasonInput.value = '';
+>>>>>>> main
 
         if (rejectModal) {
             rejectModal.style.display = 'flex';
@@ -265,7 +275,10 @@
         const idInput = document.getElementById('rejectBlogId');
         const reasonInput = document.getElementById('rejectReasonInput');
         const btnSubmit = document.getElementById('btnConfirmReject');
+<<<<<<< HEAD
         const err = document.getElementById('blogRejectReasonError');
+=======
+>>>>>>> main
 
         const id = idInput ? idInput.value : '';
         const reason = reasonInput ? reasonInput.value.trim() : '';
@@ -276,6 +289,7 @@
         }
 
         if (!reason) {
+<<<<<<< HEAD
             if (err) {
                 if ((reasonInput ? reasonInput.value : '').length > 0) {
                     err.innerText = "Lý do từ chối không được chỉ chứa khoảng trắng.";
@@ -293,6 +307,9 @@
 
         // Bắt lỗi rỗng / khoảng trắng / quá ký tự trực tiếp dưới khung
         if (!window.validateBlogRejectReason(reasonInput)) {
+=======
+            showToast('Vui lòng nhập lý do từ chối bài viết!', 'error');
+>>>>>>> main
             if (reasonInput) reasonInput.focus();
             return false;
         }
@@ -320,6 +337,7 @@
                     closeRejectModal();
                     setTimeout(() => location.reload(), 700);
                 } else {
+<<<<<<< HEAD
                     // Hiển thị lỗi từ backend trực tiếp dưới khung
                     if (err) {
                         err.innerText = data.error || 'Từ chối bài viết thất bại!';
@@ -333,14 +351,25 @@
             })
             .catch(errFetch => {
                 console.error(errFetch);
+=======
+                    showToast(data.error || 'Từ chối bài viết thất bại!', 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+>>>>>>> main
                 if (btnSubmit) {
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi lý do &amp; Từ chối';
                 }
+<<<<<<< HEAD
                 if (err) {
                     err.innerText = 'Lỗi kết nối máy chủ, vui lòng thử lại!';
                     err.style.display = 'block';
                 }
+=======
+                showToast('Lỗi kết nối máy chủ!', 'error');
+>>>>>>> main
             });
 
         return false;
@@ -381,6 +410,7 @@
         }
     });
 
+<<<<<<< HEAD
     // Event listeners for real-time validation and character counting
     document.addEventListener('DOMContentLoaded', function () {
         const reasonInput = document.getElementById('rejectReasonInput');
@@ -399,6 +429,9 @@
 
     // Expose functions globally for JSP inline onclick handlers
     window.validateBlogRejectReason = validateBlogRejectReason;
+=======
+    // Expose functions globally for JSP inline onclick handlers
+>>>>>>> main
     window.openPreview = openPreview;
     window.closePreview = closePreview;
     window.approveBlog = approveBlog;

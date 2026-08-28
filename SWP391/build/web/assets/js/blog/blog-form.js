@@ -38,7 +38,10 @@ function addBlogSection(headingVal, imgUrlVal, captionVal, textVal) {
             <label class="form-label">Tiêu đề đoạn (Phụ đề mục này) <span class="required" style="color: #D64545;">*</span></label>
             <input type="text" class="form-control section-heading-input" 
                    placeholder="VD: 1. Giới thiệu tổng quan hoặc Những điều cần lưu ý..." 
+<<<<<<< HEAD
                    maxlength="255"
+=======
+>>>>>>> main
                    value="${escapeHtmlAttr(heading)}">
         </div>
 
@@ -63,7 +66,10 @@ function addBlogSection(headingVal, imgUrlVal, captionVal, textVal) {
             <label class="form-label">Chú thích hình ảnh (Tùy chọn)</label>
             <input type="text" class="form-control section-caption-input" 
                    placeholder="VD: Hình ảnh minh họa cấu trúc hệ thống hoặc sơ đồ luồng..." 
+<<<<<<< HEAD
                    maxlength="255"
+=======
+>>>>>>> main
                    value="${escapeHtmlAttr(caption)}">
         </div>
 
@@ -344,11 +350,14 @@ function compileAndValidateForm(e) {
         showFormValidationError(titleEl, 'Vui lòng nhập Tiêu đề bài viết (không được để trống hoặc chỉ chứa khoảng trắng)!');
         return false;
     }
+<<<<<<< HEAD
     if (title.length > 255) {
         if (e && typeof e.preventDefault === 'function') e.preventDefault();
         showFormValidationError(titleEl, 'Tiêu đề bài viết không được vượt quá 255 ký tự (hiện tại: ' + title.length + ' ký tự)!');
         return false;
     }
+=======
+>>>>>>> main
 
     // 2. Kiểm tra Danh mục bài viết
     var categoryIdEl = document.getElementById('categoryId');
@@ -367,11 +376,14 @@ function compileAndValidateForm(e) {
         showFormValidationError(briefInfoEl, 'Vui lòng nhập Mô tả tóm tắt của bài viết (không được để trống hoặc chỉ chứa khoảng trắng)!');
         return false;
     }
+<<<<<<< HEAD
     if (briefInfo.length > 500) {
         if (e && typeof e.preventDefault === 'function') e.preventDefault();
         showFormValidationError(briefInfoEl, 'Mô tả tóm tắt không được vượt quá 500 ký tự (hiện tại: ' + briefInfo.length + ' ký tự)!');
         return false;
     }
+=======
+>>>>>>> main
 
     // 4. Kiểm tra Nội dung chi tiết (Content)
     var mainContentEl = document.getElementById('mainContent');
@@ -424,6 +436,7 @@ function compileAndValidateForm(e) {
             return false;
         }
 
+<<<<<<< HEAD
         if (heading.length > 255) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             showFormValidationError(
@@ -442,6 +455,8 @@ function compileAndValidateForm(e) {
             return false;
         }
 
+=======
+>>>>>>> main
         // Cần có ít nhất hình ảnh hoặc đoạn văn bản chi tiết
         if (!imgUrl && !text) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();

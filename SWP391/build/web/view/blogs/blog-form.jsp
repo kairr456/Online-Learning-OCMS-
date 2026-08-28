@@ -92,7 +92,11 @@
                     <label for="title">Tiêu đề bài viết <span class="required">*</span></label>
                     <input type="text" id="title" name="title" class="form-control ${not empty errorTitle ? 'has-error' : ''}" 
                            placeholder="Nhập tiêu đề bài viết (ví dụ: Lộ trình học Java từ con số 0)..." 
+<<<<<<< HEAD
                            value="<c:out value='${formTitle}' />" maxlength="255" required
+=======
+                           value="<c:out value='${formTitle}' />" required
+>>>>>>> main
                            style="${not empty errorTitle ? 'border-color: #D64545;' : ''}">
                     <c:if test="${not empty errorTitle}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorTitle}" /></span></div>
@@ -139,12 +143,20 @@
                 <div class="form-group">
                     <label for="briefInfo">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
                     <textarea id="briefInfo" name="briefInfo" class="form-control ${not empty errorBrief ? 'has-error' : ''}" rows="3" 
+<<<<<<< HEAD
                               placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu (tối đa 500 ký tự)..." maxlength="500" required
+=======
+                              placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu..." required
+>>>>>>> main
                               style="${not empty errorBrief ? 'border-color: #D64545;' : ''}"><c:out value="${formBriefInfo}" /></textarea>
                     <c:if test="${not empty errorBrief}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorBrief}" /></span></div>
                     </c:if>
+<<<<<<< HEAD
                     <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách (Tối đa 500 ký tự).</div>
+=======
+                    <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách.</div>
+>>>>>>> main
                 </div>
 
                 <!-- Nội dung chi tiết chính của bài viết -->

@@ -11,7 +11,28 @@ import java.util.List;
 
 public class ReminderDAO extends DBContext {
 
+    public void ensureTableExists() {
+        String sql = "CREATE TABLE IF NOT EXISTS learning_reminder (" +
+                     "    id INT AUTO_INCREMENT PRIMARY KEY, " +
+                     "    account_id INT NOT NULL, " +
+                     "    days VARCHAR(13) NOT NULL DEFAULT '1,2,3,4,5', " +
+                     "    reminder_time TIME NOT NULL DEFAULT '20:00:00', " +
+                     "    enabled TINYINT(1) NOT NULL DEFAULT 1, " +
+                     "    last_sent_date DATE NULL, " +
+                     "    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
+                     "    UNIQUE KEY uk_reminder_account (account_id), " +
+                     "    FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE" +
+                     ")";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[ReminderDAO] ensureTableExists error: " + e.getMessage());
+        }
+    }
+
     public LearningReminder getByAccountId(int accountId) {
+        ensureTableExists();
         String sql = "SELECT id, account_id, days, reminder_time, enabled, last_sent_date FROM learning_reminder WHERE account_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -38,8 +59,9 @@ public class ReminderDAO extends DBContext {
     }
 
     public boolean upsert(int accountId, String days, String time, boolean enabled) {
+        ensureTableExists();
         String sql = "INSERT INTO learning_reminder (account_id, days, reminder_time, enabled) VALUES (?, ?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE days = VALUES(days), reminder_time = VALUES(reminder_time), enabled = VALUES(enabled), updated_at = CURRENT_TIMESTAMP";
+                     "ON DUPLICATE KEY UPDATE days = VALUES(days), reminder_time = VALUES(reminder_time), enabled = VALUES(enabled)";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, accountId);
@@ -54,6 +76,7 @@ public class ReminderDAO extends DBContext {
     }
 
     public List<LearningReminder> getAllEnabled() {
+        ensureTableExists();
         List<LearningReminder> reminders = new ArrayList<>();
         String sql = "SELECT id, account_id, days, reminder_time, enabled, last_sent_date FROM learning_reminder WHERE enabled = 1";
         try (Connection conn = getConnection();
@@ -80,6 +103,7 @@ public class ReminderDAO extends DBContext {
     }
 
     public boolean updateLastSentDate(int accountId) {
+        ensureTableExists();
         String sql = "UPDATE learning_reminder SET last_sent_date = CURRENT_DATE WHERE account_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

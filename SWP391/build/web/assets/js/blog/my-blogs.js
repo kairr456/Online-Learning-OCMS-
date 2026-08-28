@@ -1,5 +1,6 @@
 /**
  * OCMS - My Blogs JavaScript (my-blogs.js)
+<<<<<<< HEAD
  * Quản lý tìm kiếm, lọc danh mục/trạng thái, phân trang và popup xác nhận xóa bài viết
  */
 
@@ -14,6 +15,15 @@ function filterTable(resetPage) {
         currentBlogPage = 1;
     }
 
+=======
+ * Quản lý tìm kiếm, lọc danh mục/trạng thái và popup xác nhận xóa bài viết
+ */
+
+/**
+ * Lọc bảng danh sách bài viết theo từ khóa, danh mục và trạng thái
+ */
+function filterTable() {
+>>>>>>> main
     var keywordEl = document.getElementById('filterKeyword');
     var categoryEl = document.getElementById('filterCategory');
     var statusEl = document.getElementById('filterStatus');
@@ -26,12 +36,19 @@ function filterTable(resetPage) {
     if (!table) return;
     var tbody = table.getElementsByTagName('tbody')[0];
     if (!tbody) return;
+<<<<<<< HEAD
 
     var allRows = Array.from(tbody.querySelectorAll('tr[data-title]'));
     var matchingRows = [];
 
     for (var i = 0; i < allRows.length; i++) {
         var row = allRows[i];
+=======
+    var rows = tbody.getElementsByTagName('tr');
+
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+>>>>>>> main
         var rowTitle = (row.getAttribute('data-title') || '').toLowerCase();
         var rowCat = row.getAttribute('data-cat') || '';
         var rowStatus = row.getAttribute('data-status') || '';
@@ -41,11 +58,16 @@ function filterTable(resetPage) {
         var matchStatus = status === '' || rowStatus === status || (status === 'Rejected' && rowStatus === 'Reject');
 
         if (matchKeyword && matchCategory && matchStatus) {
+<<<<<<< HEAD
             matchingRows.push(row);
+=======
+            row.style.display = '';
+>>>>>>> main
         } else {
             row.style.display = 'none';
         }
     }
+<<<<<<< HEAD
 
     // Xử lý thông báo không tìm thấy kết quả
     var noResultRow = document.getElementById('noResultsRow');
@@ -162,6 +184,8 @@ function renderPagination(totalPages, page) {
     }
 
     container.innerHTML = html;
+=======
+>>>>>>> main
 }
 
 /**
@@ -173,11 +197,19 @@ function confirmDelete(blogId, title, contextPath) {
     var modal = document.getElementById('deleteModal');
 
     if (titleEl) {
+<<<<<<< HEAD
         titleEl.textContent = '"' + (title || '') + '"';
     }
     if (btnConfirm) {
         var ctx = contextPath || '';
         btnConfirm.href = ctx + '/blogs-delete?id=' + encodeURIComponent(blogId);
+=======
+        titleEl.innerText = '"' + title + '"';
+    }
+    if (btnConfirm) {
+        var ctx = contextPath || '';
+        btnConfirm.href = ctx + '/blogs-delete?id=' + blogId;
+>>>>>>> main
     }
     if (modal) {
         modal.style.display = 'flex';
@@ -195,8 +227,11 @@ function closeDeleteModal(e) {
         modal.style.display = 'none';
     }
 }
+<<<<<<< HEAD
 
 // Khởi chạy phân trang ngay khi trang tải xong
 document.addEventListener('DOMContentLoaded', function () {
     filterTable(true);
 });
+=======
+>>>>>>> main

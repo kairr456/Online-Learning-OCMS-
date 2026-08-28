@@ -253,27 +253,53 @@ public class AdminDashboardDAO extends DBContext {
         return getCount("SELECT COUNT(*) FROM course WHERE LOWER(status) = 'pending'");
     }
 
-    // Tỷ lệ đỗ quiz = passed / tổng quiz_attempt
+    // Tỷ lệ học viên đỗ quiz:
+    // Đánh giá theo từng cặp (account_id, quiz_id):
+    // - Nếu làm nhiều lần mà có ít nhất 1 lần đỗ (passed = 1) -> tính 1 lần là đã đỗ.
+    // - Nếu làm nhiều lần mà tất cả đều trượt -> tính 1 lần là trượt.
+    // - Nếu chỉ làm 1 lần và đỗ -> tính 1 lần là đỗ.
     public int getQuizPassRate() {
-        int passed = 0, total = 0;
+        int passedCount = 0, totalCount = 0;
         try {
-            statement = connection.prepareStatement("SELECT COUNT(*) FROM quiz_attempt WHERE passed = 1");
+            // 1. Đếm số cặp (account_id, quiz_id) đã đỗ ít nhất 1 lần
+            String sqlPassed = "SELECT COUNT(*) FROM (" +
+                    "SELECT qa.account_id, qa.quiz_id " +
+                    "FROM quiz_attempt qa " +
+                    "JOIN lesson_quiz lq ON lq.id = qa.quiz_id " +
+                    "JOIN lesson l ON l.id = lq.lesson_id " +
+                    "JOIN section s ON s.id = l.section_id " +
+                    "WHERE qa.passed = 1 " +
+                    "GROUP BY qa.account_id, qa.quiz_id" +
+                    ") AS passed_pairs";
+
+            statement = connection.prepareStatement(sqlPassed);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                passed = resultSet.getInt(1);
+                passedCount = resultSet.getInt(1);
             }
             resultSet.close();
-            statement = connection.prepareStatement("SELECT COUNT(*) FROM quiz_attempt");
+
+            // 2. Đếm tổng số cặp (account_id, quiz_id) đã từng làm quiz
+            String sqlTotal = "SELECT COUNT(*) FROM (" +
+                    "SELECT qa.account_id, qa.quiz_id " +
+                    "FROM quiz_attempt qa " +
+                    "JOIN lesson_quiz lq ON lq.id = qa.quiz_id " +
+                    "JOIN lesson l ON l.id = lq.lesson_id " +
+                    "JOIN section s ON s.id = l.section_id " +
+                    "GROUP BY qa.account_id, qa.quiz_id" +
+                    ") AS total_pairs";
+
+            statement = connection.prepareStatement(sqlTotal);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                total = resultSet.getInt(1);
+                totalCount = resultSet.getInt(1);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
             closeStatementAndResultSet();
         }
-        return total == 0 ? 0 : (int) Math.round((double) passed / total * 100);
+        return totalCount == 0 ? 0 : (int) Math.round((double) passedCount / totalCount * 100);
     }
 
     // Số registration theo status — dùng cho ô "Registrations by Status" trên
@@ -295,33 +321,70 @@ public class AdminDashboardDAO extends DBContext {
         return map;
     }
 
-    // Tỷ lệ hoàn thành bài học trên các lesson thuộc khóa học đã đăng ký.
+    // Tỷ lệ hoàn thành khóa học:
+    // Tính dựa trên tổng số lượt mua khóa học (registration) đã hoàn thành 100% tất cả lesson.
     public int getLessonCompletionRate() {
-        int completed = 0, total = 0;
+        int completedCourses = 0, totalPurchasedCourses = 0;
         try {
-            statement = connection.prepareStatement(
-                    "SELECT COUNT(DISTINCT lp.account_id, lp.lesson_id) "
-                            + "FROM lesson_progress lp JOIN lesson l ON l.id = lp.lesson_id "
-                            + "JOIN registration r ON r.account_id = lp.account_id AND r.course_id = l.course_id "
-                            + "WHERE lp.completed = 1 AND r.status = 'Approved'");
+            String sql = "SELECT " +
+                    "  COUNT(CASE WHEN course_lessons.total_lessons > 0 AND course_lessons.completed_lessons >= course_lessons.total_lessons THEN 1 END) AS completed_courses, " +
+                    "  COUNT(*) AS total_purchased_courses " +
+                    "FROM (" +
+                    "  SELECT " +
+                    "    r.account_id, " +
+                    "    r.course_id, " +
+                    "    ( " +
+                    "      SELECT COUNT(DISTINCT l.id) " +
+                    "      FROM section s " +
+                    "      JOIN lesson l ON l.section_id = s.id " +
+                    "      WHERE s.course_id = r.course_id " +
+                    "    ) AS total_lessons, " +
+                    "    ( " +
+                    "      SELECT COUNT(DISTINCT lp.lesson_id) " +
+                    "      FROM lesson_progress lp " +
+                    "      JOIN lesson l ON l.id = lp.lesson_id " +
+                    "      JOIN section s ON s.id = l.section_id " +
+                    "      WHERE lp.account_id = r.account_id " +
+                    "        AND lp.completed = 1 " +
+                    "        AND s.course_id = r.course_id " +
+                    "    ) AS completed_lessons " +
+                    "  FROM registration r " +
+                    ") AS course_lessons";
+
+            statement = connection.prepareStatement(sql);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                completed = resultSet.getInt(1);
+                completedCourses = resultSet.getInt("completed_courses");
+                totalPurchasedCourses = resultSet.getInt("total_purchased_courses");
             }
             resultSet.close();
-            statement = connection.prepareStatement(
-                    "SELECT COUNT(DISTINCT r.account_id, l.id) FROM registration r "
-                            + "JOIN lesson l ON l.course_id = r.course_id WHERE r.status = 'Approved'");
-            resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                total = resultSet.getInt(1);
+
+            // Nếu không có dữ liệu registration, fallback tính theo lesson_progress trực tiếp
+            if (totalPurchasedCourses == 0) {
+                statement = connection.prepareStatement(
+                        "SELECT COUNT(DISTINCT lp.account_id, lp.lesson_id) "
+                                + "FROM lesson_progress lp WHERE lp.completed = 1");
+                resultSet = statement.executeQuery();
+                int compLessons = 0;
+                if (resultSet.next()) {
+                    compLessons = resultSet.getInt(1);
+                }
+                resultSet.close();
+
+                statement = connection.prepareStatement("SELECT COUNT(*) FROM lesson_progress");
+                resultSet = statement.executeQuery();
+                int totLessons = 0;
+                if (resultSet.next()) {
+                    totLessons = resultSet.getInt(1);
+                }
+                return totLessons == 0 ? 0 : (int) Math.round((double) compLessons / totLessons * 100);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
             closeStatementAndResultSet();
         }
-        return total == 0 ? 0 : (int) Math.round((double) completed / total * 100);
+        return totalPurchasedCourses == 0 ? 0 : (int) Math.round((double) completedCourses / totalPurchasedCourses * 100);
     }
 
     private int getCount(String sql) {

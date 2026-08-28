@@ -445,7 +445,10 @@ body {
     border-collapse: separate;
     border-spacing: 0;
     font-size: 14px;
+<<<<<<< HEAD
     table-layout: fixed;
+=======
+>>>>>>> main
 }
 
 .wallet-table th {
@@ -458,6 +461,7 @@ body {
     padding: 14px 16px;
     border-bottom: 1px solid var(--wallet-border);
     text-align: left;
+<<<<<<< HEAD
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -470,6 +474,15 @@ body {
     vertical-align: middle;
     word-break: break-word;
     overflow-wrap: anywhere;
+=======
+}
+
+.wallet-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--wallet-text-main);
+    vertical-align: middle;
+>>>>>>> main
 }
 
 .wallet-table tbody tr:hover {
