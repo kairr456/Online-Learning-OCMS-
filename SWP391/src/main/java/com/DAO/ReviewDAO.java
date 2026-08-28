@@ -178,4 +178,31 @@ public class ReviewDAO extends DBContext {
         }
         return distribution;
     }
+
+    /**
+     * Kiểm tra xem 1 tài khoản đã từng đánh giá/bình luận khóa học này chưa.
+     */
+    public boolean hasUserReviewed(int accountId, int courseId) {
+        String sql = "SELECT COUNT(*) FROM review WHERE account_id = ? AND course_id = ?";
+        DBContext db = new DBContext();
+        try {
+            if (db.connection != null) {
+                PreparedStatement ps = db.connection.prepareStatement(sql);
+                ps.setInt(1, accountId);
+                ps.setInt(2, courseId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    boolean has = rs.getInt(1) > 0;
+                    rs.close();
+                    ps.close();
+                    return has;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        } finally {
+            db.closeResources();
+        }
+        return false;
+    }
 }

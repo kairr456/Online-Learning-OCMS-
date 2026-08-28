@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Landing page (index.html)
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  background: linear-gradient(155deg, var(--ink-900) 0%, var(--ink-800) 55%, var(--ink-700) 100%);
+  color: #fff;
+  overflow: hidden;
+  padding-bottom: 90px;
+}
+
+.hero::before {
+  /* echoes the auth-brand gate-stripe signature for visual continuity */
+  content: "";
+  position: absolute;
+  inset: -20% -10%;
+  background: repeating-linear-gradient(
+    115deg,
+    rgba(216, 162, 74, 0.10) 0px,
+    rgba(216, 162, 74, 0.10) 2px,
+    transparent 2px,
+    transparent 46px
+  );
+  pointer-events: none;
+}
+
+.top-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 28px;
+}
+
+.top-nav .brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-links a {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 0.15s ease;
+}
+
+.nav-links a:hover { color: #fff; }
+
+.nav-links a[href="login"] {
+  padding: 8px 16px;
+  border-radius: 7px;
+  background: rgba(216, 162, 74, 0.14);
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.nav-links a[href="login"]:hover {
+  background: var(--amber);
+  color: var(--ink-900);
+}
+
+.hero-content {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 64px 28px 0;
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1.2;
+  margin: 0 0 18px;
+}
+
+.hero-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0 0 32px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn.primary {
+  background: var(--amber);
+  color: var(--ink-900);
+}
+
+.btn.primary:hover { background: #E5B168; }
+
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.btn.secondary:hover { background: rgba(255, 255, 255, 0.14); }
+
+.features {
+  max-width: 1080px;
+  margin: -56px auto 0;
+  padding: 0 28px 80px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.feature-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 26px 22px;
+}
+
+.feature-card h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.feature-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--slate-600);
+  margin: 0;
+}
+
+@media (max-width: 620px) {
+  .nav-links { gap: 16px; }
+  .nav-links a:not([href="login"]) { display: none; }
+  .hero-content h1 { font-size: 30px; }
+  .actions { flex-direction: column; }
+  .btn { width: 100%; justify-content: center; }
+}

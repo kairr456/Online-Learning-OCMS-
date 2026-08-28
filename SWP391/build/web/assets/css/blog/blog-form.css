@@ -1,0 +1,452 @@
+/* ==========================================================================
+   OCMS - Blog Create & Edit Form Styles (blog-form.css)
+   ========================================================================== */
+
+:root {
+    --primary-navy: #0F1E33;
+    --secondary-navy: #16273F;
+    --accent-amber: #D8A24A;
+    --accent-amber-hover: #b9812e;
+    --surface-bg: #F6F7FA;
+    --card-bg: #FFFFFF;
+    --text-dark: #0F1E33;
+    --text-muted: #5B6B82;
+    --border-color: #E3E7EE;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-subtle: 0 4px 20px rgba(15, 30, 51, 0.05);
+    --shadow-hover: 0 12px 30px rgba(15, 30, 51, 0.12);
+}
+
+body {
+    background-color: var(--surface-bg) !important;
+    color: var(--text-dark) !important;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    color-scheme: light !important;
+}
+
+/* Hero Header */
+.blogform-hero {
+    background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%);
+    color: #ffffff;
+    padding: 38px 20px;
+    text-align: center;
+}
+.blogform-hero__inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.blogform-breadcrumb {
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.blogform-breadcrumb a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.blogform-breadcrumb a:hover {
+    color: var(--accent-amber);
+}
+.blogform-hero__title {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.blogform-hero__desc {
+    font-size: 14.5px;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0;
+}
+
+/* Container */
+.blogform-container {
+    max-width: 900px;
+    margin: 32px auto 60px;
+    padding: 0 20px;
+}
+
+/* Form Card */
+.blogform-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 36px;
+    box-shadow: var(--shadow-subtle);
+}
+
+.alert-danger {
+    background: #FCEAEA;
+    border: 1px solid #D64545;
+    color: #D64545;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Thông báo lỗi hiển thị dưới từng khung điền */
+.field-error-feedback {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #D64545;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    animation: fadeInError 0.2s ease-in-out;
+}
+.field-error-feedback i {
+    font-size: 13px;
+    flex-shrink: 0;
+    color: #D64545;
+}
+.blog-section-card.has-error {
+    border-color: #D64545 !important;
+}
+@keyframes fadeInError {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+    margin-bottom: 22px;
+}
+.form-group label {
+    display: block;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+.form-group label .required {
+    color: #D64545;
+    margin-left: 2px;
+}
+.form-hint {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+.form-control,
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    background: #ffffff !important;
+    color: #0F1E33 !important;
+    font-size: 14.5px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    caret-color: #0F1E33 !important;
+}
+.form-control::placeholder {
+    color: #8C99AC !important;
+}
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 0 3px rgba(216, 162, 74, 0.15);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+input[type="file"].form-control {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #ffffff;
+}
+
+input[type="file"].form-control::file-selector-button {
+    padding: 6px 14px;
+    margin-right: 12px;
+    background: #0F1E33;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background: #1E3350;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Image Preview Box */
+.thumb-preview-wrap {
+    margin-top: 10px;
+    width: 100%;
+    height: 220px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--border-color);
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.thumb-preview-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    display: none;
+}
+.thumb-preview-wrap .placeholder-text {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-image-preview-wrap {
+    margin-top: 10px;
+    width: 100%;
+    height: 220px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--border-color);
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.section-image-preview {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    display: none;
+}
+.section-preview-placeholder {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.btn-cancel:hover {
+    background: #e9ecef;
+    color: var(--text-dark);
+}
+
+.btn-draft {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #334155;
+    background: #F1F5F9;
+    border: 1.5px solid #CBD5E1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-draft:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+    border-color: #94A3B8;
+    transform: translateY(-1px);
+}
+
+.btn-submit {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--primary-navy);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-submit:hover {
+    background: var(--accent-amber-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(216, 162, 74, 0.3);
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    .blogform-card {
+        padding: 22px;
+    }
+}
+
+/* ==========================================================================
+   Dynamic Blog Section Cards Builder (giống lesson.jsp Curriculum & Image 3)
+   ========================================================================== */
+
+.blog-sections-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 28px 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+}
+.blog-sections-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-navy);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.blog-sections-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin: 4px 0 0;
+}
+
+.blog-section-card {
+    background: #FAFBFC;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 10px rgba(15, 30, 51, 0.04);
+    position: relative;
+    transition: all 0.2s ease;
+}
+.blog-section-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 16px rgba(15, 30, 51, 0.07);
+}
+
+.blog-section-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border-color);
+}
+.blog-section-card__badge {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--primary-navy);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-remove-section {
+    background: #FFF1F2;
+    color: #E11D48;
+    border: 1px solid #FECDD3;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-remove-section:hover {
+    background: #E11D48;
+    color: #ffffff;
+    border-color: #E11D48;
+}
+
+.btn-add-section-big {
+    background: #F59E0B;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transition: all 0.2s ease;
+    margin-bottom: 24px;
+}
+.btn-add-section-big:hover {
+    background: #D97706;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+}
+
+/* ==========================================================================
+   Inline styles moved from view/blogs/blog-form.jsp
+   ========================================================================== */
+.blog-form-error-icon {
+    color: #D64545;
+}
