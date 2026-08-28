@@ -85,12 +85,12 @@ public class ProfileController extends HttpServlet {
 
         boolean genderValue = registerValidator.genderValueFor(genderParam);
         boolean updated = new AccountDAO().updateBasicInfo(
-                account.getId(), fullName.trim(), phone.trim(), genderValue);
+                account.getId(), fullName.replaceAll("\\s+", " ").trim(), phone.trim(), genderValue);
 
         if (updated) {
-            // Keep the session copy in sync so the header/dashboard reflect
+            // Keep the session copy in sync so the header/dashboard reflaect
             // the change immediately, without waiting for the next login.
-            account.setFullName(fullName.trim());
+            account.setFullName(fullName.replaceAll("\\s+", " ").trim());
             account.setPhone(phone.trim());
             account.setGender(genderValue);
             session.setAttribute("account", account);

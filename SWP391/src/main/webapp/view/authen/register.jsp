@@ -137,7 +137,7 @@
                     placeholder="Enter your username (max 20 chars)"
                     value="<%= request.getParameter("username") != null
                         ? request.getParameter("username")
-                        : "" %>"
+                        : (request.getAttribute("username") != null ? request.getAttribute("username") : "") %>"
                     autocomplete="username"
                     required
                 >
@@ -164,7 +164,7 @@
                     placeholder="Enter your full name (max 100 chars)"
                     value="<%= request.getParameter("fullName") != null
                         ? request.getParameter("fullName")
-                        : "" %>"
+                        : (request.getAttribute("fullName") != null ? request.getAttribute("fullName") : "") %>"
                     required
                 >
 
@@ -190,7 +190,7 @@
                     placeholder="Enter your email (max 100 chars)"
                     value="<%= request.getParameter("email") != null
                         ? request.getParameter("email")
-                        : "" %>"
+                        : (request.getAttribute("email") != null ? request.getAttribute("email") : "") %>"
                     autocomplete="email"
                     required
                 >
@@ -217,7 +217,7 @@
                     placeholder="Enter your phone number (10-11 digits)"
                     value="<%= request.getParameter("phone") != null
                         ? request.getParameter("phone")
-                        : "" %>"
+                        : (request.getAttribute("phone") != null ? request.getAttribute("phone") : "") %>"
                     autocomplete="tel"
                     required
                 >
@@ -301,6 +301,15 @@
                  ROLE
             ================================================== -->
 
+            <%
+                String currentRole = request.getParameter("role") != null
+                    ? request.getParameter("role")
+                    : (request.getAttribute("role") != null ? (String) request.getAttribute("role") : "");
+                String currentGender = request.getParameter("gender") != null
+                    ? request.getParameter("gender")
+                    : (request.getAttribute("gender") != null ? (String) request.getAttribute("gender") : "");
+            %>
+
             <div class="register-field">
 
                 <label for="role">
@@ -319,7 +328,7 @@
 
                     <option
                         value="teacher"
-                        <%= "teacher".equals(request.getParameter("role"))
+                        <%= "teacher".equals(currentRole)
                             ? "selected"
                             : "" %>
                     >
@@ -328,7 +337,7 @@
 
                     <option
                         value="student"
-                        <%= "student".equals(request.getParameter("role"))
+                        <%= "student".equals(currentRole)
                             ? "selected"
                             : "" %>
                     >
@@ -362,7 +371,7 @@
 
                     <option
                         value="male"
-                        <%= "male".equals(request.getParameter("gender"))
+                        <%= "male".equals(currentGender)
                             ? "selected"
                             : "" %>
                     >
@@ -371,7 +380,7 @@
 
                     <option
                         value="female"
-                        <%= "female".equals(request.getParameter("gender"))
+                        <%= "female".equals(currentGender)
                             ? "selected"
                             : "" %>
                     >

@@ -18,8 +18,8 @@ import java.io.IOException;
 
 @WebServlet("/teacher-register-step2")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, // 1MB
-        maxFileSize = 5 * 1024 * 1024, // 5MB
-        maxRequestSize = 10 * 1024 * 1024 // 10MB
+        maxFileSize = 20 * 1024 * 1024, // 20MB to safely catch oversized files in servlet
+        maxRequestSize = 25 * 1024 * 1024 // 25MB
 )
 public class TeacherRegisterStep2Controller extends HttpServlet {
 
@@ -30,35 +30,36 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        Account pendingAccount = (session != null) ? (Account) session.getAttribute("pendingTeacherAccount") : null;
+
         String accountIdStr = request.getParameter("accountId");
-        if (accountIdStr == null || accountIdStr.trim().isEmpty()) {
+
+        if (pendingAccount == null && (accountIdStr == null || accountIdStr.trim().isEmpty())) {
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
-        int accountId;
-        try {
-            accountId = Integer.parseInt(accountIdStr);
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
+        Account account = null;
+
+        if (pendingAccount != null) {
+            account = pendingAccount;
+        } else {
+            // Backward compatibility for old flow
+            try {
+                int accountId = Integer.parseInt(accountIdStr.trim());
+                Account dbAccount = new AccountDAO().getAccountById(accountId);
+                if (dbAccount != null && dbAccount.getRoleId() == 2 && !dbAccount.isActive()) {
+                    TeacherProfile existing = new TeacherProfileDAO().findByAccountId(accountId);
+                    if (existing == null) {
+                        account = dbAccount;
+                    }
+                }
+            } catch (NumberFormatException ignored) {}
         }
 
-        AccountDAO accountDAO = new AccountDAO();
-        Account account = accountDAO.getAccountById(accountId);
-
-        if (account == null || account.getRoleId() != 2 || account.isActive()) {
+        if (account == null) {
             response.sendRedirect(request.getContextPath() + "/register");
-            return;
-        }
-
-        // Check if profile already exists
-        TeacherProfileDAO profileDAO = new TeacherProfileDAO();
-        TeacherProfile existing = profileDAO.findByAccountId(accountId);
-        if (existing != null) {
-            request.setAttribute("errorMessage", "Hồ sơ giảng viên đã tồn tại.");
-            request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp")
-                    .forward(request, response);
             return;
         }
 
@@ -73,24 +74,25 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        Account pendingAccount = (session != null) ? (Account) session.getAttribute("pendingTeacherAccount") : null;
+
         String accountIdStr = request.getParameter("accountId");
-        if (accountIdStr == null || accountIdStr.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
+        Account dbAccount = null;
+
+        if (pendingAccount == null && accountIdStr != null && !accountIdStr.trim().isEmpty()) {
+            try {
+                int accountId = Integer.parseInt(accountIdStr.trim());
+                Account found = new AccountDAO().getAccountById(accountId);
+                if (found != null && found.getRoleId() == 2 && !found.isActive()) {
+                    dbAccount = found;
+                }
+            } catch (NumberFormatException ignored) {}
         }
 
-        int accountId;
-        try {
-            accountId = Integer.parseInt(accountIdStr);
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/register");
-            return;
-        }
+        Account currentAccount = (pendingAccount != null) ? pendingAccount : dbAccount;
 
-        AccountDAO accountDAO = new AccountDAO();
-        Account account = accountDAO.getAccountById(accountId);
-
-        if (account == null || account.getRoleId() != 2 || account.isActive()) {
+        if (currentAccount == null) {
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
@@ -101,7 +103,20 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
         String experienceYearsStr = request.getParameter("experienceYears");
         String portfolioUrl = request.getParameter("portfolioUrl");
 
-        Part cvFile = request.getPart("cvFile");
+        Part cvFile = null;
+        try {
+            cvFile = request.getPart("cvFile");
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Dung lượng file CV không được vượt quá 5MB.");
+            request.setAttribute("account", currentAccount);
+            request.setAttribute("specialization", specialization);
+            request.setAttribute("bio", bio);
+            request.setAttribute("experienceYears", experienceYearsStr);
+            request.setAttribute("portfolioUrl", portfolioUrl);
+            request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp")
+                    .forward(request, response);
+            return;
+        }
 
         // Validate
         String validationError = TeacherProfileValidator.validate(
@@ -109,7 +124,7 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
 
         if (validationError != null) {
             request.setAttribute("errorMessage", validationError);
-            request.setAttribute("account", account);
+            request.setAttribute("account", currentAccount);
             // Repopulate form data
             request.setAttribute("specialization", specialization);
             request.setAttribute("bio", bio);
@@ -125,7 +140,8 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
         if (cvFile != null && cvFile.getSize() > 0) {
             String contentType = cvFile.getContentType();
             String ext = getFileExtension(contentType);
-            String fileName = "cv_" + accountId + "_" + System.currentTimeMillis() + ext;
+            String prefix = (pendingAccount != null) ? pendingAccount.getUsername() : String.valueOf(dbAccount.getId());
+            String fileName = "cv_" + prefix + "_" + System.currentTimeMillis() + ext;
 
             // Use a fixed upload directory under the webapp
             String webappRoot = getServletContext().getRealPath("/");
@@ -148,24 +164,61 @@ public class TeacherRegisterStep2Controller extends HttpServlet {
             cvUrl = request.getContextPath() + "/assets/css/uploads/" + UPLOAD_DIR_NAME + "/" + fileName;
         }
 
-        // Save teacher profile
-        TeacherProfile profile = new TeacherProfile();
-        profile.setAccountId(accountId);
-        profile.setSpecialization(specialization.trim());
-        profile.setBio(bio.trim());
-        profile.setExperienceYears(Integer.parseInt(experienceYearsStr.trim()));
-        profile.setCvUrl(cvUrl);
-        profile.setPortfolioUrl(portfolioUrl != null ? portfolioUrl.trim() : null);
-        profile.setApprovalStatus("PENDING");
+        boolean success = false;
 
-        TeacherProfileDAO profileDAO = new TeacherProfileDAO();
-        boolean success = profileDAO.insert(profile);
+        if (pendingAccount != null) {
+            // NEW FLOW: Save Account to DB first, then save TeacherProfile
+            if (new AccountDAO().isUsernameExists(pendingAccount.getUsername())) {
+                request.setAttribute("errorMessage", "Tên đăng nhập đã tồn tại trong hệ thống.");
+                request.setAttribute("account", currentAccount);
+                request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp").forward(request, response);
+                return;
+            }
+            if (new AccountDAO().isEmailExists(pendingAccount.getEmail())) {
+                request.setAttribute("errorMessage", "Email đã tồn tại trong hệ thống.");
+                request.setAttribute("account", currentAccount);
+                request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp").forward(request, response);
+                return;
+            }
+
+            boolean accountSaved = new AccountDAO().registerPendingTeacher(pendingAccount);
+            if (accountSaved && pendingAccount.getId() > 0) {
+                TeacherProfile profile = new TeacherProfile();
+                profile.setAccountId(pendingAccount.getId());
+                profile.setSpecialization(specialization.trim());
+                profile.setBio(bio.trim());
+                profile.setExperienceYears(Integer.parseInt(experienceYearsStr.trim()));
+                profile.setCvUrl(cvUrl);
+                profile.setPortfolioUrl(portfolioUrl != null ? portfolioUrl.trim() : null);
+                profile.setApprovalStatus("PENDING");
+
+                TeacherProfileDAO profileDAO = new TeacherProfileDAO();
+                success = profileDAO.insert(profile);
+
+                if (success && session != null) {
+                    session.removeAttribute("pendingTeacherAccount");
+                }
+            }
+        } else if (dbAccount != null) {
+            // OLD FLOW: Account is already in DB, just insert TeacherProfile
+            TeacherProfile profile = new TeacherProfile();
+            profile.setAccountId(dbAccount.getId());
+            profile.setSpecialization(specialization.trim());
+            profile.setBio(bio.trim());
+            profile.setExperienceYears(Integer.parseInt(experienceYearsStr.trim()));
+            profile.setCvUrl(cvUrl);
+            profile.setPortfolioUrl(portfolioUrl != null ? portfolioUrl.trim() : null);
+            profile.setApprovalStatus("PENDING");
+
+            TeacherProfileDAO profileDAO = new TeacherProfileDAO();
+            success = profileDAO.insert(profile);
+        }
 
         if (success) {
             response.sendRedirect(request.getContextPath() + "/login?pendingApproval=true");
         } else {
             request.setAttribute("errorMessage", "Lưu hồ sơ thất bại. Vui lòng thử lại.");
-            request.setAttribute("account", account);
+            request.setAttribute("account", currentAccount);
             request.getRequestDispatcher("/view/authen/teacherRegisterStep2.jsp")
                     .forward(request, response);
         }

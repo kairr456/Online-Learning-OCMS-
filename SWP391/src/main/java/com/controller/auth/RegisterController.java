@@ -34,6 +34,29 @@ public class RegisterController extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("pendingTeacherAccount") != null) {
+            Account pending = (Account) session.getAttribute("pendingTeacherAccount");
+            if (request.getAttribute("username") == null && pending.getUsername() != null) {
+                request.setAttribute("username", pending.getUsername());
+            }
+            if (request.getAttribute("fullName") == null && pending.getFullName() != null) {
+                request.setAttribute("fullName", pending.getFullName());
+            }
+            if (request.getAttribute("email") == null && pending.getEmail() != null) {
+                request.setAttribute("email", pending.getEmail());
+            }
+            if (request.getAttribute("phone") == null && pending.getPhone() != null) {
+                request.setAttribute("phone", pending.getPhone());
+            }
+            if (request.getAttribute("gender") == null) {
+                request.setAttribute("gender", pending.isGender() ? "male" : "female");
+            }
+            if (request.getAttribute("role") == null) {
+                request.setAttribute("role", "teacher");
+            }
+        }
+
         request.getRequestDispatcher("/view/authen/register.jsp")
                 .forward(request, response);
     }
@@ -108,7 +131,7 @@ public class RegisterController extends HttpServlet {
         username = username.trim();
         email = email.trim().toLowerCase();
         phone = phone.trim();
-        fullName = fullName.trim();
+        fullName = fullName.replaceAll("\\s+", " ").trim();
 
 
         // =====================================================
@@ -124,14 +147,14 @@ public class RegisterController extends HttpServlet {
 
         Account account = new Account();
 
-        account.setUsername(username.trim());
+        account.setUsername(username);
 
         // Store HASH instead of original password
         account.setPassword(hashedPassword);
 
-        account.setEmail(email.trim());
-        account.setPhone(phone.trim());
-        account.setFullName(fullName.trim());
+        account.setEmail(email);
+        account.setPhone(phone);
+        account.setFullName(fullName);
 
         account.setGender(genderValue);
 
@@ -139,17 +162,24 @@ public class RegisterController extends HttpServlet {
 
         account.setRoleId(roleId);
 
+        boolean isTeacher = "teacher".equalsIgnoreCase(role);
 
         // =====================================================
-        // Database
+        // Database checks & logic
         // =====================================================
-        // Each check below uses its own `new AccountDAO()`. DBContext closes
-        // its connection at the end of every DAO call (see closeResources()),
-        // so reusing a single AccountDAO instance across isUsernameExists,
-        // isEmailExists, and register would fail on the second call -- the
-        // connection would already be closed.
-
         try {
+
+            // Check if this username/email corresponds to an old-flow pending teacher without profile
+            if (isTeacher) {
+                Account oldPendingTeacher = new AccountDAO().getPendingTeacherWithoutProfile(username, email);
+                if (oldPendingTeacher != null) {
+                    LOGGER.info("Forwarding existing pending teacher (old flow) to step 2 [id=" + oldPendingTeacher.getId() + "]");
+                    response.sendRedirect(
+                            request.getContextPath() + "/teacher-register-step2?accountId=" + oldPendingTeacher.getId()
+                    );
+                    return;
+                }
+            }
 
             // =================================================
             // Check username
@@ -192,27 +222,22 @@ public class RegisterController extends HttpServlet {
 
 
             // =================================================
-            // Insert account
+            // Save logic
             // =================================================
 
-            boolean success;
-            boolean isTeacher = "teacher".equalsIgnoreCase(role);
-
             if (isTeacher) {
-                // Teacher: save with is_active = false, redirect to step 2
+                // Teacher flow: DO NOT save to DB yet; store temporarily in Session
                 account.setActive(false);
-                success = new AccountDAO().registerPendingTeacher(account);
-                if (success) {
-                    response.sendRedirect(
-                            request.getContextPath() + "/teacher-register-step2?accountId=" + account.getId()
-                    );
-                    return;
-                }
-            } else {
-                // Student: normal flow, active immediately
-                account.setActive(true);
-                success = new AccountDAO().register(account);
+                request.getSession().setAttribute("pendingTeacherAccount", account);
+                response.sendRedirect(
+                        request.getContextPath() + "/teacher-register-step2"
+                );
+                return;
             }
+
+            // Student: normal flow, active immediately
+            account.setActive(true);
+            boolean success = new AccountDAO().register(account);
 
             if (success) {
 

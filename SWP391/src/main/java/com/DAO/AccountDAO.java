@@ -355,6 +355,40 @@ public class AccountDAO extends DBContext {
         return false;
     }
 
+    public Account getPendingTeacherWithoutProfile(String username, String email) {
+        String sql = "SELECT a.* FROM account a "
+                + "LEFT JOIN teacher_profile tp ON a.id = tp.account_id "
+                + "WHERE (a.username = ? OR a.email = ?) "
+                + "AND a.role_id = 2 AND a.is_active = 0 AND tp.id IS NULL";
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, username);
+            statement.setString(2, email);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Account account = new Account();
+                account.setId(resultSet.getInt("id"));
+                account.setUsername(resultSet.getString("username"));
+                account.setPassword(resultSet.getString("password"));
+                account.setEmail(resultSet.getString("email"));
+                account.setPhone(resultSet.getString("phone"));
+                account.setFullName(resultSet.getString("full_name"));
+                account.setGender(resultSet.getBoolean("gender"));
+                try {
+                    account.setAvatar(resultSet.getString("avatar"));
+                } catch (Exception ignored) {}
+                account.setActive(resultSet.getBoolean("is_active"));
+                account.setRoleId(resultSet.getInt("role_id"));
+                return account;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AccountDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            closeResources();
+        }
+        return null;
+    }
+
     // Lấy 1 account theo id (đổ vào modal khi Edit)
     public Account getAccountById(int id) {
         String sql = "SELECT * FROM account WHERE id = ?";

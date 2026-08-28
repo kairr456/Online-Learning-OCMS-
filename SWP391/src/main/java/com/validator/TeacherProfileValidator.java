@@ -56,8 +56,8 @@ public class TeacherProfileValidator {
         } catch (NumberFormatException e) {
             return "Số năm kinh nghiệm phải là số nguyên.";
         }
-        if (expYears < 0 || expYears > 50) {
-            return "Số năm kinh nghiệm phải từ 0 đến 50.";
+        if (expYears < 0 || expYears > 60) {
+            return "Số năm kinh nghiệm phải từ 0 đến 60.";
         }
 
         // --- portfolioUrl (optional) ---
