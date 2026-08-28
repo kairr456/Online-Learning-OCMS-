@@ -332,3 +332,50 @@
     box-sizing: border-box;
     text-decoration: none !important;
 }
+
+/* ── Payout Toast Notification ───────────────── */
+.payout-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #1E293B;
+    color: #ffffff;
+    padding: 14px 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99999;
+    animation: payout-toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.payout-toast.success {
+    background: #15803D;
+}
+
+.payout-toast.warning {
+    background: #D97706;
+}
+
+.payout-toast.error {
+    background: #DC2626;
+}
+
+.payout-toast.info {
+    background: #2563EB;
+}
+
+@keyframes payout-toast-in {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+

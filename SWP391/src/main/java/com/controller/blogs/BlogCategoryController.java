@@ -142,6 +142,11 @@ public class BlogCategoryController extends HttpServlet {
             return;
         }
 
+        if (description != null && description.length() > 500) {
+            writeJson(response, false, "Category description must not exceed 500 characters.");
+            return;
+        }
+
         if (categoryDAO.isCategoryNameExists(name, -1)) {
             writeJson(response, false, "Category name already exists.");
             return;
@@ -172,6 +177,11 @@ public class BlogCategoryController extends HttpServlet {
 
         if (name.length() > 100) {
             writeJson(response, false, "Category name must not exceed 100 characters.");
+            return;
+        }
+
+        if (description != null && description.length() > 500) {
+            writeJson(response, false, "Category description must not exceed 500 characters.");
             return;
         }
 

@@ -77,9 +77,24 @@
             if (modalError) modalError.textContent = '';
 
             const fName = document.getElementById('f_name');
-            if (fName && !fName.value.trim()) {
+            const trimmedName = fName ? fName.value.trim() : '';
+            if (!trimmedName) {
                 if (modalError) modalError.textContent = 'Vui lòng nhập tên danh mục (không được để trống hoặc chỉ chứa dấu cách)!';
-                fName.focus();
+                if (fName) fName.focus();
+                return;
+            }
+
+            if (trimmedName.length > 100) {
+                if (modalError) modalError.textContent = 'Tên danh mục không được vượt quá 100 ký tự!';
+                if (fName) fName.focus();
+                return;
+            }
+
+            const fDesc = document.getElementById('f_description');
+            const trimmedDesc = fDesc ? fDesc.value.trim() : '';
+            if (trimmedDesc.length > 500) {
+                if (modalError) modalError.textContent = 'Mô tả không được vượt quá 500 ký tự!';
+                if (fDesc) fDesc.focus();
                 return;
             }
 

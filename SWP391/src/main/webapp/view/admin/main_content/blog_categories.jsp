@@ -178,9 +178,9 @@
 
             <label for="f_name">Category Name <span class="text-danger">*</span></label>
             <input type="text" id="f_name" name="name" placeholder="e.g. Technology, Education..." maxlength="100" required>
-
+            
             <label for="f_description">Description</label>
-            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category..." class="cat-textarea"></textarea>
+            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category..." maxlength="500" class="cat-textarea"></textarea>
 
             <p id="modalError" class="cat-modal-error"></p>
 

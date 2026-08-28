@@ -30,22 +30,32 @@ public class BlogCategoryDAO extends DBContext {
 
     public BlogCategoryDAO() {
         super();
-        ensureDeletedColumn();
+        ensureTableStructure();
     }
 
     /**
-     * Tự động thêm cột is_deleted vào bảng blog_category nếu chưa có
+     * Tự động đảm bảo cấu trúc bảng blog_category:
+     * - Thêm cột is_deleted nếu chưa có
+     * - Đảm bảo cột name có kiểu VARCHAR(100) NOT NULL
      */
-    private void ensureDeletedColumn() {
+    private void ensureTableStructure() {
         Statement st = null;
         try {
             Connection conn = getConnection();
             if (conn != null) {
                 st = conn.createStatement();
-                st.executeUpdate("ALTER TABLE blog_category ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0");
+                try {
+                    st.executeUpdate("ALTER TABLE blog_category ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0");
+                } catch (Exception ignored) {
+                    // Cột đã tồn tại
+                }
+                try {
+                    st.executeUpdate("ALTER TABLE blog_category MODIFY COLUMN name VARCHAR(100) NOT NULL");
+                } catch (Exception ignored) {
+                    // Đã được cấu hình phù hợp
+                }
             }
         } catch (Exception ignored) {
-            // Cột đã tồn tại
         } finally {
             if (st != null) {
                 try { st.close(); } catch (Exception ignored) {}
