@@ -42,7 +42,7 @@ public class CourseAdminDAO extends DBContext {
         // Tìm theo từ khóa: khớp tên hoặc mô tả khóa học
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (c.name LIKE ? OR c.description LIKE ?)");
-            String kw = "%" + keyword.trim() + "%";
+            String kw = "%" + keyword.trim().replaceAll("\\s+", " ") + "%";
             params.add(kw);
             params.add(kw);
         }
@@ -100,7 +100,7 @@ public class CourseAdminDAO extends DBContext {
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (c.name LIKE ? OR c.description LIKE ?)");
-            String kw = "%" + keyword.trim() + "%";
+            String kw = "%" + keyword.trim().replaceAll("\\s+", " ") + "%";
             params.add(kw);
             params.add(kw);
         }

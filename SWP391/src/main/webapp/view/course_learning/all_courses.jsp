@@ -50,11 +50,16 @@
                 </div>
 
                 <div class="learning-search">
+<<<<<<< Updated upstream
                     <input type="text" id="courseSearchInput" placeholder="Search my courses..." 
                            oninput="filterCourses()" 
                            onblur="this.value=this.value.trim(); filterCourses();" 
                            onkeydown="if(event.key==='Enter'){ this.value=this.value.trim(); filterCourses(); }">
                     <button type="button" onclick="const i=document.getElementById('courseSearchInput'); if(i){i.value=i.value.trim();} filterCourses();"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+=======
+                    <input type="text" id="courseSearchInput" placeholder="Search my courses..." onkeydown="if(event.key==='Enter'){ const i=document.getElementById('courseSearchInput'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); } filterCourses(); }">
+                    <button type="button" onclick="const i=document.getElementById('courseSearchInput'); if(i){ i.value=i.value.trim().replace(/\s+/g, ' '); } filterCourses();"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+>>>>>>> Stashed changes
                 </div>
             </div>
 
@@ -73,6 +78,17 @@
                                     </div>
                                     <div class="btn-action-group">
                                         <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=all-courses" class="btn-purple">Start Course</a>
+                                        <c:if test="${item.progress >= 100}">
+                                            <c:set var="certCode" value="${certCodeMap[item.id]}" />
+                                            <c:choose>
+                                                <c:when test="${not empty certCode}">
+                                                    <a href="${pageContext.request.contextPath}/certificate?code=${certCode}" class="btn btn-outline-secondary" title="View Certificate"><i class="fa-solid fa-award text-warning"></i></a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${pageContext.request.contextPath}/my-certificates" class="btn btn-outline-secondary" title="View Certificate"><i class="fa-solid fa-award text-warning"></i></a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:if>
                                         <button type="button" class="btn btn-outline-secondary" title="Archive" onclick="archiveCourse(${item.id}, '${item.name}')"><i class="fa-solid fa-box-archive"></i></button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="openAddToListModal('${item.id}', '${item.name}')">+</button>
                                     </div>
@@ -174,7 +190,11 @@
     </script>
 
     <!-- Script xử lý logic JavaScript -->
+<<<<<<< Updated upstream
     <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js?v=1.2"></script>
+=======
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/all-courses.js?v=<%=System.currentTimeMillis()%>"></script>
+>>>>>>> Stashed changes
 </body>
 
 </html>

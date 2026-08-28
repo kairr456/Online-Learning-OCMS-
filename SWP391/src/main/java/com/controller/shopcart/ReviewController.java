@@ -36,24 +36,43 @@ public class ReviewController extends HttpServlet {
             int courseId = Integer.parseInt(courseIdStr);
             int rating = Integer.parseInt(ratingStr);
             
+            // Check enrollment requirement
+            com.entity.Course course = new com.DAO.CourseDAO().findById(courseId);
+            boolean isEnrolled = (course != null && course.getCreatedBy() == account.getId())
+                    || new com.DAO.CourseRegistrationDAO().isEnrolled(account.getId(), courseId);
+            if (!isEnrolled) {
+                session.setAttribute("message", "Bạn phải mua/đăng ký khóa học mới được gửi đánh giá!");
+                session.setAttribute("messageType", "error");
+                response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
+                return;
+            }
+
+            // Check single review limit
+            com.DAO.ReviewDAO reviewDAO = new com.DAO.ReviewDAO();
+            if (reviewDAO.hasUserReviewed(account.getId(), courseId)) {
+                session.setAttribute("message", "Mỗi tài khoản chỉ được gửi đánh giá 1 lần cho mỗi khóa học!");
+                session.setAttribute("messageType", "error");
+                response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
+                return;
+            }
+            
             com.entity.Review review = new com.entity.Review();
             review.setCourseId(courseId);
             review.setAccountId(account.getId());
             review.setRating(rating);
-            review.setComment(comment);
+            review.setComment(comment != null ? comment.trim() : "");
             
-            com.DAO.ReviewDAO reviewDAO = new com.DAO.ReviewDAO();
             boolean success = reviewDAO.insert(review);
             
             if (success) {
-                session.setAttribute("message", "Review submitted successfully!");
+                session.setAttribute("message", "Đã gửi đánh giá thành công! Cảm ơn ý kiến của bạn.");
                 session.setAttribute("messageType", "success");
             } else {
-                session.setAttribute("message", "Failed to submit review.");
+                session.setAttribute("message", "Gửi đánh giá thất bại.");
                 session.setAttribute("messageType", "error");
             }
         } catch (Exception e) {
-            session.setAttribute("message", "Invalid input or error occurred.");
+            session.setAttribute("message", "Dữ liệu không hợp lệ hoặc có lỗi xảy ra.");
             session.setAttribute("messageType", "error");
         }
 

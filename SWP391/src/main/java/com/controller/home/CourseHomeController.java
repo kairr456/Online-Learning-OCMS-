@@ -44,6 +44,7 @@ public class CourseHomeController extends HttpServlet {
             String[] categoryParams = request.getParameterValues("category");
             String[] ratingParams = request.getParameterValues("rating");
             String teacherName = request.getParameter("teacherName");
+<<<<<<< Updated upstream
             if (teacherName != null) {
                 teacherName = teacherName.trim();
                 if (teacherName.isEmpty()) teacherName = null;
@@ -53,6 +54,11 @@ public class CourseHomeController extends HttpServlet {
                 courseName = courseName.trim();
                 if (courseName.isEmpty()) courseName = null;
             }
+=======
+            if (teacherName != null) teacherName = teacherName.trim().replaceAll("\\s+", " ");
+            String courseName = request.getParameter("courseName");
+            if (courseName != null) courseName = courseName.trim().replaceAll("\\s+", " ");
+>>>>>>> Stashed changes
             String sort = request.getParameter("sort");
 //            if (sort == null || sort.isEmpty()) {
 //            sort = "Latest"; // Mặc định sắp xếp mới nhất

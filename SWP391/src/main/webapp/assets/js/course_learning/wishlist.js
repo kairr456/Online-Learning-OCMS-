@@ -18,18 +18,28 @@ function populateCategoryFilter() {
 }
 
 function filterCourses() {
+<<<<<<< Updated upstream
     const searchInput = document.getElementById('courseSearchInput');
     const keyword = searchInput ? searchInput.value.trim().toLowerCase().replace(/\s+/g, ' ') : '';
+=======
+    const rawSearch = document.getElementById('courseSearchInput').value || '';
+    const cleanedKeyword = rawSearch.trim().replace(/\s+/g, ' ').toLowerCase();
+>>>>>>> Stashed changes
     const categoryFilter = document.getElementById('filterCategory').value;
     const sortBy = document.getElementById('sortBy').value;
 
     const cards = Array.from(document.querySelectorAll('#courseGrid .course-card'));
 
     cards.forEach(function (card) {
-        const title = card.getAttribute('data-title').toLowerCase();
+        const rawTitle = card.getAttribute('data-title') || '';
+        const title = rawTitle.trim().replace(/\s+/g, ' ').toLowerCase();
         const category = card.getAttribute('data-category') || '';
 
+<<<<<<< Updated upstream
         const matchesKeyword = !keyword || title.includes(keyword);
+=======
+        const matchesKeyword = !cleanedKeyword || title.includes(cleanedKeyword);
+>>>>>>> Stashed changes
         const matchesCategory = categoryFilter === 'all' || category === categoryFilter;
 
         card.style.display = (matchesKeyword && matchesCategory) ? 'block' : 'none';

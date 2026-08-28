@@ -27,7 +27,7 @@ public class registrationValidator {
      */
     public static String keywordFor(String raw) {
         if (raw == null) return null;
-        String trimmed = raw.trim();
+        String trimmed = raw.trim().replaceAll("\\s+", " ");
         if (trimmed.isEmpty()) return null;
         return trimmed.length() > KEYWORD_MAX_LENGTH
                 ? trimmed.substring(0, KEYWORD_MAX_LENGTH)

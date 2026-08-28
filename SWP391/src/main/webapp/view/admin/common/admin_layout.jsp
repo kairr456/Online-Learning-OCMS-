@@ -17,9 +17,9 @@
     <!-- Common CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/common.css?v=6">
     <!-- Header CSS (site-header*) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=6">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=12">
     <!-- Layout CSS (tokens, sidebar, table, modal, etc.) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=6">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=12">
     <!-- Page-specific CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css?v=6">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=9">

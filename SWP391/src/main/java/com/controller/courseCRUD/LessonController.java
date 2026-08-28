@@ -103,14 +103,19 @@ public class LessonController extends HttpServlet {
             boolean isDraft = "continue".equals(submitAction) || "goto_qbank".equals(submitAction);
 
             String courseName = request.getParameter("courseName");
-            if (courseName == null || courseName.trim().isEmpty()) {
+            if (courseName != null) {
+                courseName = courseName.replaceAll("[\\r\\n]+", " ").trim();
+            }
+            if (courseName == null || courseName.isEmpty()) {
                 if (!isDraft) {
                     throw new IllegalArgumentException("Vui lòng nhập tên khóa học!");
                 } else {
                     courseName = "Khóa học nháp (" + java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(java.time.LocalDateTime.now()) + ")";
                 }
             }
-            courseName = courseName.trim();
+            if (courseName.length() > 150) {
+                throw new IllegalArgumentException("Tiêu đề khóa học (Course Title) không được vượt quá 150 ký tự (độ dài hiện tại: " + courseName.length() + ")!");
+            }
 
             com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
             if (courseDAO.checkCourseNameExists(account.getId(), courseName, courseId)) {
@@ -144,6 +149,9 @@ public class LessonController extends HttpServlet {
                 }
             }
             courseDescription = courseDescription.trim();
+            if (courseDescription.length() > 5000) {
+                throw new IllegalArgumentException("Mô tả tổng quan (Overview / Description) không được vượt quá 5000 ký tự (độ dài hiện tại: " + courseDescription.length() + ")!");
+            }
 
             float coursePrice = 0f;
             try {
@@ -204,6 +212,9 @@ public class LessonController extends HttpServlet {
                 String secTitle = request.getParameter("sectionTitle_" + s);
                 if (secTitle == null || secTitle.trim().isEmpty()) continue;
                 secTitle = secTitle.trim();
+                if (secTitle.length() > 255) {
+                    throw new IllegalArgumentException("Tiêu đề chương học (Section Title) không được vượt quá 255 ký tự (độ dài hiện tại: " + secTitle.length() + ")!");
+                }
                 validSectionCount++;
                 
                 if (sectionTitles.contains(secTitle.toLowerCase())) {
@@ -223,6 +234,9 @@ public class LessonController extends HttpServlet {
                     String lesTitle = request.getParameter("lessonTitle_" + s + "_" + l);
                     if (lesTitle == null || lesTitle.trim().isEmpty()) continue;
                     lesTitle = lesTitle.trim();
+                    if (lesTitle.length() > 255) {
+                        throw new IllegalArgumentException("Tiêu đề bài học (Lesson Title) không được vượt quá 255 ký tự (độ dài hiện tại: " + lesTitle.length() + ")!");
+                    }
                     validLessonCount++;
                     
                     if (lessonTitles.contains(lesTitle.toLowerCase())) {
@@ -245,7 +259,12 @@ public class LessonController extends HttpServlet {
                             if (bType == null) continue;
                             if ("text".equals(bType)) {
                                 String text = request.getParameter("blockText_" + s + "_" + l + "_" + b);
-                                if (text != null && !text.trim().isEmpty()) validBlocks++;
+                                if (text != null && !text.trim().isEmpty()) {
+                                    if (text.trim().length() > 5000) {
+                                        throw new IllegalArgumentException("Nội dung khối văn bản trong bài học '" + lesTitle + "' không được vượt quá 5000 ký tự (độ dài hiện tại: " + text.trim().length() + ")!");
+                                    }
+                                    validBlocks++;
+                                }
                             } else if ("file".equals(bType)) {
                                 String existingFile = request.getParameter("existingFile_" + s + "_" + l + "_" + b);
                                 jakarta.servlet.http.Part fPart = request.getPart("blockFile_" + s + "_" + l + "_" + b);
@@ -265,6 +284,9 @@ public class LessonController extends HttpServlet {
                         }
                     } else if ("video".equals(type) || "video_image".equals(type)) {
                         String yt = request.getParameter("lessonVideo_" + s + "_" + l);
+                        if (yt != null && yt.trim().length() > 500) {
+                            throw new IllegalArgumentException("Đường dẫn video YouTube bài học '" + lesTitle + "' không được vượt quá 500 ký tự!");
+                        }
                         if (!isDraft && (yt == null || yt.trim().isEmpty())) {
                             throw new IllegalArgumentException("Vui lòng nhập đường dẫn video YouTube cho bài học '" + lesTitle + "'!");
                         }
@@ -541,7 +563,12 @@ public class LessonController extends HttpServlet {
             e.printStackTrace();
             session.setAttribute("message", "Error saving course: " + e.getMessage());
             session.setAttribute("messageType", "error");
-            response.sendRedirect(request.getContextPath() + "/lesson");
+            String cId = request.getParameter("courseId");
+            if (cId != null && !cId.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/lesson?courseId=" + cId.trim());
+            } else {
+                response.sendRedirect(request.getContextPath() + "/lesson");
+            }
         }
     }
 }

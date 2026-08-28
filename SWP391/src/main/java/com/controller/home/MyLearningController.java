@@ -43,6 +43,12 @@ public class MyLearningController extends HttpServlet {
 
         CourseRegistrationDAO registrationDAO = new CourseRegistrationDAO();
         List<Course> myCourses = registrationDAO.getCoursesByAccountId(account.getId());
+
+        // Tự động kiểm tra và cấp chứng chỉ còn thiếu cho các khóa học đã hoàn thành 100%
+        com.DAO.CertificateDAO certDAO = new com.DAO.CertificateDAO();
+        certDAO.autoIssuePendingCertificatesForStudent(account.getId());
+        request.setAttribute("certTemplateIds", certDAO.getTemplateCourseIds());
+        request.setAttribute("certCodeMap", certDAO.getCertificateCodeMapByAccount(account.getId()));
         
         // Also add courses that the user created
         com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
@@ -192,7 +198,16 @@ public class MyLearningController extends HttpServlet {
                 }
                 body.append("\nKeep up the good work!\nOCMS");
                 try {
+<<<<<<< Updated upstream
                     EmailService.sendEmail(recipientEmail, "OCMS - Learning Reminder (Test)", body.toString());
+=======
+                    String userEmail = account.getEmail();
+                    if (userEmail == null || userEmail.trim().isEmpty()) {
+                        out.print("{\"status\":\"error\", \"message\":\"Tài khoản hiện tại chưa có email!\"}");
+                        return;
+                    }
+                    EmailService.sendEmail(userEmail, "OCMS - Learning Reminder (Test)", body.toString());
+>>>>>>> Stashed changes
                 } catch (Exception e) {
                     e.printStackTrace();
                     out.print("{\"status\":\"error\", \"message\":\"Failed to send email: " + e.getMessage() + "\"}");

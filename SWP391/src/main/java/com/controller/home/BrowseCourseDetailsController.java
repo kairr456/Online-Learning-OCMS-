@@ -69,6 +69,7 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     
                     boolean isEnrolled = false;
                     boolean isWishlisted = false;
+                    boolean hasReviewed = false;
                     Account account = (Account) request.getSession().getAttribute("account");
                     if (account != null) {
                         if (course.getCreatedBy() == account.getId()) {
@@ -78,6 +79,7 @@ public class BrowseCourseDetailsController extends HttpServlet {
                             isEnrolled = regDAO.isEnrolled(account.getId(), courseId);
                         }
                         isWishlisted = new WishlistDAO().isWishlisted(account.getId(), courseId);
+                        hasReviewed = new ReviewDAO().hasUserReviewed(account.getId(), courseId);
                     }
                     
                     int firstLessonId = -1;
@@ -139,6 +141,7 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     request.setAttribute("lessonVideosMap", lessonVideosMap);
                     request.setAttribute("isEnrolled", isEnrolled);
                     request.setAttribute("isWishlisted", isWishlisted);
+                    request.setAttribute("hasReviewed", hasReviewed);
                     request.setAttribute("firstLessonId", firstLessonId);
                     // Also pass authorNames so we can lookup reviewer names in the JSP
                     request.setAttribute("accountNames", authorNames);

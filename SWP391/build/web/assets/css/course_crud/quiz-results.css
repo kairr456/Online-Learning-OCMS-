@@ -1,0 +1,20 @@
+:root { --primary-dark: #1a1a2e; --accent-yellow: #ffc107; --bg-color: #f4f6f9; }
+body { background-color: var(--bg-color); font-family: 'Inter', 'Segoe UI', sans-serif; }
+
+.result-card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
+.table thead th { background-color: #f8f9fa; color: var(--primary-dark); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; border-bottom: 2px solid #dee2e6; }
+.status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.status-passed { background-color: #d1e7dd; color: #0f5132; }
+.status-failed { background-color: #f8d7da; color: #842029; }
+
+.answer-box { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+.answer-correct { border-left: 5px solid #198754; background-color: #f8fff9; }
+.answer-incorrect { border-left: 5px solid #dc3545; background-color: #fffafa; }
+
+/* Inline helpers (moved from inline styles) */
+.dark-text {
+    color: var(--primary-dark);
+}
+.empty-detail {
+    min-height: 300px;
+}
