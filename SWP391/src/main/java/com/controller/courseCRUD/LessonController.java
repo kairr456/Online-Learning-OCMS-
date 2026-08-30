@@ -330,10 +330,10 @@ public class LessonController extends HttpServlet {
             if (isUpdate) {
                 // If teacher clicks "Publish" (exit) on a draft course → upgrade to pending for admin review
                 String currentStatus = course.getStatus();
-                if (!isDraft && "draft".equals(currentStatus)) {
+                if (!isDraft && ("draft".equalsIgnoreCase(currentStatus) || "cancelled".equalsIgnoreCase(currentStatus) || "rejected".equalsIgnoreCase(currentStatus))) {
                     course.setStatus("pending");
                     courseDAO.update(course);
-                    new com.DAO.CourseApprovalDAO().insertLog(courseId, "SUBMIT", "draft", "pending",
+                    new com.DAO.CourseApprovalDAO().insertLog(courseId, "SUBMIT", currentStatus, "pending",
                             account.getId(), "", request.getRemoteAddr());
                 } else if (isDraft && "active".equals(currentStatus)) {
                     // Teacher is editing an active course → keep active, just save changes

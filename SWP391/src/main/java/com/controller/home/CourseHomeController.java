@@ -98,7 +98,7 @@ public class CourseHomeController extends HttpServlet {
 //            }
             int totalRecords = courseDAO.getTotalFilteredRecords(categoryIds, ratings, teacherName, courseName);   
             int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
-
+            
             // 4. Load Author Names
             AccountDAO accountDAO = new AccountDAO();
             Map<Integer, String> authorNames = accountDAO.getAuthorNames();

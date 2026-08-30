@@ -6,8 +6,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.entity.QuizQuestion;
 import com.validator.DbTextValidator;
 
@@ -291,11 +293,11 @@ public class QuizDAO extends DBContext {
         return null;
     }
 
-        public List<Map<String, Object>> getQuestionsByQuizId(int quizId) {
+    public List<Map<String, Object>> getQuestionsByQuizId(int quizId) {
         List<Map<String, Object>> questions = new ArrayList<>();
         String sql = "SELECT qb.* FROM question_bank qb " +
-                     "JOIN lesson_quiz lq ON qb.group_id = lq.question_group_id " +
-                     "WHERE lq.id = ? AND qb.status = 'active'";
+                     "JOIN lesson_quiz lq ON (qb.group_id = lq.question_group_id OR (lq.question_group_id IS NULL AND qb.lesson_id = lq.lesson_id) OR qb.lesson_id = lq.lesson_id) " +
+                     "WHERE lq.id = ? AND (qb.status = 'active' OR qb.status IS NULL)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, quizId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -630,7 +632,8 @@ public class QuizDAO extends DBContext {
                 int attemptNumber = 1;
                 while (rs.next()) {
                     Map<String, Object> a = new HashMap<>();
-                    a.put("id", rs.getInt("id"));
+                    int attemptId = rs.getInt("id");
+                    a.put("id", attemptId);
                     a.put("attempt_number", attemptNumber++);
                     a.put("score", rs.getFloat("score"));
                     a.put("passed", rs.getInt("passed") == 1);
@@ -642,6 +645,74 @@ public class QuizDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        Map<String, Object> quizInfo = getLessonQuizById(quizId);
+        int teacherPassingScore = 80;
+        if (quizInfo != null && quizInfo.get("passing_score") != null) {
+            int ps = (Integer) quizInfo.get("passing_score");
+            if (ps > 5) {
+                teacherPassingScore = ps;
+            }
+        }
+
+        List<Map<String, Object>> questions = getQuestionsByQuizId(quizId);
+        if (!questions.isEmpty() && !attempts.isEmpty()) {
+            int totalPoints = 0;
+            for (Map<String, Object> q : questions) {
+                int pts = q.get("points") != null ? (Integer) q.get("points") : 1;
+                if (pts <= 0) pts = 1;
+                totalPoints += pts;
+            }
+            if (totalPoints > 0) {
+                for (Map<String, Object> att : attempts) {
+                    int attId = (Integer) att.get("id");
+                    List<Map<String, Object>> attemptAnswers = getAttemptAnswers(attId);
+                    if (attemptAnswers != null && !attemptAnswers.isEmpty()) {
+                        int earnedPoints = 0;
+                        for (Map<String, Object> q : questions) {
+                            int qId = (Integer) q.get("id");
+                            int pts = q.get("points") != null ? (Integer) q.get("points") : 1;
+                            if (pts <= 0) pts = 1;
+                            
+                            List<Map<String, Object>> answers = getAnswersByQuestionId(qId);
+                            Set<Integer> correctAnsIds = new HashSet<>();
+                            if (answers != null) {
+                                for (Map<String, Object> ans : answers) {
+                                    if (Boolean.TRUE.equals(ans.get("is_correct"))) {
+                                        correctAnsIds.add((Integer) ans.get("id"));
+                                    }
+                                }
+                            }
+                            Set<Integer> userAnsIds = new HashSet<>();
+                            for (Map<String, Object> ans : attemptAnswers) {
+                                Integer ansQId = (Integer) ans.get("question_id");
+                                if (ansQId != null && ansQId.equals(qId)) {
+                                    userAnsIds.add((Integer) ans.get("selected_answer_id"));
+                                }
+                            }
+                            if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
+                                earnedPoints += pts;
+                            }
+                        }
+                        double realScore = ((double) earnedPoints / totalPoints) * 100.0;
+                        double realScoreRounded = Math.round(realScore * 10.0) / 10.0;
+                        boolean isPassed = realScoreRounded >= (double) teacherPassingScore;
+
+                        att.put("score", realScoreRounded);
+                        att.put("passed", isPassed);
+
+                        String updateSql = "UPDATE quiz_attempt SET score = ?, passed = ? WHERE id = ?";
+                        try (PreparedStatement updatePs = connection.prepareStatement(updateSql)) {
+                            updatePs.setDouble(1, realScoreRounded);
+                            updatePs.setInt(2, isPassed ? 1 : 0);
+                            updatePs.setInt(3, attId);
+                            updatePs.executeUpdate();
+                        } catch (SQLException ignored) {}
+                    }
+                }
+            }
+        }
+
         return attempts;
     }
 

@@ -1,7 +1,8 @@
-package com.controller.courseCRUD;
+package com.controller.home;
 
 import com.DAO.CourseDAO;
 import com.DAO.CourseRegistrationDAO;
+import com.DAO.LearningDAO;
 import com.DAO.LessonDAO;
 import com.DAO.QuizDAO;
 import com.entity.Account;
@@ -38,18 +39,30 @@ public class StudentLearningController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getServletPath();
-        String action = request.getParameter("action");
-        if (action == null) action = "";
 
-        if ("/lesson-details".equals(path) || "lessonDetails".equals(action)) {
-            handleLessonDetailsGet(request, response);
-        } else if ("/take-quiz".equals(path) || "takeQuiz".equals(action)) {
-            handleTakeQuizGet(request, response);
-        } else if ("/quiz-result".equals(path) || "quizResult".equals(action)) {
+        if ("/quiz-result".equals(path)) {
             handleQuizResultGet(request, response);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/courses");
+            return;
         }
+
+        String lessonIdParam = request.getParameter("id");
+        if (lessonIdParam == null || lessonIdParam.isEmpty()) {
+            lessonIdParam = request.getParameter("lessonId");
+        }
+
+        if (lessonIdParam != null && !lessonIdParam.trim().isEmpty()) {
+            try {
+                int lId = Integer.parseInt(lessonIdParam.trim());
+                Lesson lesson = new LessonDAO().getLessonById(lId);
+                if (lesson != null) {
+                    int cId = new LessonDAO().getCourseIdBySectionId(lesson.getSectionId());
+                    String quizMode = "/take-quiz".equals(path) ? "&quizMode=take" : "";
+                    response.sendRedirect(request.getContextPath() + "/learning?courseId=" + cId + "&lessonId=" + lId + quizMode);
+                    return;
+                }
+            } catch (Exception ignored) {}
+        }
+        response.sendRedirect(request.getContextPath() + "/all-courses");
     }
 
     @Override
@@ -384,6 +397,9 @@ public class StudentLearningController extends HttpServlet {
             boolean passed = scorePercent >= passingScore;
 
             int attemptId = quizDAO.insertQuizAttempt(account.getId(), quizId, scorePercent, passed);
+            if (passed) {
+                new LearningDAO().saveLessonProgress(account.getId(), lessonId, true);
+            }
 
             if (attemptId > 0) {
                 for (Map<String, Object> q : questions) {
@@ -473,11 +489,30 @@ public class StudentLearningController extends HttpServlet {
                 return;
             }
 
+            int passingScore = 80;
+            if (lessonQuiz.get("passing_score") != null) {
+                int ps = (Integer) lessonQuiz.get("passing_score");
+                if (ps > 5) passingScore = ps;
+            }
+            lessonQuiz.put("passing_score", passingScore);
+
             int quizId = (Integer) lessonQuiz.get("id");
 
             List<Map<String, Object>> userAttempts = quizDAO.getUserAttemptsForQuiz(account.getId(), quizId);
             if (userAttempts.isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/lesson-details?id=" + lessonId);
+                int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
+                response.sendRedirect(request.getContextPath() + "/learning?courseId=" + courseId + "&lessonId=" + lessonId);
+                return;
+            }
+
+            int maxRetakes = -1;
+            if (lessonQuiz.get("max_retakes") != null) {
+                maxRetakes = (Integer) lessonQuiz.get("max_retakes");
+            }
+            boolean canViewHistory = (maxRetakes == -1 || maxRetakes >= 10 || userAttempts.size() >= maxRetakes);
+            if (!canViewHistory) {
+                int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
+                response.sendRedirect(request.getContextPath() + "/learning?courseId=" + courseId + "&lessonId=" + lessonId + "&error=history_locked");
                 return;
             }
 
@@ -527,6 +562,41 @@ public class StudentLearningController extends HttpServlet {
                     }
                 }
                 q.put("selectedAnswerIds", selectedAnswerIds);
+            }
+
+            if (attemptAnswers != null && !attemptAnswers.isEmpty() && !questions.isEmpty()) {
+                int totalAttemptPoints = 0;
+                int earnedAttemptPoints = 0;
+                for (Map<String, Object> q : questions) {
+                    int points = q.get("points") != null ? (Integer) q.get("points") : 1;
+                    if (points <= 0) points = 1;
+                    totalAttemptPoints += points;
+
+                    @SuppressWarnings("unchecked")
+                    List<Integer> userAnsIds = (List<Integer>) q.get("selectedAnswerIds");
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> answers = (List<Map<String, Object>>) q.get("answers");
+                    
+                    Set<Integer> userAnsSet = new HashSet<>(userAnsIds != null ? userAnsIds : Collections.emptyList());
+                    Set<Integer> correctAnsSet = new HashSet<>();
+                    if (answers != null) {
+                        for (Map<String, Object> a : answers) {
+                            if (Boolean.TRUE.equals(a.get("is_correct"))) {
+                                correctAnsSet.add((Integer) a.get("id"));
+                            }
+                        }
+                    }
+                    if (!correctAnsSet.isEmpty() && userAnsSet.equals(correctAnsSet)) {
+                        earnedAttemptPoints += points;
+                    }
+                }
+                if (totalAttemptPoints > 0) {
+                    double calcScore = ((double) earnedAttemptPoints / totalAttemptPoints) * 100.0;
+                    double calcScoreRounded = Math.round(calcScore * 10.0) / 10.0;
+                    selectedAttempt.put("score", calcScoreRounded);
+                    selectedAttempt.put("earned_points", earnedAttemptPoints);
+                    selectedAttempt.put("total_points", totalAttemptPoints);
+                }
             }
 
             int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());

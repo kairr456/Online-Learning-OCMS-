@@ -68,19 +68,18 @@ public class LearningController extends HttpServlet {
             return;
         }
 
-        // Kiểm tra học viên đã mua khóa học
+        // Kiểm tra học viên đã mua khóa học (Admin và Tác giả khóa học mặc định được phép xem)
         CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
-        boolean enrolled = false;
-        for (Course c : regDAO.getCoursesByAccountId(account.getId())) {
-            if (c.getId() == courseId) {
-                enrolled = true;
-                break;
+        boolean enrolled = (account.getRoleId() == 1 || account.getId() == course.getCreatedBy());
+        if (!enrolled) {
+            for (Course c : regDAO.getCoursesByAccountId(account.getId())) {
+                if (c.getId() == courseId) {
+                    enrolled = true;
+                    break;
+                }
             }
         }
-        if (!enrolled) {
-            response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
-            return;
-        }
+        request.setAttribute("isEnrolled", enrolled);
 
         LessonDAO lessonDAO = new LessonDAO();
         List<Section> sections = lessonDAO.getSectionsByCourseId(courseId);
@@ -102,6 +101,9 @@ public class LearningController extends HttpServlet {
             return;
         }
 
+        Lesson firstLesson = allLessons.get(0);
+        request.setAttribute("firstLessonId", firstLesson.getId());
+
         // Xác định bài học hiện tại (mặc định bài đầu tiên)
         Lesson currentLesson = null;
         String lessonIdParam = request.getParameter("lessonId");
@@ -118,8 +120,12 @@ public class LearningController extends HttpServlet {
             }
         }
         if (currentLesson == null) {
-            currentLesson = allLessons.get(0);
+            currentLesson = firstLesson;
         }
+
+        // Nếu chưa mua khóa học và bài đang xem KHÔNG PHẢI bài đầu tiên -> Khóa bài học
+        boolean isLockedLesson = !enrolled && (currentLesson.getId() != firstLesson.getId());
+        request.setAttribute("isLockedLesson", isLockedLesson);
 
         int currentIndex = allLessons.indexOf(currentLesson);
         Lesson prevLesson = currentIndex > 0 ? allLessons.get(currentIndex - 1) : null;
@@ -140,6 +146,8 @@ public class LearningController extends HttpServlet {
         Boolean hasPassedQuiz = null;
         Double bestQuizScore = null;
 
+        if (!isLockedLesson) {
+
         if ("text".equals(type) || "document".equalsIgnoreCase(type)) {
             lessonContent = lessonDAO.getLessonText(currentLesson.getId());
         }
@@ -153,52 +161,93 @@ public class LearningController extends HttpServlet {
             lessonDocument = learningDAO.getLessonDocument(currentLesson.getId());
         }
                 if ("quiz".equals(type)) {
-            quizId = learningDAO.getQuizIdByLessonId(currentLesson.getId());
-            if (quizId != null && quizId > 0) {
-                List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
-                java.util.Collections.shuffle(allQuestions);
-                
-                int numToTake = 10; // Default if not configured
-                com.DAO.QuizDAO qDAO = new com.DAO.QuizDAO();
-                java.util.Map<String, Object> lq = qDAO.getLessonQuizByLessonId(currentLesson.getId());
-                if (lq != null && lq.get("number_of_questions") != null) {
-                    numToTake = (Integer) lq.get("number_of_questions");
+            com.DAO.QuizDAO qDAO = new com.DAO.QuizDAO();
+            Map<String, Object> lessonQuiz = qDAO.getLessonQuizByLessonId(currentLesson.getId());
+            if (lessonQuiz == null) {
+                String lText = lessonDAO.getLessonText(currentLesson.getId());
+                if (lText != null && lText.startsWith("Quiz ID: ")) {
+                    try {
+                        int qId = Integer.parseInt(lText.substring(9).trim());
+                        lessonQuiz = qDAO.getLessonQuizById(qId);
+                    } catch (Exception ignored) {}
                 }
-                
-                quizQuestions = allQuestions;
-                if (numToTake > 0 && numToTake < allQuestions.size()) {
-                    quizQuestions = allQuestions.subList(0, numToTake);
-                }
-                
-                StringBuilder servedIds = new StringBuilder();
-                quizAnswers = new HashMap<>();
-                Map<Integer, Boolean> quizQuestionMultipleChoiceMap = new HashMap<>();
-                int total = 0;
-                for (QuizQuestion q : quizQuestions) {
-                    if (servedIds.length() > 0) servedIds.append(",");
-                    servedIds.append(q.getId());
-                    List<QuizAnswer> qAns = learningDAO.getAnswersByQuestionId(q.getId());
-                    quizAnswers.put(q.getId(), qAns);
-                    total += (q.getPoints() != null ? q.getPoints() : 1);
+            }
 
-                    int correctCount = 0;
-                    if (qAns != null) {
-                        for (QuizAnswer a : qAns) {
-                            if (Boolean.TRUE.equals(a.getIsCorrect())) {
-                                correctCount++;
+            if (lessonQuiz != null) {
+                quizId = (Integer) lessonQuiz.get("id");
+                int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
+                int userAttemptsCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
+                List<Map<String, Object>> userAttemptsList = qDAO.getUserAttemptsForQuiz(account.getId(), quizId);
+                boolean isExhausted = (maxRetakes != -1 && userAttemptsCount >= maxRetakes);
+                boolean canViewHistory = (maxRetakes == -1 || maxRetakes >= 10 || isExhausted);
+
+                request.setAttribute("lessonQuiz", lessonQuiz);
+                request.setAttribute("quizId", quizId);
+                request.setAttribute("maxRetakes", maxRetakes);
+                request.setAttribute("userAttemptsCount", userAttemptsCount);
+                request.setAttribute("userAttemptsList", userAttemptsList);
+                request.setAttribute("isExhausted", isExhausted);
+                request.setAttribute("canViewHistory", canViewHistory);
+
+                String requestedMode = request.getParameter("quizMode");
+                if (("take".equalsIgnoreCase(requestedMode) || "start".equalsIgnoreCase(requestedMode)) && !isExhausted) {
+                    int timeLimit = 0;
+                    if (lessonQuiz.get("time_limit_minutes") != null) {
+                        timeLimit = (Integer) lessonQuiz.get("time_limit_minutes");
+                    }
+                    if (timeLimit <= 0 && currentLesson.getDurationMinutes() != null && currentLesson.getDurationMinutes() > 0) {
+                        timeLimit = currentLesson.getDurationMinutes();
+                    }
+                    request.setAttribute("quizMode", "take");
+                    request.setAttribute("currentAttemptNo", userAttemptsCount + 1);
+                    request.setAttribute("timeLimitMinutes", timeLimit);
+
+                    List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
+                    java.util.Collections.shuffle(allQuestions);
+                    
+                    int numToTake = 10;
+                    if (lessonQuiz.get("number_of_questions") != null) {
+                        numToTake = (Integer) lessonQuiz.get("number_of_questions");
+                    }
+                    
+                    quizQuestions = allQuestions;
+                    if (numToTake > 0 && numToTake < allQuestions.size()) {
+                        quizQuestions = allQuestions.subList(0, numToTake);
+                    }
+                    
+                    StringBuilder servedIds = new StringBuilder();
+                    quizAnswers = new HashMap<>();
+                    Map<Integer, Boolean> quizQuestionMultipleChoiceMap = new HashMap<>();
+                    int total = 0;
+                    for (QuizQuestion q : quizQuestions) {
+                        if (servedIds.length() > 0) servedIds.append(",");
+                        servedIds.append(q.getId());
+                        List<QuizAnswer> qAns = learningDAO.getAnswersByQuestionId(q.getId());
+                        quizAnswers.put(q.getId(), qAns);
+                        total += (q.getPoints() != null ? q.getPoints() : 1);
+
+                        int correctCount = 0;
+                        if (qAns != null) {
+                            for (QuizAnswer a : qAns) {
+                                if (Boolean.TRUE.equals(a.getIsCorrect())) {
+                                    correctCount++;
+                                }
                             }
                         }
+                        quizQuestionMultipleChoiceMap.put(q.getId(), correctCount > 1);
                     }
-                    quizQuestionMultipleChoiceMap.put(q.getId(), correctCount > 1);
+                    request.setAttribute("quizQuestionMultipleChoiceMap", quizQuestionMultipleChoiceMap);
+                    request.setAttribute("servedQuestionIds", servedIds.toString());
+                    quizTotalPoints = total;
+                } else {
+                    request.setAttribute("quizMode", "attempt");
                 }
-                request.setAttribute("quizQuestionMultipleChoiceMap", quizQuestionMultipleChoiceMap);
-                request.setAttribute("servedQuestionIds", servedIds.toString());
-                
-                quizTotalPoints = total;
+
                 hasPassedQuiz = learningDAO.hasPassedQuiz(account.getId(), quizId);
                 bestQuizScore = learningDAO.getBestQuizScore(account.getId(), quizId);
             }
         }
+        } // End if (!isLockedLesson)
 
         // Chuẩn hóa URL video / tài liệu local (bỏ context path cũ)
         if (lessonVideos != null && !lessonVideos.isEmpty()) {
@@ -270,23 +319,35 @@ public class LearningController extends HttpServlet {
                     return;
                 }
                 int quizId = Integer.parseInt(quizIdParam);
-                List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
+                com.DAO.QuizDAO qDAO = new com.DAO.QuizDAO();
+                Map<String, Object> lessonQuizMap = qDAO.getLessonQuizById(quizId);
                 
+                int teacherPassingScore = 80;
+                if (lessonQuizMap != null && lessonQuizMap.get("passing_score") != null) {
+                    int ps = (Integer) lessonQuizMap.get("passing_score");
+                    if (ps > 5) {
+                        teacherPassingScore = ps;
+                    }
+                }
+
                 String servedIdsParam = request.getParameter("servedQuestionIds");
                 List<QuizQuestion> questions = new java.util.ArrayList<>();
-                if (servedIdsParam != null && !servedIdsParam.isEmpty()) {
+                if (servedIdsParam != null && !servedIdsParam.trim().isEmpty()) {
                     String[] servedIdsArray = servedIdsParam.split(",");
-                    java.util.Set<Integer> servedIdsSet = new java.util.HashSet<>();
                     for (String s : servedIdsArray) {
-                        servedIdsSet.add(Integer.parseInt(s.trim()));
-                    }
-                    for (QuizQuestion q : allQuestions) {
-                        if (servedIdsSet.contains(q.getId())) {
-                            questions.add(q);
+                        if (s != null && !s.trim().isEmpty()) {
+                            try {
+                                int qId = Integer.parseInt(s.trim());
+                                QuizQuestion q = learningDAO.getQuestionById(qId);
+                                if (q != null) {
+                                    questions.add(q);
+                                }
+                            } catch (NumberFormatException ignored) {}
                         }
                     }
-                } else {
-                    questions = allQuestions;
+                }
+                if (questions.isEmpty()) {
+                    questions = learningDAO.getQuestionsByQuizId(quizId);
                 }
                 
                 int total = 0;
@@ -321,23 +382,50 @@ public class LearningController extends HttpServlet {
                         score += points;
                     }
                 }
-                boolean passed = total > 0 && ((double) score / total) >= PASS_RATIO;
-                boolean saved = learningDAO.saveQuizAttempt(account.getId(), quizId, score, passed);
+                boolean previouslyPassed = learningDAO.hasPassedQuiz(account.getId(), quizId);
+                double scorePercent = total > 0 ? ((double) score / total) * 100.0 : 0.0;
+                boolean passed = scorePercent >= (double) teacherPassingScore;
+                int attemptId = qDAO.insertQuizAttempt(account.getId(), quizId, (float) scorePercent, passed);
+                if (attemptId > 0) {
+                    for (QuizQuestion q : questions) {
+                        String[] selectedAnswerIds = request.getParameterValues("answer_" + q.getId());
+                        if (selectedAnswerIds != null) {
+                            for (String sIdStr : selectedAnswerIds) {
+                                if (sIdStr != null && !sIdStr.trim().isEmpty()) {
+                                    try {
+                                        int selectedAnsId = Integer.parseInt(sIdStr.trim());
+                                        qDAO.insertQuizAttemptAnswer(attemptId, q.getId(), selectedAnsId);
+                                    } catch (NumberFormatException ignored) {}
+                                }
+                            }
+                        }
+                    }
+                }
+
                 String certCode = null;
                 if (passed) {
                     int lessonId = learningDAO.getLessonIdByQuizId(quizId);
                     if (lessonId > 0) {
                         learningDAO.saveLessonProgress(account.getId(), lessonId, true);
-                        // Cấp chứng chỉ ngay nếu HV vừa đạt 100% progress và khóa có template
                         certCode = grantCertificateIfCompleted(account.getId(), lessonId);
                     }
                 }
-                if (saved) {
-                    out.print("{\"status\":\"success\",\"score\":" + score + ",\"total\":" + total
-                            + ",\"passed\":" + passed + ",\"certificateCode\":\"" + (certCode == null ? "" : certCode) + "\"}");
-                } else {
-                    out.print("{\"status\":\"error\", \"message\":\"Failed to save quiz attempt.\"}");
+
+                int maxRetakes = -1;
+                Map<String, Object> lqMap = qDAO.getLessonQuizById(quizId);
+                if (lqMap != null && lqMap.get("max_retakes") != null) {
+                    maxRetakes = (Integer) lqMap.get("max_retakes");
                 }
+                int newAttemptCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
+                boolean isExhausted = (maxRetakes != -1 && newAttemptCount >= maxRetakes);
+                double scorePercentRounded = Math.round(scorePercent * 10.0) / 10.0;
+
+                out.print("{\"status\":\"success\",\"score\":" + score + ",\"total\":" + total
+                        + ",\"scorePercent\":" + scorePercentRounded
+                        + ",\"passed\":" + passed
+                        + ",\"previouslyPassed\":" + previouslyPassed
+                        + ",\"isExhausted\":" + isExhausted
+                        + ",\"certificateCode\":\"" + (certCode == null ? "" : certCode) + "\"}");
 
             } else if ("markComplete".equals(action)) {
                 String lessonIdParam = request.getParameter("lessonId");

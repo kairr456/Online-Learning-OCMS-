@@ -106,12 +106,12 @@
                                             <!-- Conditional Link based on Enrollment / Free first lesson -->
                                             <c:choose>
                                                 <c:when test="${isEnrolled or lesson.id == firstLessonId}">
-                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="lesson-link">
+                                                    <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${lesson.id}" class="lesson-link">
                                                         ${lesson.title}
                                                     </a>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <a href="javascript:void(0);" onclick="handleLockedLesson();" class="lesson-link-locked">
+                                                    <a href="${pageContext.request.contextPath}/learning?courseId=${course.id}&lessonId=${lesson.id}" class="lesson-link-locked">
                                                         <i class="fas fa-lock lesson-lock-icon"></i> ${lesson.title}
                                                     </a>
                                                 </c:otherwise>

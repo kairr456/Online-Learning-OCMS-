@@ -125,7 +125,7 @@
                                 <div class="course-footer">
                                     <c:choose>
                                         <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
-                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
+                                            <a href="${pageContext.request.contextPath}/all-courses" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
                                         </c:when>
                                         <c:otherwise>
                                             <div class="course-footer__actions">

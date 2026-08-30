@@ -119,11 +119,11 @@ public class LearningDAO extends DBContext {
         return -1;
     }
 
-        public List<QuizQuestion> getQuestionsByQuizId(int quizId) {
+    public List<QuizQuestion> getQuestionsByQuizId(int quizId) {
         List<QuizQuestion> list = new ArrayList<>();
         String sql = "SELECT qb.* FROM question_bank qb " +
-                     "JOIN lesson_quiz lq ON qb.group_id = lq.question_group_id " +
-                     "WHERE lq.id = ? AND qb.status = 'active'";
+                     "JOIN lesson_quiz lq ON (qb.group_id = lq.question_group_id OR (lq.question_group_id IS NULL AND qb.lesson_id = lq.lesson_id) OR qb.lesson_id = lq.lesson_id) " +
+                     "WHERE lq.id = ? AND (qb.status = 'active' OR qb.status IS NULL)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -147,6 +147,33 @@ public class LearningDAO extends DBContext {
             closeResources();
         }
         return list;
+    }
+
+    public QuizQuestion getQuestionById(int questionId) {
+        String sql = "SELECT * FROM question_bank WHERE id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, questionId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                QuizQuestion q = new QuizQuestion();
+                q.setId(resultSet.getInt("id"));
+                q.setCourseId(resultSet.getInt("course_id"));
+                q.setLessonId(resultSet.getInt("lesson_id"));
+                q.setGroupId(resultSet.getInt("group_id"));
+                q.setQuestionText(resultSet.getString("question_text"));
+                q.setPoints(resultSet.getInt("points"));
+                q.setStatus(resultSet.getString("status"));
+                q.setCreatedDate(resultSet.getTimestamp("created_date"));
+                return q;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResources();
+        }
+        return null;
     }
 
     public List<QuizAnswer> getAnswersByQuestionId(int questionId) {
@@ -321,7 +348,16 @@ public class LearningDAO extends DBContext {
         Map<Integer, Integer> map = new HashMap<>();
         String sql = "SELECT s.course_id, "
                 + "COUNT(l.id) AS total, "
-                + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
+                + "COALESCE(SUM(CASE "
+                + "  WHEN l.type = 'quiz' THEN ("
+                + "    SELECT COALESCE(MAX(qa.score), 0) "
+                + "    FROM lesson_quiz lq "
+                + "    JOIN quiz_attempt qa ON lq.id = qa.quiz_id "
+                + "    WHERE lq.lesson_id = l.id AND qa.account_id = ? "
+                + "  ) "
+                + "  WHEN lp.completed = 1 THEN 100 "
+                + "  ELSE 0 "
+                + "END), 0) AS total_percent "
                 + "FROM lesson l "
                 + "JOIN section s ON l.section_id = s.id "
                 + "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.account_id = ? "
@@ -334,12 +370,13 @@ public class LearningDAO extends DBContext {
             statement = connection.prepareStatement(sql);
             statement.setInt(1, accountId);
             statement.setInt(2, accountId);
+            statement.setInt(3, accountId);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 int courseId = resultSet.getInt("course_id");
                 int total = resultSet.getInt("total");
-                int completed = resultSet.getInt("completed");
-                int percent = total > 0 ? (int) Math.round(completed * 100.0 / total) : 0;
+                double totalPercent = resultSet.getDouble("total_percent");
+                int percent = total > 0 ? (int) Math.round(totalPercent / total) : 0;
                 map.put(courseId, percent);
             }
         } catch (SQLException ex) {
@@ -372,7 +409,16 @@ public class LearningDAO extends DBContext {
     /** Phần trăm tiến độ (0-100) của 1 khóa học cho 1 tài khoản (giống getCourseProgressMap, chỉ 1 khóa). */
     public int getCourseProgress(int accountId, int courseId) {
         String sql = "SELECT COUNT(l.id) AS total, "
-                + "COALESCE(SUM(CASE WHEN lp.completed = 1 THEN 1 ELSE 0 END), 0) AS completed "
+                + "COALESCE(SUM(CASE "
+                + "  WHEN l.type = 'quiz' THEN ("
+                + "    SELECT COALESCE(MAX(qa.score), 0) "
+                + "    FROM lesson_quiz lq "
+                + "    JOIN quiz_attempt qa ON lq.id = qa.quiz_id "
+                + "    WHERE lq.lesson_id = l.id AND qa.account_id = ? "
+                + "  ) "
+                + "  WHEN lp.completed = 1 THEN 100 "
+                + "  ELSE 0 "
+                + "END), 0) AS total_percent "
                 + "FROM lesson l "
                 + "JOIN section s ON l.section_id = s.id "
                 + "LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.account_id = ? "
@@ -381,12 +427,13 @@ public class LearningDAO extends DBContext {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
             statement.setInt(1, accountId);
-            statement.setInt(2, courseId);
+            statement.setInt(2, accountId);
+            statement.setInt(3, courseId);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 int total = resultSet.getInt("total");
-                int completed = resultSet.getInt("completed");
-                return total > 0 ? (int) Math.round(completed * 100.0 / total) : 0;
+                double totalPercent = resultSet.getDouble("total_percent");
+                return total > 0 ? (int) Math.round(totalPercent / total) : 0;
             }
         } catch (SQLException ex) {
             System.out.println("Error getCourseProgress: " + ex.getMessage());

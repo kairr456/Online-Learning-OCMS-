@@ -82,8 +82,13 @@ public class CourseManagerController extends HttpServlet {
             }
         }
         String sort = request.getParameter("sort");
+//            if (sort == null || sort.isEmpty()) {
+//            sort = "Latest"; // Mặc định sắp xếp mới nhất
+//             }
         String categoryParam = request.getParameter("category");
-
+//        if (categoryParam == null || categoryParam.trim().isEmpty()) {
+//            categoryParam = "1";
+//        }
         List<Integer> categoryIds = new ArrayList<>();
         if (categoryParam != null && !categoryParam.isEmpty()) {
             try {
@@ -93,6 +98,9 @@ public class CourseManagerController extends HttpServlet {
 
         List<Integer> ratings = new ArrayList<>();
         List<Course> courses = courseDAO.findCreatorCoursesWithFilters(account.getId(), categoryIds, ratings, courseName, sort, pageNumber, pageSize);
+//            if (courses.size()>3){
+//                courses=courses.subList(0, 3);
+//            }
         int totalRecords = courseDAO.getTotalCreatorFilteredRecords(account.getId(), categoryIds, ratings, courseName);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
