@@ -39,9 +39,11 @@ function initQuizTimer() {
 
             if (secondsLeft <= 0) {
                 if (activeQuizTimerInterval) clearInterval(activeQuizTimerInterval);
+                if (window.quizTimerInterval) clearInterval(window.quizTimerInterval);
                 alert('⏰ Hết thời gian làm bài! Hệ thống đang tự động nộp bài.');
                 const qForm = document.getElementById('quizForm');
                 if (qForm) {
+                    qForm.setAttribute('data-is-auto-submit', 'true');
                     qForm.requestSubmit();
                 }
             }
@@ -60,6 +62,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const quizAnswers = document.querySelectorAll('.quiz-answer input');
     quizAnswers.forEach(input => {
         input.addEventListener('change', function () {
+            const questionCard = this.closest('.quiz-question');
+            if (questionCard) {
+                // Clear unanswered red error styling when user selects an option
+                questionCard.style.border = '1px solid #dee2e6';
+                questionCard.style.backgroundColor = '#fafafa';
+                const unBadge = questionCard.querySelector('.unanswered-badge');
+                if (unBadge) unBadge.remove();
+            }
+
             if (this.type === 'radio') {
                 const name = this.name;
                 document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
@@ -87,10 +98,68 @@ document.addEventListener('DOMContentLoaded', function () {
     const quizForm = document.getElementById('quizForm');
     if (quizForm) {
         quizForm.addEventListener('submit', function (e) {
-            e.preventDefault();
+            const isAutoSubmit = quizForm.getAttribute('data-is-auto-submit') === 'true';
+
+            // Manual Submit Validation
+            if (!isAutoSubmit) {
+                const questionCards = quizForm.querySelectorAll('.quiz-question');
+                const unansweredCards = [];
+
+                questionCards.forEach((card) => {
+                    const checkedInput = card.querySelector('input[type="radio"]:checked, input[type="checkbox"]:checked');
+                    const titleElem = card.querySelector('.quiz-question-title');
+                    
+                    if (!checkedInput) {
+                        // Highlight unanswered question card with RED border & light red bg
+                        card.style.border = '2px solid #dc3545';
+                        card.style.backgroundColor = '#fff5f5';
+
+                        if (titleElem && !titleElem.querySelector('.unanswered-badge')) {
+                            const badge = document.createElement('span');
+                            badge.className = 'badge bg-danger ms-2 unanswered-badge';
+                            badge.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> Chưa chọn đáp án';
+                            titleElem.appendChild(badge);
+                        }
+                        unansweredCards.push(card);
+                    } else {
+                        card.style.border = '1px solid #dee2e6';
+                        card.style.backgroundColor = '#fafafa';
+                        const unBadge = card.querySelector('.unanswered-badge');
+                        if (unBadge) unBadge.remove();
+                    }
+                });
+
+                if (unansweredCards.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('⚠️ Vui lòng hoàn thành tất cả các câu hỏi trước khi nộp bài!');
+                    unansweredCards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
+            }
+
+            // Stop timer completely on submit
             if (activeQuizTimerInterval) {
                 clearInterval(activeQuizTimerInterval);
+                activeQuizTimerInterval = null;
             }
+            if (window.quizTimerInterval) {
+                clearInterval(window.quizTimerInterval);
+                window.quizTimerInterval = null;
+            }
+
+            const timerBox = document.getElementById('quizTimerBox');
+            if (timerBox) {
+                timerBox.classList.remove('border-warning');
+                timerBox.classList.add('border-secondary', 'bg-light', 'opacity-75');
+                const tElem = document.getElementById('timerCountdown');
+                if (tElem) {
+                    tElem.classList.remove('text-danger');
+                    tElem.classList.add('text-secondary');
+                }
+            }
+
+            e.preventDefault();
 
             const nextUrl = quizForm.getAttribute('data-next-url') || '';
             const historyUrl = quizForm.getAttribute('data-history-url') || '';
@@ -127,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         html += '<div class="text-secondary small fw-bold text-uppercase mb-1">% Điểm Làm Bài</div>';
                         html += '<h1 class="display-3 fw-bold ' + (passed ? 'text-success' : 'text-danger') + ' mb-2">' + scorePercent + '%</h1>';
-                        // d.score/d.total = điểm, d.totalCorrect/d.totalQuestions = số câu
+                        
                         var correctDisplay = '';
                         if (typeof d.totalCorrect !== 'undefined' && typeof d.totalQuestions !== 'undefined') {
                             correctDisplay = 'Đúng ' + d.totalCorrect + '/' + d.totalQuestions + ' câu <span class="text-muted">- ' + d.score + '/' + d.total + ' điểm</span>';

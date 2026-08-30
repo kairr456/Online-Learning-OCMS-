@@ -308,14 +308,55 @@
                                                     </span>
                                                 </div>
 
-                                                <c:if test="${timeLimitMinutes != null and timeLimitMinutes > 0}">
+                                                <c:if test="${timeLimitSeconds != null and timeLimitSeconds > 0}">
                                                     <div class="bg-light border border-warning px-3 py-2 rounded-pill d-flex align-items-center" id="quizTimerBox">
                                                         <i class="fa-solid fa-stopwatch text-warning me-2 fs-5"></i>
                                                         <span class="fw-bold me-1 text-dark">Thời gian: </span>
-                                                        <span id="timerCountdown" class="fw-bold text-danger fs-5" data-seconds="${timeLimitMinutes * 60}">
+                                                        <span id="timerCountdown" class="fw-bold text-danger fs-5" data-seconds="${timeLimitSeconds}">
                                                             ${timeLimitMinutes}:00
                                                         </span>
                                                     </div>
+                                                    <script>
+                                                    (function() {
+                                                        var timerElem = document.getElementById('timerCountdown');
+                                                        if (!timerElem) return;
+                                                        var secondsLeft = parseInt(timerElem.getAttribute('data-seconds'), 10) || 0;
+                                                        if (secondsLeft <= 0) return;
+
+                                                        function formatTime(sec) {
+                                                            var m = Math.floor(sec / 60);
+                                                            var s = sec % 60;
+                                                            return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+                                                        }
+
+                                                        timerElem.textContent = formatTime(secondsLeft);
+
+                                                        if (window.quizTimerInterval) {
+                                                            clearInterval(window.quizTimerInterval);
+                                                        }
+
+                                                        window.quizTimerInterval = setInterval(function() {
+                                                            secondsLeft--;
+                                                            if (secondsLeft >= 0) {
+                                                                timerElem.textContent = formatTime(secondsLeft);
+                                                                if (secondsLeft <= 10) {
+                                                                    timerElem.style.color = '#dc3545';
+                                                                    timerElem.style.fontWeight = 'bold';
+                                                                }
+                                                            }
+                                                            if (secondsLeft < 0) {
+                                                                clearInterval(window.quizTimerInterval);
+                                                                window.quizTimerInterval = null;
+                                                                alert('⏰ Hết thời gian làm bài! Hệ thống đang tự động nộp bài.');
+                                                                var qForm = document.getElementById('quizForm');
+                                                                if (qForm) {
+                                                                    qForm.setAttribute('data-is-auto-submit', 'true');
+                                                                    qForm.requestSubmit();
+                                                                }
+                                                            }
+                                                        }, 1000);
+                                                    })();
+                                                    </script>
                                                 </c:if>
                                             </div>
 
@@ -396,6 +437,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/course_learning/learning.js?v=<%= System.currentTimeMillis() %>"></script>
 </body>
 </html>

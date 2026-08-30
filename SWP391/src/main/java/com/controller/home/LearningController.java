@@ -191,16 +191,21 @@ public class LearningController extends HttpServlet {
 
                 String requestedMode = request.getParameter("quizMode");
                 if (("take".equalsIgnoreCase(requestedMode) || "start".equalsIgnoreCase(requestedMode)) && !isExhausted) {
-                    int timeLimit = 0;
+                    int timeLimitMinutes = 0;
                     if (lessonQuiz.get("time_limit_minutes") != null) {
-                        timeLimit = (Integer) lessonQuiz.get("time_limit_minutes");
+                        timeLimitMinutes = (Integer) lessonQuiz.get("time_limit_minutes");
                     }
-                    if (timeLimit <= 0 && currentLesson.getDurationMinutes() != null && currentLesson.getDurationMinutes() > 0) {
-                        timeLimit = currentLesson.getDurationMinutes();
+                    if (timeLimitMinutes <= 0 && currentLesson.getDurationMinutes() != null && currentLesson.getDurationMinutes() > 0) {
+                        timeLimitMinutes = currentLesson.getDurationMinutes();
                     }
+                    if (timeLimitMinutes <= 0) {
+                        timeLimitMinutes = 15; // Mặc định 15 phút nếu chưa đặt
+                    }
+                    int timeLimitSeconds = timeLimitMinutes * 60;
                     request.setAttribute("quizMode", "take");
                     request.setAttribute("currentAttemptNo", userAttemptsCount + 1);
-                    request.setAttribute("timeLimitMinutes", timeLimit);
+                    request.setAttribute("timeLimitMinutes", timeLimitMinutes);
+                    request.setAttribute("timeLimitSeconds", timeLimitSeconds);
 
                     List<QuizQuestion> allQuestions = learningDAO.getQuestionsByQuizId(quizId);
                     java.util.Collections.shuffle(allQuestions);
@@ -350,13 +355,9 @@ public class LearningController extends HttpServlet {
                     questions = learningDAO.getQuestionsByQuizId(quizId);
                 }
                 
-                int total = 0;
-                int score = 0;
-                int totalCorrect = 0;
+                int totalQuestionsCount = questions.size();
+                int correctQuestionsCount = 0;
                 for (QuizQuestion q : questions) {
-                    int points = q.getPoints() != null ? q.getPoints() : 1;
-                    total += points;
-
                     String[] selectedAnswerIds = request.getParameterValues("answer_" + q.getId());
                     java.util.Set<Integer> userAnsIds = new java.util.HashSet<>();
                     if (selectedAnswerIds != null) {
@@ -380,14 +381,19 @@ public class LearningController extends HttpServlet {
                     }
 
                     if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
-                        score += points;
-                        totalCorrect++;
+                        correctQuestionsCount++;
                     }
                 }
+                
+                int wrongQuestionsCount = totalQuestionsCount - correctQuestionsCount;
+                double wrongPercent = totalQuestionsCount > 0 ? ((double) wrongQuestionsCount / totalQuestionsCount) * 100.0 : 0.0;
+                double scorePercent = 100.0 - wrongPercent;
+                if (scorePercent < 0) scorePercent = 0.0;
+                double scorePercentRounded = Math.round(scorePercent * 10.0) / 10.0;
+
                 boolean previouslyPassed = learningDAO.hasPassedQuiz(account.getId(), quizId);
-                double scorePercent = total > 0 ? ((double) score / total) * 100.0 : 0.0;
-                boolean passed = scorePercent >= (double) teacherPassingScore;
-                int attemptId = qDAO.insertQuizAttempt(account.getId(), quizId, (float) scorePercent, passed);
+                boolean passed = scorePercentRounded >= (double) teacherPassingScore;
+                int attemptId = qDAO.insertQuizAttempt(account.getId(), quizId, (float) scorePercentRounded, passed);
                 if (attemptId > 0) {
                     for (QuizQuestion q : questions) {
                         String[] selectedAnswerIds = request.getParameterValues("answer_" + q.getId());
@@ -420,13 +426,11 @@ public class LearningController extends HttpServlet {
                 }
                 int newAttemptCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 boolean isExhausted = (maxRetakes != -1 && newAttemptCount >= maxRetakes);
-                double scorePercentRounded = Math.round(scorePercent * 10.0) / 10.0;
-                int totalQuestions = questions.size();
 
-                out.print("{\"status\":\"success\",\"score\":" + score + ",\"total\":" + total
+                out.print("{\"status\":\"success\",\"score\":" + correctQuestionsCount + ",\"total\":" + totalQuestionsCount
+                        + ",\"totalCorrect\":" + correctQuestionsCount
+                        + ",\"totalQuestions\":" + totalQuestionsCount
                         + ",\"scorePercent\":" + scorePercentRounded
-                        + ",\"totalCorrect\":" + totalCorrect
-                        + ",\"totalQuestions\":" + totalQuestions
                         + ",\"passed\":" + passed
                         + ",\"previouslyPassed\":" + previouslyPassed
                         + ",\"isExhausted\":" + isExhausted

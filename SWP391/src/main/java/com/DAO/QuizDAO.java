@@ -657,23 +657,15 @@ public class QuizDAO extends DBContext {
 
         List<Map<String, Object>> questions = getQuestionsByQuizId(quizId);
         if (!questions.isEmpty() && !attempts.isEmpty()) {
-            int totalPoints = 0;
-            for (Map<String, Object> q : questions) {
-                int pts = q.get("points") != null ? (Integer) q.get("points") : 1;
-                if (pts <= 0) pts = 1;
-                totalPoints += pts;
-            }
-            if (totalPoints > 0) {
+            int totalQuestionsCount = questions.size();
+            if (totalQuestionsCount > 0) {
                 for (Map<String, Object> att : attempts) {
                     int attId = (Integer) att.get("id");
                     List<Map<String, Object>> attemptAnswers = getAttemptAnswers(attId);
                     if (attemptAnswers != null && !attemptAnswers.isEmpty()) {
-                        int earnedPoints = 0;
+                        int correctQuestionsCount = 0;
                         for (Map<String, Object> q : questions) {
                             int qId = (Integer) q.get("id");
-                            int pts = q.get("points") != null ? (Integer) q.get("points") : 1;
-                            if (pts <= 0) pts = 1;
-                            
                             List<Map<String, Object>> answers = getAnswersByQuestionId(qId);
                             Set<Integer> correctAnsIds = new HashSet<>();
                             if (answers != null) {
@@ -691,10 +683,13 @@ public class QuizDAO extends DBContext {
                                 }
                             }
                             if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
-                                earnedPoints += pts;
+                                correctQuestionsCount++;
                             }
                         }
-                        double realScore = ((double) earnedPoints / totalPoints) * 100.0;
+                        int wrongQuestionsCount = totalQuestionsCount - correctQuestionsCount;
+                        double wrongPercent = ((double) wrongQuestionsCount / totalQuestionsCount) * 100.0;
+                        double realScore = 100.0 - wrongPercent;
+                        if (realScore < 0) realScore = 0.0;
                         double realScoreRounded = Math.round(realScore * 10.0) / 10.0;
                         boolean isPassed = realScoreRounded >= (double) teacherPassingScore;
 
@@ -708,6 +703,13 @@ public class QuizDAO extends DBContext {
                             updatePs.setInt(3, attId);
                             updatePs.executeUpdate();
                         } catch (SQLException ignored) {}
+                    } else {
+                        double currentScore = 0.0;
+                        if (att.get("score") != null) {
+                            currentScore = Double.parseDouble(att.get("score").toString());
+                        }
+                        boolean isPassed = currentScore >= (double) teacherPassingScore;
+                        att.put("passed", isPassed);
                     }
                 }
             }
