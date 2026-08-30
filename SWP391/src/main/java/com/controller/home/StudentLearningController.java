@@ -567,6 +567,7 @@ public class StudentLearningController extends HttpServlet {
             if (attemptAnswers != null && !attemptAnswers.isEmpty() && !questions.isEmpty()) {
                 int totalAttemptPoints = 0;
                 int earnedAttemptPoints = 0;
+                int totalCorrectCount = 0;
                 for (Map<String, Object> q : questions) {
                     int points = q.get("points") != null ? (Integer) q.get("points") : 1;
                     if (points <= 0) points = 1;
@@ -588,6 +589,7 @@ public class StudentLearningController extends HttpServlet {
                     }
                     if (!correctAnsSet.isEmpty() && userAnsSet.equals(correctAnsSet)) {
                         earnedAttemptPoints += points;
+                        totalCorrectCount++;
                     }
                 }
                 if (totalAttemptPoints > 0) {
@@ -596,7 +598,17 @@ public class StudentLearningController extends HttpServlet {
                     selectedAttempt.put("score", calcScoreRounded);
                     selectedAttempt.put("earned_points", earnedAttemptPoints);
                     selectedAttempt.put("total_points", totalAttemptPoints);
+                    selectedAttempt.put("earned_count", totalCorrectCount);
+                    selectedAttempt.put("total_questions", questions.size());
+                } else {
+                    // Fallback when total points is 0 (should not happen)
+                    selectedAttempt.put("earned_count", totalCorrectCount);
+                    selectedAttempt.put("total_questions", questions.size());
                 }
+            } else if (!questions.isEmpty()) {
+                // No answers yet: initialize counts for display
+                selectedAttempt.put("earned_count", 0);
+                selectedAttempt.put("total_questions", questions.size());
             }
 
             int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());

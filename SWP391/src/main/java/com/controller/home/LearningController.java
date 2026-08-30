@@ -352,6 +352,7 @@ public class LearningController extends HttpServlet {
                 
                 int total = 0;
                 int score = 0;
+                int totalCorrect = 0;
                 for (QuizQuestion q : questions) {
                     int points = q.getPoints() != null ? q.getPoints() : 1;
                     total += points;
@@ -380,6 +381,7 @@ public class LearningController extends HttpServlet {
 
                     if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
                         score += points;
+                        totalCorrect++;
                     }
                 }
                 boolean previouslyPassed = learningDAO.hasPassedQuiz(account.getId(), quizId);
@@ -419,9 +421,12 @@ public class LearningController extends HttpServlet {
                 int newAttemptCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 boolean isExhausted = (maxRetakes != -1 && newAttemptCount >= maxRetakes);
                 double scorePercentRounded = Math.round(scorePercent * 10.0) / 10.0;
+                int totalQuestions = questions.size();
 
                 out.print("{\"status\":\"success\",\"score\":" + score + ",\"total\":" + total
                         + ",\"scorePercent\":" + scorePercentRounded
+                        + ",\"totalCorrect\":" + totalCorrect
+                        + ",\"totalQuestions\":" + totalQuestions
                         + ",\"passed\":" + passed
                         + ",\"previouslyPassed\":" + previouslyPassed
                         + ",\"isExhausted\":" + isExhausted

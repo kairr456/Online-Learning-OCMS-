@@ -127,7 +127,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         html += '<div class="text-secondary small fw-bold text-uppercase mb-1">% Điểm Làm Bài</div>';
                         html += '<h1 class="display-3 fw-bold ' + (passed ? 'text-success' : 'text-danger') + ' mb-2">' + scorePercent + '%</h1>';
-                        html += '<p class="fs-5 text-muted mb-4">% Điểm làm bài: <strong class="' + (passed ? 'text-success' : 'text-danger') + '">' + scorePercent + '%</strong> (Đúng ' + d.score + '/' + d.total + ' câu)</p>';
+                        // d.score/d.total = điểm, d.totalCorrect/d.totalQuestions = số câu
+                        var correctDisplay = '';
+                        if (typeof d.totalCorrect !== 'undefined' && typeof d.totalQuestions !== 'undefined') {
+                            correctDisplay = 'Đúng ' + d.totalCorrect + '/' + d.totalQuestions + ' câu <span class="text-muted">- ' + d.score + '/' + d.total + ' điểm</span>';
+                        } else {
+                            correctDisplay = 'Đúng ' + d.score + '/' + d.total + ' điểm';
+                        }
+                        html += '<p class="fs-5 text-muted mb-4">% Điểm làm bài: <strong class="' + (passed ? 'text-success' : 'text-danger') + '">' + scorePercent + '%</strong> (' + correctDisplay + ')</p>';
 
                         html += '<div class="d-flex flex-wrap justify-content-center align-items-center gap-3 mt-3">';
 

@@ -64,7 +64,16 @@
                 </h1>
                 <c:if test="${not empty selectedAttempt.total_points}">
                     <p class="fs-5 text-muted mb-2">
-                        % Điểm làm bài: <strong class="${selectedAttempt.passed ? 'text-success' : 'text-danger'}">${selectedAttempt.score}%</strong> (Đúng ${selectedAttempt.earned_points}/${selectedAttempt.total_points} câu)
+                        % Điểm làm bài: <strong class="${selectedAttempt.passed ? 'text-success' : 'text-danger'}">${selectedAttempt.score}%</strong>
+                        <c:choose>
+                            <c:when test="${not empty selectedAttempt.total_questions}">
+                                (Đúng ${selectedAttempt.earned_count}/${selectedAttempt.total_questions} câu
+                                <span class="text-muted">- ${selectedAttempt.earned_points}/${selectedAttempt.total_points} điểm</span>)
+                            </c:when>
+                            <c:otherwise>
+                                (Đúng ${selectedAttempt.earned_points}/${selectedAttempt.total_points} điểm)
+                            </c:otherwise>
+                        </c:choose>
                     </p>
                 </c:if>
                 <p class="fs-5 mb-0">Điểm tối thiểu để qua: <strong>${lessonQuiz.passing_score}%</strong></p>
