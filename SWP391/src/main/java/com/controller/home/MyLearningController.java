@@ -50,19 +50,23 @@ public class MyLearningController extends HttpServlet {
         request.setAttribute("certTemplateIds", certDAO.getTemplateCourseIds());
         request.setAttribute("certCodeMap", certDAO.getCertificateCodeMapByAccount(account.getId()));
         
-        // Also add courses that the user created
-        com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
-        List<Course> createdCourses = courseDAO.findByCreator(account.getId());
-        for (Course c : createdCourses) {
-            boolean exists = false;
-            for (Course m : myCourses) {
-                if (m.getId() == c.getId()) {
-                    exists = true;
-                    break;
+        // Hide courses created by the teacher from "My Learning" list, or add created courses for students/others
+        if (account.getRoleId() == 2) {
+            myCourses.removeIf(c -> c.getCreatedBy() == account.getId());
+        } else {
+            com.DAO.CourseDAO courseDAO = new com.DAO.CourseDAO();
+            List<Course> createdCourses = courseDAO.findByCreator(account.getId());
+            for (Course c : createdCourses) {
+                boolean exists = false;
+                for (Course m : myCourses) {
+                    if (m.getId() == c.getId()) {
+                        exists = true;
+                        break;
+                    }
                 }
-            }
-            if (!exists) {
-                myCourses.add(c);
+                if (!exists) {
+                    myCourses.add(c);
+                }
             }
         }
 

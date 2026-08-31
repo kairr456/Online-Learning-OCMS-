@@ -177,7 +177,16 @@ public class CourseManagerController extends HttpServlet {
         course.setRating(nv.getRating());
 
         // Thumbnail: chỉ ghi đè nếu có upload file mới; không chọn thì giữ ảnh cũ
-        String newThumb = saveThumbnail(request);
+        String newThumb = null;
+        try {
+            newThumb = saveThumbnail(request);
+        } catch (IllegalArgumentException ex) {
+            writeJson(response, false, ex.getMessage());
+            return;
+        } catch (Exception ex) {
+            System.out.println("[CourseThumbnail] EXCEPTION while saving: " + ex.getMessage());
+            ex.printStackTrace();
+        }
         if (newThumb != null) {
             course.setThumbnail(newThumb);
         }
@@ -242,35 +251,50 @@ public class CourseManagerController extends HttpServlet {
         return course;
     }
 
-    /**
-     * Lưu ảnh thumbnail upload từ modal (dạng file, giống lesson.jsp).
-     * File ghi vào assets/css/img/ (cùng thư mục với LessonController), tên
-     * thêm timestamp để không bị đè. Không có file upload -> trả về null.
-     */
-    private String saveThumbnail(HttpServletRequest request) {
-        try {
-            Part filePart = request.getPart("thumbnail");
-            if (filePart == null || filePart.getSize() <= 0) {
-                System.out.println("[CourseThumbnail] no file upload -> keep old/empty thumbnail");
-                return null;
-            }
-            String fileName = new File(filePart.getSubmittedFileName()).getName();
-            fileName = System.currentTimeMillis() + "_" + fileName;
-            String uploadPath = getServletContext().getRealPath("") + File.separator
-                    + "assets" + File.separator + "css" + File.separator + "img";
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-            filePart.write(uploadPath + File.separator + fileName);
-            String url = request.getContextPath() + "/assets/css/img/" + fileName;
-            System.out.println("[CourseThumbnail] saved -> " + url);
-            return url;
-        } catch (Exception ex) {
-            System.out.println("[CourseThumbnail] EXCEPTION while saving: " + ex.getMessage());
-            ex.printStackTrace();
+    private String saveThumbnail(HttpServletRequest request) throws Exception {
+        Part filePart = request.getPart("thumbnail");
+        if (filePart == null || filePart.getSize() <= 0) {
+            System.out.println("[CourseThumbnail] no file upload -> keep old/empty thumbnail");
             return null;
         }
+        if (filePart.getSize() > 1024 * 1024) {
+            throw new IllegalArgumentException("Dung lượng ảnh Thumbnail không được vượt quá 1MB!");
+        }
+        String fileName = new File(filePart.getSubmittedFileName()).getName();
+        fileName = System.currentTimeMillis() + "_" + fileName;
+        String buildPath = getServletContext().getRealPath("");
+        String uploadPath = buildPath + File.separator + "assets" + File.separator + "img";
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        filePart.write(uploadPath + File.separator + fileName);
+
+        // Also save to source directory so it is not lost on server restart/rebuild
+        try {
+            String srcPath = buildPath;
+            if (buildPath.contains("target" + File.separator + "Test")) {
+                srcPath = buildPath.replace("target" + File.separator + "Test", "src" + File.separator + "main" + File.separator + "webapp");
+            } else if (buildPath.contains("build" + File.separator + "web")) {
+                srcPath = buildPath.replace("build" + File.separator + "web", "src" + File.separator + "main" + File.separator + "webapp");
+            }
+            if (!srcPath.equals(buildPath)) {
+                String srcUploadPath = srcPath + File.separator + "assets" + File.separator + "img";
+                File srcUploadDir = new File(srcUploadPath);
+                if (!srcUploadDir.exists()) srcUploadDir.mkdirs();
+                java.nio.file.Files.copy(
+                    filePart.getInputStream(), 
+                    java.nio.file.Paths.get(srcUploadPath, fileName), 
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                );
+            }
+        } catch (Exception ex) {
+            System.out.println("[CourseManagerController] Warning: Could not copy upload to source directory: " + ex.getMessage());
+        }
+
+        String url = request.getContextPath() + "/assets/img/" + fileName;
+        System.out.println("[CourseThumbnail] saved -> " + url);
+        return url;
     }
 
     // Trả JSON thủ công (không cần thư viện)

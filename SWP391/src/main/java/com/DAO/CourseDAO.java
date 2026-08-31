@@ -188,11 +188,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     public List<Course> findWithFilters(List<Integer> categoryIds, List<Integer> ratings,
             String teacherName, String courseName, String sort, int pageNumber, int pageSize) {
         List<Course> courses = new ArrayList<>();
-        String ratingExpr = "COALESCE(r.avg_rating, NULLIF(c.rating, 0), CASE "
-                + "WHEN c.id IN (2,5,9,11,13,17,19,22,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57) THEN 5.0 "
-                + "WHEN c.id IN (1,4,6,8,10,12,14,16,18,20,23,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56) THEN 4.0 "
-                + "WHEN c.id IN (3,7,15,21) THEN 3.0 "
-                + "ELSE 0.0 END)";
+        String ratingExpr = "COALESCE(r.avg_rating, c.rating, 0.0)";
 
         // Join with account table to search by teacher name and LEFT JOIN review to get real_rating dynamically
         StringBuilder sql = new StringBuilder(
@@ -294,11 +290,7 @@ public class CourseDAO extends DBContext implements I_DAO<Course> {
     }
 
     public int getTotalFilteredRecords(List<Integer> categoryIds, List<Integer> ratings, String teacherName, String courseName) {
-        String ratingExpr = "COALESCE(r.avg_rating, NULLIF(c.rating, 0), CASE "
-                + "WHEN c.id IN (2,5,9,11,13,17,19,22,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57) THEN 5.0 "
-                + "WHEN c.id IN (1,4,6,8,10,12,14,16,18,20,23,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56) THEN 4.0 "
-                + "WHEN c.id IN (3,7,15,21) THEN 3.0 "
-                + "ELSE 0.0 END)";
+        String ratingExpr = "COALESCE(r.avg_rating, c.rating, 0.0)";
 
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) as total " +

@@ -106,16 +106,12 @@
             <h3 id="modalTitle" style="margin-bottom: 16px;">Add Certificate</h3>
             <div id="fError" class="f-error" style="display:none;"></div>
             
-            <form id="templateForm" enctype="multipart/form-data" method="post" action="${pageContext.request.contextPath}/teacher-certificates">
+            <form id="templateForm" method="post" action="${pageContext.request.contextPath}/teacher-certificates">
                 <input type="hidden" name="action" id="fAction">
                 <input type="hidden" name="courseId" id="fCourseId">
 
                 <label for="fTitle">Certificate Title</label>
                 <input type="text" id="fTitle" name="title" value="Certificate of Completion" style="margin-bottom: 16px;">
-
-                <label for="fBackground">Background Image</label>
-                <input type="file" id="fBackground" name="background" accept="image/*">
-                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px; margin-bottom: 16px;">Khuyên dùng ảnh ngang (tỷ lệ A4 Ngang)</small>
 
                 <div class="modal-actions" style="margin-top:20px;">
                     <button type="button" class="btn-sm btn-cancel" onclick="closeModal()">Cancel</button>
@@ -130,8 +126,7 @@
         var templatesData = {
             <c:forEach var="entry" items="${templatesMap}" varStatus="status">
                 "${entry.key}": {
-                    "title": "${entry.value.title}",
-                    "backgroundUrl": "${entry.value.backgroundUrl}"
+                    "title": "${entry.value.title}"
                 }${not status.last ? ',' : ''}
             </c:forEach>
         };
@@ -141,7 +136,6 @@
             document.getElementById('fAction').value = action;
             document.getElementById('fCourseId').value = courseId;
             document.getElementById('modalTitle').textContent = (action === 'add' ? 'Add Certificate' : 'Edit Certificate') + ' - ' + courseName;
-            document.getElementById('fBackground').value = '';
             
             var t = templatesData[courseId];
             if (t) {
@@ -211,11 +205,6 @@
 
         document.getElementById('templateForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            var file = document.getElementById('fBackground').files[0];
-            if (file && file.size > 50 * 1024 * 1024) {
-                showError('Image too large (max 50MB).');
-                return;
-            }
             hideError();
             var btn = this.querySelector('button[type=submit]');
             btn.disabled = true;

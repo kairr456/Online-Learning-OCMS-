@@ -133,16 +133,42 @@ public class TeacherCertificateController extends HttpServlet {
                 System.out.println("[Certificate] no file upload -> keep old background");
                 return null;
             }
+            if (filePart.getSize() > 1024 * 1024) {
+                throw new IllegalArgumentException("Dung lượng ảnh nền chứng chỉ không được vượt quá 1MB!");
+            }
             String fileName = new File(filePart.getSubmittedFileName()).getName();
             fileName = System.currentTimeMillis() + "_" + fileName;
-            String uploadPath = getServletContext().getRealPath("") + File.separator
-                    + "assets" + File.separator + "css" + File.separator + "img";
+            String buildPath = getServletContext().getRealPath("");
+            String uploadPath = buildPath + File.separator + "assets" + File.separator + "img";
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
             filePart.write(uploadPath + File.separator + fileName);
-            return request.getContextPath() + "/assets/css/img/" + fileName;
+
+            // Also save to source directory so it is not lost on server restart/rebuild
+            try {
+                String srcPath = buildPath;
+                if (buildPath.contains("target" + File.separator + "Test")) {
+                    srcPath = buildPath.replace("target" + File.separator + "Test", "src" + File.separator + "main" + File.separator + "webapp");
+                } else if (buildPath.contains("build" + File.separator + "web")) {
+                    srcPath = buildPath.replace("build" + File.separator + "web", "src" + File.separator + "main" + File.separator + "webapp");
+                }
+                if (!srcPath.equals(buildPath)) {
+                    String srcUploadPath = srcPath + File.separator + "assets" + File.separator + "img";
+                    File srcUploadDir = new File(srcUploadPath);
+                    if (!srcUploadDir.exists()) srcUploadDir.mkdirs();
+                    java.nio.file.Files.copy(
+                        filePart.getInputStream(), 
+                        java.nio.file.Paths.get(srcUploadPath, fileName), 
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                    );
+                }
+            } catch (Exception ex) {
+                System.out.println("[Certificate] Warning: Could not copy background to source directory: " + ex.getMessage());
+            }
+
+            return request.getContextPath() + "/assets/img/" + fileName;
         } catch (Exception ex) {
             System.out.println("[Certificate] EXCEPTION while saving background: " + ex.getMessage());
             ex.printStackTrace();

@@ -143,6 +143,7 @@ public class BrowseCourseDetailsController extends HttpServlet {
                     request.setAttribute("isWishlisted", isWishlisted);
                     request.setAttribute("hasReviewed", hasReviewed);
                     request.setAttribute("firstLessonId", firstLessonId);
+                    request.setAttribute("hasCertificate", new com.DAO.CertificateDAO().hasTemplate(courseId));
                     // Also pass authorNames so we can lookup reviewer names in the JSP
                     request.setAttribute("accountNames", authorNames);
                 } else {

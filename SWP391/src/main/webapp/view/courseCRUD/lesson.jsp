@@ -87,7 +87,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Price (VND) <span class="text-danger">*</span></label>
-                                <input type="number" name="coursePrice" id="coursePrice" step="0.01" min="0" class="form-control" value="${course != null ? course.price : '0.00'}">
+                                <input type="number" name="coursePrice" id="coursePrice" step="1" min="0" class="form-control" value="${course != null ? fn:substringBefore(course.price, '.') : '0'}">
                             </div>
 
                             <div class="mb-3">
@@ -99,6 +99,7 @@
                                     <small class="text-muted d-block mb-1">Tải lên tệp mới nếu muốn thay đổi ảnh đại diện hiện tại.</small>
                                 </c:if>
                                 <input type="file" name="courseThumbnail" id="courseThumbnail" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="form-control">
+                                <small class="text-muted d-block mt-1">Dung lượng tối đa 1MB. Chỉ chấp nhận JPG, JPEG hoặc PNG.</small>
                             </div>
                         </div> <!-- End info-content -->
 
@@ -403,7 +404,7 @@
                        '   </div>' +
                        '   <div class="col-md-6">' +
                        '    <label class="form-label fw-bold">Số lần làm lại tối đa <span class="text-danger">*</span></label>' +
-                       '    <input type="number" name="lessonQuizRetake_' + lessonKey + '" class="form-control quiz-retake-input" value="' + (quizData ? quizData.retake : '3') + '" min="0">' +
+                       '    <input type="number" name="lessonQuizRetake_' + lessonKey + '" class="form-control quiz-retake-input" value="' + (quizData ? quizData.retake : '3') + '" min="1">' +
                        '   </div>' +
                        '   <div class="col-md-6">' +
                        '    <label class="form-label fw-bold">Điểm Pass (%) <span class="text-danger">*</span></label>' +
@@ -607,9 +608,9 @@
             // 4. Validate Price
             const priceInput = document.getElementById('coursePrice');
             const priceVal = priceInput ? priceInput.value.trim() : '';
-            if (priceVal === '' || isNaN(priceVal) || parseFloat(priceVal) < 0) {
-                markInvalid(priceInput, 'Vui lòng nhập giá khóa học hợp lệ (>= 0)!');
-                errors.push('Giá khóa học không hợp lệ (phải >= 0).');
+            if (priceVal === '' || isNaN(priceVal) || parseFloat(priceVal) < 0 || !Number.isInteger(Number(priceVal))) {
+                markInvalid(priceInput, 'Vui lòng nhập giá khóa học hợp lệ (phải là số nguyên >= 0)!');
+                errors.push('Giá khóa học không hợp lệ (phải là số nguyên >= 0).');
             }
 
             // 5. Validate Thumbnail
@@ -619,10 +620,14 @@
                 markInvalid(thumbInput, 'Vui lòng tải lên ảnh Thumbnail cho khóa học!');
                 errors.push('Ảnh Thumbnail của khóa học không được để trống.');
             } else if (thumbInput && thumbInput.files && thumbInput.files.length > 0) {
-                const fileName = thumbInput.files[0].name;
+                const file = thumbInput.files[0];
+                const fileName = file.name;
                 if (!isImageFile(fileName)) {
                     markInvalid(thumbInput, 'Ảnh Thumbnail chỉ chấp nhận định dạng JPG, JPEG hoặc PNG!');
                     errors.push('Ảnh Thumbnail có định dạng không hợp lệ (chỉ nhận JPG, PNG).');
+                } else if (file.size > 1024 * 1024) {
+                    markInvalid(thumbInput, 'Dung lượng ảnh Thumbnail không được vượt quá 1MB!');
+                    errors.push('Dung lượng ảnh Thumbnail vượt quá 1MB.');
                 }
             }
 
@@ -712,10 +717,14 @@
                                         markInvalid(bFileInput, 'Vui lòng tải lên hình ảnh cho khối này!');
                                         errors.push('Khối hình ảnh #' + (bIdx + 1) + ' trong bài học "' + (lesVal || '#' + (lIdx + 1)) + '" chưa có ảnh.');
                                     } else if (hasNewFile) {
-                                        const fName = bFileInput.files[0].name;
+                                        const file = bFileInput.files[0];
+                                        const fName = file.name;
                                         if (!isImageFile(fName)) {
                                             markInvalid(bFileInput, 'Ảnh bài học chỉ chấp nhận định dạng JPG, JPEG hoặc PNG!');
                                             errors.push('Ảnh trong bài học "' + (lesVal || '#' + (lIdx + 1)) + '" phải có định dạng JPG hoặc PNG.');
+                                        } else if (file.size > 1024 * 1024) {
+                                            markInvalid(bFileInput, 'Kích thước ảnh bài học không được vượt quá 1MB!');
+                                            errors.push('Ảnh trong bài học "' + (lesVal || '#' + (lIdx + 1)) + '" vượt quá 1MB.');
                                         }
                                     }
                                 }
@@ -760,9 +769,9 @@
 
                         const qRetakeVal = qRetakeInput ? qRetakeInput.value.trim() : '';
                         if (qRetakeInput) qRetakeInput.value = qRetakeVal;
-                        if (qRetakeVal === '' || isNaN(qRetakeVal) || parseInt(qRetakeVal) < 0) {
-                            markInvalid(qRetakeInput, 'Số lần làm lại tối đa phải >= 0!');
-                            errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần làm lại không hợp lệ.');
+                        if (qRetakeVal === '' || isNaN(qRetakeVal) || parseInt(qRetakeVal) < 1) {
+                            markInvalid(qRetakeInput, 'Số lần làm lại tối đa phải từ 1 trở lên!');
+                            errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần làm lại tối đa phải từ 1 trở lên.');
                         }
 
                         const qPassVal = qPassInput ? qPassInput.value.trim() : '';

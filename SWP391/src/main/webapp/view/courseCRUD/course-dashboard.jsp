@@ -103,7 +103,14 @@
                             </div>
                             
                             <div class="course-footer">
-                                <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                <c:choose>
+                                    <c:when test="${course.status == 'draft' or course.status == 'rejected' or course.status == 'cancelled'}">
+                                        <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="action-btn btn-edit disabled" style="opacity: 0.5; cursor: not-allowed; pointer-events: none; text-decoration: none;" title="Cannot edit active or pending course"><i class="fas fa-edit"></i> Edit</span>
+                                    </c:otherwise>
+                                </c:choose>
                                 <a href="${pageContext.request.contextPath}/course-manager?action=deletePreview&id=${course.id}" class="action-btn btn-delete"><i class="fas fa-trash"></i> Delete</a>
                             </div>
                         </div>

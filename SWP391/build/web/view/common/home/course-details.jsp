@@ -59,7 +59,7 @@
                                     <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-tab-pane" type="button" role="tab" aria-controls="overview-tab-pane" aria-selected="true">Overview</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="curriculum-tab" data-bs-toggle="tab" data-bs-target="#curriculum-tab-pane" type="button" role="tab" aria-controls="curriculum-tab-pane" aria-selected="false">Curriculum</button>
+                                     <button class="nav-link" id="curriculum-tab" data-bs-toggle="tab" data-bs-target="#curriculum-tab-pane" type="button" role="tab" aria-controls="curriculum-tab-pane" aria-selected="false">Curriculum</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="instructors-tab" data-bs-toggle="tab" data-bs-target="#instructors-tab-pane" type="button" role="tab" aria-controls="instructors-tab-pane" aria-selected="false">Instructors</button>
@@ -76,6 +76,7 @@
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="curriculum-tab-pane" role="tabpanel" aria-labelledby="curriculum-tab" tabindex="0">
+                                    <c:set var="isTeacherSelfCourse" value="${sessionScope.account != null && sessionScope.account.roleId == 2 && course.createdBy == sessionScope.account.id}" />
                                     <div class="courses__curriculum-wrap">
                                         <h3 class="title">Course Curriculum</h3>
                                         <div class="accordion" id="accordionExample">
@@ -90,34 +91,40 @@
                                                         <div class="accordion-body course-curriculum-body">
                                                             <ul class="list-group list-group-flush">
                                                                 <c:forEach var="lesson" items="${lessonsMap[section.id]}">
-<li class="list-group-item course-curriculum-lesson">
-                                        <span>
-                                            <c:if test="${lesson.type == 'video'}">
-                                                <i class="fas fa-play-circle lesson-icon-play"></i>
-                                            </c:if>
-                                            <c:if test="${lesson.type == 'file'}">
-                                                <i class="fas fa-file-alt lesson-icon-file"></i>
-                                            </c:if>
-                                            <c:if test="${lesson.type == 'text'}">
-                                                <i class="fas fa-book lesson-icon-text"></i>
-                                            </c:if>
-                                            
-                                            <!-- Link to the unified lesson details page -->
-                                            <!-- Conditional Link based on Enrollment / Free first lesson -->
-                                            <c:choose>
-                                                <c:when test="${isEnrolled or lesson.id == firstLessonId}">
-                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="lesson-link">
-                                                        ${lesson.title}
-                                                    </a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <a href="javascript:void(0);" onclick="handleLockedLesson();" class="lesson-link-locked">
-                                                        <i class="fas fa-lock lesson-lock-icon"></i> ${lesson.title}
-                                                    </a>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </span>
-                                    </li>
+                                                                    <li class="list-group-item course-curriculum-lesson" ${isTeacherSelfCourse ? 'style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                                                                        <span>
+                                                                            <c:if test="${lesson.type == 'video'}">
+                                                                                <i class="fas fa-play-circle lesson-icon-play"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'file'}">
+                                                                                <i class="fas fa-file-alt lesson-icon-file"></i>
+                                                                            </c:if>
+                                                                            <c:if test="${lesson.type == 'text'}">
+                                                                                <i class="fas fa-book lesson-icon-text"></i>
+                                                                            </c:if>
+                                                                            
+                                                                            <!-- Link to the unified lesson details page -->
+                                                                            <!-- Conditional Link based on Enrollment / Free first lesson / Teacher self course -->
+                                                                            <!-- Conditional Link based on Enrollment / Teacher self course -->
+                                                                            <c:choose>
+                                                                                <c:when test="${isTeacherSelfCourse}">
+                                                                                    <span style="cursor: not-allowed; color: #6c757d; font-weight: 500;">
+                                                                                        ${lesson.title}
+                                                                                    </span>
+                                                                                </c:when>
+                                                                                <c:when test="${isEnrolled}">
+                                                                                    <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="lesson-link">
+                                                                                        ${lesson.title}
+                                                                                    </a>
+                                                                                </c:when>
+                                                                                <c:otherwise>
+                                                                                    <a href="javascript:void(0);" onclick="handleLockedLesson();" class="lesson-link-locked">
+                                                                                        <i class="fas fa-lock lesson-lock-icon"></i> ${lesson.title}
+                                                                                    </a>
+                                                                                </c:otherwise>
+                                                                            </c:choose>
+                                                                        </span>
+                                                                    </li>
                                                                 </c:forEach>
                                                             </ul>
                                                         </div>
@@ -262,42 +269,56 @@
                     </div>
                     <div class="col-xl-3 col-lg-4">
                         <div class="courses__details-sidebar">
-                            <c:choose>
-                                <c:when test="${isEnrolled}">
-                                    <div class="courses__cost-wrap courses__cost-wrap--purchased">
-                                        <span>Status:</span>
-                                        <h2 class="title">
-                                            <i class="fas fa-check-circle"></i> Purchased
-                                        </h2>
-                                        <p class="purchase-note">You can now access all lessons in the curriculum.</p>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="courses__cost-wrap">
-                                        <span>This Course Fee:</span>
-                                        <h2 class="title">
-                                            ${course.price}₫
-                                        </h2>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+                             <c:choose>
+                                 <c:when test="${sessionScope.account != null && sessionScope.account.roleId == 2 && course.createdBy == sessionScope.account.id}">
+                                     <div class="courses__cost-wrap" style="background-color: #0d6efd !important;">
+                                         <span style="color: white !important;">Status:</span>
+                                         <h2 class="title" style="color: white !important;">
+                                             <i class="fas fa-chalkboard-teacher"></i> My Course
+                                         </h2>
+                                         <p class="purchase-note" style="color: white !important; opacity: 0.9;">You are the creator of this course.</p>
+                                     </div>
+                                 </c:when>
+                                 <c:when test="${isEnrolled}">
+                                     <div class="courses__cost-wrap courses__cost-wrap--purchased">
+                                         <span>Status:</span>
+                                         <h2 class="title">
+                                             <i class="fas fa-check-circle"></i> Purchased
+                                         </h2>
+                                         <p class="purchase-note">You can now access all lessons in the curriculum.</p>
+                                     </div>
+                                 </c:when>
+                                 <c:otherwise>
+                                     <div class="courses__cost-wrap">
+                                         <span>This Course Fee:</span>
+                                         <h2 class="title">
+                                             ${course.price}₫
+                                         </h2>
+                                     </div>
+                                 </c:otherwise>
+                             </c:choose>
 
-                            <div class="courses__information-wrap">
-                                <h5 class="title">Course includes:</h5>
-                                <ul class="list-wrap">
-                                    <li>
-                                        Level
-                                        <span>Expert</span>
-                                    </li>
-                                    <li>
-                                        Quizzes
-                                        <span>145</span>
-                                    </li>
-                                    <li>
-                                        Certifications
-                                        <span>Yes</span>
-                                    </li>
-                                </ul>
+                             <c:set var="quizCount" value="0" />
+                             <c:forEach var="sect" items="${sections}">
+                                 <c:forEach var="les" items="${lessonsMap[sect.id]}">
+                                     <c:if test="${les.type == 'quiz'}">
+                                         <c:set var="quizCount" value="${quizCount + 1}" />
+                                     </c:if>
+                                 </c:forEach>
+                             </c:forEach>
+
+                             <div class="courses__information-wrap">
+                                 <h5 class="title">Course includes:</h5>
+                                 <ul class="list-wrap">
+                                     <li>
+                                         Quizzes
+                                         <span>${quizCount}</span>
+                                     </li>
+                                     <li>
+                                         Certifications
+                                         <span>${hasCertificate ? 'Yes' : 'No'}</span>
+                                     </li>
+                                 </ul>
                             </div>
                             <div class="courses__details-social">
                                 <h5 class="title">Share this course:</h5>

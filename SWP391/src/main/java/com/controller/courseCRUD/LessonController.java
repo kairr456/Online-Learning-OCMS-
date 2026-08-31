@@ -48,6 +48,11 @@ public class LessonController extends HttpServlet {
                 com.entity.Course course = courseDAO.findById(courseId);
                 
                 if (course != null && course.getCreatedBy() == account.getId()) {
+                    String status = course.getStatus();
+                    if ("active".equalsIgnoreCase(status) || "pending".equalsIgnoreCase(status)) {
+                        response.sendRedirect(request.getContextPath() + "/course-dashboard");
+                        return;
+                    }
                     request.setAttribute("course", course);
                     
                     com.DAO.LessonDAO lessonDAO = new com.DAO.LessonDAO();
@@ -94,10 +99,19 @@ public class LessonController extends HttpServlet {
         }
 
         try {
-            // 1. Course Details
-            String courseIdStr = request.getParameter("courseId");
-            boolean isUpdate = (courseIdStr != null && !courseIdStr.trim().isEmpty());
-            int courseId = isUpdate ? Integer.parseInt(courseIdStr) : 0;
+             String courseIdStr = request.getParameter("courseId");
+             boolean isUpdate = (courseIdStr != null && !courseIdStr.trim().isEmpty());
+             int courseId = isUpdate ? Integer.parseInt(courseIdStr) : 0;
+             if (isUpdate) {
+                 com.entity.Course existingCourse = new com.DAO.CourseDAO().findById(courseId);
+                 if (existingCourse != null) {
+                     String status = existingCourse.getStatus();
+                     if ("active".equalsIgnoreCase(status) || "pending".equalsIgnoreCase(status)) {
+                         response.sendRedirect(request.getContextPath() + "/course-dashboard");
+                         return;
+                     }
+                 }
+             }
             
             String submitAction = request.getParameter("submitAction");
             boolean isDraft = "continue".equals(submitAction) || "goto_qbank".equals(submitAction);
@@ -170,16 +184,42 @@ public class LessonController extends HttpServlet {
             String thumbnailRelPath = "";
             jakarta.servlet.http.Part filePart = request.getPart("courseThumbnail");
             if (filePart != null && filePart.getSize() > 0) {
+                if (filePart.getSize() > 1024 * 1024) {
+                    throw new IllegalArgumentException("Dung lượng ảnh Thumbnail không được vượt quá 1MB!");
+                }
                 String fileName = java.nio.file.Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
                 String fNameLower = fileName.toLowerCase();
                 if (!fNameLower.endsWith(".jpg") && !fNameLower.endsWith(".jpeg") && !fNameLower.endsWith(".png")) {
                     throw new IllegalArgumentException("Ảnh Thumbnail chỉ chấp nhận định dạng JPG, JPEG hoặc PNG!");
                 }
-                String uploadPath = getServletContext().getRealPath("") + java.io.File.separator + "assets" + java.io.File.separator + "css" + java.io.File.separator + "img";
-                java.io.File uploadDir = new java.io.File(uploadPath);
-                if (!uploadDir.exists()) uploadDir.mkdirs();
-                thumbnailRelPath = "assets/css/img/" + fileName;
-                filePart.write(uploadPath + java.io.File.separator + fileName);
+                 String buildPath = getServletContext().getRealPath("");
+                 String uploadPath = buildPath + java.io.File.separator + "assets" + java.io.File.separator + "img";
+                 java.io.File uploadDir = new java.io.File(uploadPath);
+                 if (!uploadDir.exists()) uploadDir.mkdirs();
+                 thumbnailRelPath = "assets/img/" + fileName;
+                 filePart.write(uploadPath + java.io.File.separator + fileName);
+
+                 // Also save to source directory so it is not lost on server restart/rebuild
+                 try {
+                     String srcPath = buildPath;
+                     if (buildPath.contains("target" + java.io.File.separator + "Test")) {
+                         srcPath = buildPath.replace("target" + java.io.File.separator + "Test", "src" + java.io.File.separator + "main" + java.io.File.separator + "webapp");
+                     } else if (buildPath.contains("build" + java.io.File.separator + "web")) {
+                         srcPath = buildPath.replace("build" + java.io.File.separator + "web", "src" + java.io.File.separator + "main" + java.io.File.separator + "webapp");
+                     }
+                     if (!srcPath.equals(buildPath)) {
+                         String srcUploadPath = srcPath + java.io.File.separator + "assets" + java.io.File.separator + "img";
+                         java.io.File srcUploadDir = new java.io.File(srcUploadPath);
+                         if (!srcUploadDir.exists()) srcUploadDir.mkdirs();
+                         java.nio.file.Files.copy(
+                             filePart.getInputStream(), 
+                             java.nio.file.Paths.get(srcUploadPath, fileName), 
+                             java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                         );
+                     }
+                 } catch (Exception ex) {
+                     System.out.println("[LessonController] Warning: Could not copy upload to source directory: " + ex.getMessage());
+                 }
             } else if (!isUpdate && !isDraft) {
                 throw new IllegalArgumentException("Vui lòng tải lên ảnh Thumbnail cho khóa học!");
             }
@@ -308,7 +348,7 @@ public class LessonController extends HttpServlet {
                                 int qPass = Integer.parseInt(qPassStr.trim());
                                 if (qNum <= 0) throw new IllegalArgumentException("Số câu hỏi xuất ra phải lớn hơn 0 trong bài Quiz '" + lesTitle + "'!");
                                 if (qTime <= 0) throw new IllegalArgumentException("Thời gian làm bài phải lớn hơn 0 phút trong bài Quiz '" + lesTitle + "'!");
-                                if (qRetake < 0) throw new IllegalArgumentException("Số lần làm lại tối đa phải >= 0 trong bài Quiz '" + lesTitle + "'!");
+                                if (qRetake < 1) throw new IllegalArgumentException("Số lần làm lại tối đa phải từ 1 trở lên trong bài Quiz '" + lesTitle + "'!");
                                 if (qPass < 1 || qPass > 100) throw new IllegalArgumentException("Điểm Pass phải từ 1 đến 100% trong bài Quiz '" + lesTitle + "'!");
                             } catch (Exception e) {
                                 if (e instanceof IllegalArgumentException) throw e;
@@ -445,7 +485,8 @@ public class LessonController extends HttpServlet {
                                         blockCount = Integer.parseInt(request.getParameter("blockCount_" + s + "_" + l));
                                     } catch (Exception e) {}
                                     
-                                    String uploadPath = getServletContext().getRealPath("") + java.io.File.separator + "assets" + java.io.File.separator + "css" + java.io.File.separator + "img";
+                                    String buildPath = getServletContext().getRealPath("");
+                                    String uploadPath = buildPath + java.io.File.separator + "assets" + java.io.File.separator + "img";
                                     java.io.File uploadDir = new java.io.File(uploadPath);
                                     if (!uploadDir.exists()) uploadDir.mkdirs();
 
@@ -466,9 +507,34 @@ public class LessonController extends HttpServlet {
                                             
                                             String imgUrl = existingFile;
                                             if (fPart != null && fPart.getSize() > 0) {
+                                                if (fPart.getSize() > 1024 * 1024) {
+                                                    throw new IllegalArgumentException("Dung lượng ảnh khối bài học không được vượt quá 1MB!");
+                                                }
                                                 String fName = java.nio.file.Paths.get(fPart.getSubmittedFileName()).getFileName().toString();
                                                 fPart.write(uploadPath + java.io.File.separator + fName);
-                                                imgUrl = request.getContextPath() + "/assets/css/img/" + fName;
+                                                imgUrl = request.getContextPath() + "/assets/img/" + fName;
+
+                                                // Also save to source directory so it is not lost on server restart/rebuild
+                                                try {
+                                                    String srcPath = buildPath;
+                                                    if (buildPath.contains("target" + java.io.File.separator + "Test")) {
+                                                        srcPath = buildPath.replace("target" + java.io.File.separator + "Test", "src" + java.io.File.separator + "main" + java.io.File.separator + "webapp");
+                                                    } else if (buildPath.contains("build" + java.io.File.separator + "web")) {
+                                                        srcPath = buildPath.replace("build" + java.io.File.separator + "web", "src" + java.io.File.separator + "main" + java.io.File.separator + "webapp");
+                                                    }
+                                                    if (!srcPath.equals(buildPath)) {
+                                                        String srcUploadPath = srcPath + java.io.File.separator + "assets" + java.io.File.separator + "img";
+                                                        java.io.File srcUploadDir = new java.io.File(srcUploadPath);
+                                                        if (!srcUploadDir.exists()) srcUploadDir.mkdirs();
+                                                        java.nio.file.Files.copy(
+                                                            fPart.getInputStream(), 
+                                                            java.nio.file.Paths.get(srcUploadPath, fName), 
+                                                            java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                                                        );
+                                                    }
+                                                } catch (Exception ex) {
+                                                    System.out.println("[LessonController] Warning: Could not copy block file to source directory: " + ex.getMessage());
+                                                }
                                             }
                                             
                                             if (imgUrl != null && !imgUrl.trim().isEmpty()) {
