@@ -128,7 +128,7 @@ public class StudentLearningController extends HttpServlet {
                 }
             }
 
-            if (!isEnrolled && lessonId != firstLessonId) {
+            if (!isEnrolled) {
                 response.sendRedirect(request.getContextPath() + "/course?id=" + courseId);
                 return;
             }
@@ -595,11 +595,17 @@ public class StudentLearningController extends HttpServlet {
                 if (totalAttemptPoints > 0) {
                     double calcScore = ((double) earnedAttemptPoints / totalAttemptPoints) * 100.0;
                     double calcScoreRounded = Math.round(calcScore * 10.0) / 10.0;
+                    boolean isPassed = calcScoreRounded >= (double) passingScore;
                     selectedAttempt.put("score", calcScoreRounded);
+                    selectedAttempt.put("passed", isPassed);
                     selectedAttempt.put("earned_points", earnedAttemptPoints);
                     selectedAttempt.put("total_points", totalAttemptPoints);
                     selectedAttempt.put("earned_count", totalCorrectCount);
                     selectedAttempt.put("total_questions", questions.size());
+
+                    if (isPassed) {
+                        new LearningDAO().saveLessonProgress(account.getId(), lessonId, true);
+                    }
                 } else {
                     // Fallback when total points is 0 (should not happen)
                     selectedAttempt.put("earned_count", totalCorrectCount);

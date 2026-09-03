@@ -113,6 +113,99 @@
     };
 
     /**
+     * Client-side validation for review form (rating & comment)
+     */
+    function initReviewFormValidation() {
+        var form = document.getElementById('reviewForm');
+        if (!form) return;
+
+        var alertBox = document.getElementById('reviewFormAlert');
+        var alertText = document.getElementById('reviewFormAlertText');
+        var commentArea = document.getElementById('reviewComment');
+
+        function showError(msg) {
+            if (alertBox && alertText) {
+                alertText.textContent = msg;
+                alertBox.style.display = 'block';
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                alert(msg);
+            }
+        }
+
+        function hideError() {
+            if (alertBox) {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        form.addEventListener('submit', function (e) {
+            var ratingChecked = form.querySelector('input[name="rating"]:checked');
+            var commentVal = commentArea ? commentArea.value.trim() : '';
+
+            var missingRating = !ratingChecked;
+            var missingComment = (!commentVal || commentVal.length === 0);
+
+            if (missingRating && missingComment) {
+                e.preventDefault();
+                showError('Vui lòng chọn số sao đánh giá và nhập nội dung bình luận!');
+                return;
+            }
+
+            if (missingRating) {
+                e.preventDefault();
+                showError('Vui lòng chọn số sao đánh giá khóa học!');
+                return;
+            }
+
+            if (missingComment) {
+                e.preventDefault();
+                showError('Vui lòng nhập nội dung bình luận!');
+                if (commentArea) commentArea.focus();
+                return;
+            }
+
+            hideError();
+        });
+
+        // Hide error when user selects rating
+        var ratingRadios = form.querySelectorAll('input[name="rating"]');
+        ratingRadios.forEach(function (radio) {
+            radio.addEventListener('change', hideError);
+        });
+
+        // Hide error when user types comment
+        if (commentArea) {
+            commentArea.addEventListener('input', hideError);
+        }
+    }
+
+    /**
+     * Auto switch to Reviews tab if URL contains #reviews or ?tab=reviews
+     */
+    function checkReviewsTabHash() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var isReviewTab = (urlParams.get('tab') === 'reviews') || 
+                          (window.location.hash === '#reviews') || 
+                          (window.location.hash === '#reviews-tab') || 
+                          (window.location.hash === '#reviews-tab-pane');
+
+        if (isReviewTab) {
+            var reviewsTabBtn = document.getElementById('reviews-tab');
+            if (reviewsTabBtn && window.bootstrap) {
+                var tab = new bootstrap.Tab(reviewsTabBtn);
+                tab.show();
+            }
+            setTimeout(function () {
+                var target = document.getElementById('reviews-tab-pane') || reviewsTabBtn;
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 200);
+        }
+    }
+
+    /**
      * Smooth scroll back to top
      */
     window.scrollToTop = function () {
@@ -124,5 +217,7 @@
      */
     document.addEventListener('DOMContentLoaded', function () {
         initRatingSelection();
+        initReviewFormValidation();
+        checkReviewsTabHash();
     });
 })();

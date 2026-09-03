@@ -325,4 +325,5 @@
 </div>
 
 <!-- Custom Payouts JS -->
-<script src="${pageContext.request.contextPath}/assets/js/admin/payouts.js?v=1.5"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/payouts.js?v=1.6"></script>
+

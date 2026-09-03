@@ -73,7 +73,7 @@
                                             </c:choose>
                                         </span>
                                         <span>${lesson.title}</span>
-                                        <c:if test="${not isEnrolled and lesson.id != firstLessonId}">
+                                        <c:if test="${not isEnrolled}">
                                             <span class="les-lock ms-auto"><i class="fa-solid fa-lock text-muted" title="Locked - Purchase course to unlock"></i></span>
                                         </c:if>
                                         <c:if test="${completedLessons.contains(lesson.id)}">
@@ -259,7 +259,7 @@
                                                         <tbody>
                                                             <c:forEach var="att" items="${userAttemptsList}" varStatus="status">
                                                                 <tr>
-                                                                    <td><strong>#${userAttemptsList.size() - status.index}</strong></td>
+                                                                    <td><strong>#${att.attempt_number != null ? att.attempt_number : (status.index + 1)}</strong></td>
                                                                     <td><fmt:formatDate value="${att.end_time}" pattern="dd/MM/yyyy HH:mm:ss"/></td>
                                                                     <td class="text-center fw-bold"><fmt:formatNumber value="${att.score}" maxFractionDigits="1"/>%</td>
                                                                     <td class="text-center">

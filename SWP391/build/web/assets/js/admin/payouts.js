@@ -3,13 +3,10 @@
  * Xử lý popup VietQR duyệt rút tiền, popup từ chối rút tiền và thông báo hệ thống
  */
 
-const processModalEl = document.getElementById('processModal');
-const rejectModalEl = document.getElementById('rejectModal');
-
 /**
  * Kiểm tra và hiển thị lỗi cho trường Mã giao dịch (không được để trống hoặc chỉ có khoảng trắng)
  */
-function validateTransactionCode(el) {
+function validateTransactionCode(el, isSubmitting = false) {
     if (!el) return true;
     const rawVal = el.value || '';
     const trimmed = rawVal.trim();
@@ -17,15 +14,32 @@ function validateTransactionCode(el) {
 
     if (trimmed.length === 0) {
         if (rawVal.length > 0) {
-            if (err) err.innerText = "Mã giao dịch không được chỉ chứa khoảng trắng.";
+            if (err) {
+                err.innerText = "Mã giao dịch không được chỉ chứa khoảng trắng.";
+                err.style.display = "block";
+            }
+            el.classList.add("is-invalid");
+            return false;
+        } else if (isSubmitting) {
+            if (err) {
+                err.innerText = "Vui lòng nhập mã giao dịch ngân hàng / Ủy nhiệm chi.";
+                err.style.display = "block";
+            }
+            el.classList.add("is-invalid");
+            return false;
         } else {
-            if (err) err.innerText = "Vui lòng nhập mã giao dịch ngân hàng / Ủy nhiệm chi.";
+            if (err) {
+                err.style.display = "none";
+                err.innerText = "";
+            }
+            el.classList.remove("is-invalid");
+            return false;
         }
-        if (err) err.style.display = "block";
-        el.classList.add("is-invalid");
-        return false;
     } else {
-        if (err) err.style.display = "none";
+        if (err) {
+            err.style.display = "none";
+            err.innerText = "";
+        }
         el.classList.remove("is-invalid");
         return true;
     }
@@ -34,10 +48,11 @@ function validateTransactionCode(el) {
 /**
  * Kiểm tra và hiển thị lỗi cho trường Lý do từ chối (không được để trống hoặc chỉ có khoảng trắng, tối đa 100 ký tự)
  */
-function validateRejectReason(el) {
+function validateRejectReason(el, isSubmitting = false) {
     if (!el) return true;
     const maxChars = 100;
     const rawVal = el.value || '';
+    const trimmed = rawVal.trim();
     const noSpaceStr = rawVal.replace(/\s/g, '');
     const count = noSpaceStr.length; // Khoảng trắng không tính là ký tự hợp lệ
     const err = document.getElementById('rejectReasonError');
@@ -61,21 +76,34 @@ function validateRejectReason(el) {
                 err.style.display = "block";
             }
             el.classList.add("is-invalid");
+            return false;
+        } else if (isSubmitting) {
+            if (err) {
+                err.innerText = "Vui lòng nhập lý do từ chối.";
+                err.style.display = "block";
+            }
+            el.classList.add("is-invalid");
+            return false;
         } else {
             if (err) {
                 err.style.display = "none";
                 err.innerText = "";
             }
             el.classList.remove("is-invalid");
+            return false;
         }
-        return false;
     } else if (count > maxChars) {
-        if (err) err.innerText = "Lý do từ chối không được vượt quá " + maxChars + " ký tự (hiện tại: " + count + " ký tự).";
-        if (err) err.style.display = "block";
+        if (err) {
+            err.innerText = "Lý do từ chối không được vượt quá " + maxChars + " ký tự (hiện tại: " + count + " ký tự).";
+            err.style.display = "block";
+        }
         el.classList.add("is-invalid");
         return false;
     } else {
-        if (err) err.style.display = "none";
+        if (err) {
+            err.style.display = "none";
+            err.innerText = "";
+        }
         el.classList.remove("is-invalid");
         return true;
     }
@@ -120,7 +148,7 @@ function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNu
     }
 
     if (transactionCodeInput) {
-        transactionCodeInput.value = '';
+        transactionCodeInput.value = (transactionCodeInput.value || '').trim();
         transactionCodeInput.classList.remove('is-invalid');
     }
     if (transactionCodeError) {
@@ -140,6 +168,9 @@ function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNu
     const modal = document.getElementById('processModal');
     if (modal) {
         modal.style.display = 'flex';
+        setTimeout(() => {
+            if (transactionCodeInput) transactionCodeInput.focus();
+        }, 100);
     }
 }
 
@@ -148,6 +179,17 @@ function openProcessModal(id, teacherName, amount, bankCode, bankName, accountNu
  */
 function closeProcessModal() {
     const modal = document.getElementById('processModal');
+    const transactionCodeInput = document.getElementById('transactionCodeInput');
+    const transactionCodeError = document.getElementById('transactionCodeError');
+
+    if (transactionCodeInput) {
+        transactionCodeInput.value = (transactionCodeInput.value || '').trim();
+        transactionCodeInput.classList.remove('is-invalid');
+    }
+    if (transactionCodeError) {
+        transactionCodeError.style.display = 'none';
+        transactionCodeError.innerText = '';
+    }
     if (modal) {
         modal.style.display = 'none';
     }
@@ -183,15 +225,17 @@ function openRejectModal(id, teacherName, amount, note) {
     }
 
     if (rejectReason) {
-        rejectReason.value = '';
+        // Lưu lại và trim khoảng trắng text bên trong
+        rejectReason.value = (rejectReason.value || '').trim();
         rejectReason.classList.remove('is-invalid');
     }
     if (rejectReasonError) {
         rejectReasonError.style.display = 'none';
         rejectReasonError.innerText = '';
     }
-    if (rejectReasonCount) {
-        rejectReasonCount.innerText = '0/100 ký tự';
+    if (rejectReasonCount && rejectReason) {
+        const count = rejectReason.value.replace(/\s/g, '').length;
+        rejectReasonCount.innerText = count + '/100 ký tự';
         rejectReasonCount.style.color = '#64748b';
         rejectReasonCount.style.fontWeight = 'normal';
     }
@@ -199,6 +243,9 @@ function openRejectModal(id, teacherName, amount, note) {
     const modal = document.getElementById('rejectModal');
     if (modal) {
         modal.style.display = 'flex';
+        setTimeout(() => {
+            if (rejectReason) rejectReason.focus();
+        }, 100);
     }
 }
 
@@ -207,15 +254,36 @@ function openRejectModal(id, teacherName, amount, note) {
  */
 function closeRejectModal() {
     const modal = document.getElementById('rejectModal');
+    const rejectReason = document.getElementById('rejectReason');
+    const rejectReasonError = document.getElementById('rejectReasonError');
+    const rejectReasonCount = document.getElementById('rejectReasonCount');
+
+    if (rejectReason) {
+        // Khi tắt đi còn lưu lại text bên trong đã trim khoảng trắng
+        rejectReason.value = (rejectReason.value || '').trim();
+        rejectReason.classList.remove('is-invalid');
+    }
+    if (rejectReasonError) {
+        rejectReasonError.style.display = 'none';
+        rejectReasonError.innerText = '';
+    }
+    if (rejectReasonCount && rejectReason) {
+        const count = rejectReason.value.replace(/\s/g, '').length;
+        rejectReasonCount.innerText = count + '/100 ký tự';
+        rejectReasonCount.style.color = '#64748b';
+        rejectReasonCount.style.fontWeight = 'normal';
+    }
     if (modal) {
         modal.style.display = 'none';
     }
 }
 
 /**
- * Hiển thị thông báo Toast
+ * Hiển thị thông báo Toast đẹp mắt, không dùng alert native của trình duyệt
  */
 function showPayoutToast(msg, type) {
+    if (!msg || msg.trim() === '') return;
+
     if (typeof Toastify === 'function') {
         Toastify({
             text: msg,
@@ -223,11 +291,30 @@ function showPayoutToast(msg, type) {
             close: true,
             gravity: "top",
             position: "right",
-            backgroundColor: type === "error" ? "#ef4444" : (type === "warning" ? "#f59e0b" : "#10b981")
+            backgroundColor: type === "error" ? "#dc2626" : (type === "warning" ? "#d97706" : "#16a34a")
         }).showToast();
-    } else {
-        alert(msg);
+        return;
     }
+
+    const existingToast = document.querySelector('.payout-toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'payout-toast ' + (type || 'info');
+    let iconClass = 'fa-circle-info';
+    if (type === 'success') iconClass = 'fa-circle-check';
+    else if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+    else if (type === 'error') iconClass = 'fa-circle-exclamation';
+
+    toast.innerHTML = '<i class="fa-solid ' + iconClass + '"></i> <span>' + msg + '</span>';
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => toast.remove(), 400);
+    }, 3500);
 }
 
 // Đóng modal khi bấm ra vùng bên ngoài nội dung modal
@@ -243,6 +330,20 @@ window.addEventListener('click', function(e) {
     }
 });
 
+// Đóng modal khi nhấn phím Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        const processModal = document.getElementById('processModal');
+        const rejectModal = document.getElementById('rejectModal');
+        if (processModal && processModal.style.display === 'flex') {
+            closeProcessModal();
+        }
+        if (rejectModal && rejectModal.style.display === 'flex') {
+            closeRejectModal();
+        }
+    }
+});
+
 // Điều hướng phân trang (Pagination)
 function goToPage(page) {
     const pageInput = document.getElementById('pageInput');
@@ -252,6 +353,15 @@ function goToPage(page) {
         filterForm.submit();
     }
 }
+
+// Gắn các hàm vào window để gọi từ các thẻ HTML JSP
+window.validateTransactionCode = validateTransactionCode;
+window.validateRejectReason = validateRejectReason;
+window.openProcessModal = openProcessModal;
+window.closeProcessModal = closeProcessModal;
+window.openRejectModal = openRejectModal;
+window.closeRejectModal = closeRejectModal;
+window.showPayoutToast = showPayoutToast;
 window.goToPage = goToPage;
 
 // Khởi chạy khi tài liệu tải xong
@@ -264,12 +374,46 @@ document.addEventListener("DOMContentLoaded", function() {
         showPayoutToast(flashMsg, flashType);
     }
 
+    // Sự kiện realtime cho textarea lý do từ chối
+    const rejectReasonEl = document.getElementById('rejectReason');
+    if (rejectReasonEl) {
+        rejectReasonEl.addEventListener('input', function () {
+            validateRejectReason(this, false);
+        });
+        rejectReasonEl.addEventListener('keyup', function () {
+            validateRejectReason(this, false);
+        });
+        rejectReasonEl.addEventListener('paste', function () {
+            setTimeout(() => validateRejectReason(this, false), 10);
+        });
+        rejectReasonEl.addEventListener('blur', function () {
+            if (this.value && this.value.trim().length === 0) {
+                this.value = '';
+                validateRejectReason(this, false);
+            }
+        });
+    }
+
+    // Sự kiện realtime cho mã giao dịch
+    const txInputEl = document.getElementById('transactionCodeInput');
+    if (txInputEl) {
+        txInputEl.addEventListener('input', function () {
+            validateTransactionCode(this, false);
+        });
+        txInputEl.addEventListener('keyup', function () {
+            validateTransactionCode(this, false);
+        });
+        txInputEl.addEventListener('paste', function () {
+            setTimeout(() => validateTransactionCode(this, false), 10);
+        });
+    }
+
     // Gắn submit listener cho form Duyệt rút tiền
     const approveForm = document.getElementById('approvePayoutForm');
     if (approveForm) {
         approveForm.addEventListener('submit', function (e) {
             const input = document.getElementById('transactionCodeInput');
-            if (!validateTransactionCode(input)) {
+            if (!validateTransactionCode(input, true)) {
                 e.preventDefault();
                 if (input) input.focus();
                 return false;
@@ -282,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (rejectForm) {
         rejectForm.addEventListener('submit', function (e) {
             const textarea = document.getElementById('rejectReason');
-            if (!validateRejectReason(textarea)) {
+            if (!validateRejectReason(textarea, true)) {
                 e.preventDefault();
                 if (textarea) textarea.focus();
                 return false;

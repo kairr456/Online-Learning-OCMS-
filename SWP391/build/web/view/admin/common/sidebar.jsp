@@ -38,6 +38,12 @@ co
             <span class="nav-label">Course Approval</span>
         </a>
 
+        <a href="${pageContext.request.contextPath}/admin/course-categories"
+           class="${contentPage == 'course_categories.jsp' ? 'active' : ''}">
+            <span class="nav-icon"><i class="fa-solid fa-layer-group"></i></span>
+            <span class="nav-label">Course Categories</span>
+        </a>
+
         <!-- CONTENT -->
         <span class="sidebar-section-label">Content</span>
 

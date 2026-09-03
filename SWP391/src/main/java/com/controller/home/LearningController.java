@@ -69,16 +69,7 @@ public class LearningController extends HttpServlet {
         }
 
         // Kiểm tra học viên đã mua khóa học (Admin và Tác giả khóa học mặc định được phép xem)
-        CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
-        boolean enrolled = (account.getRoleId() == 1 || account.getId() == course.getCreatedBy());
-        if (!enrolled) {
-            for (Course c : regDAO.getCoursesByAccountId(account.getId())) {
-                if (c.getId() == courseId) {
-                    enrolled = true;
-                    break;
-                }
-            }
-        }
+        boolean enrolled = isUserEnrolled(account, courseId);
         request.setAttribute("isEnrolled", enrolled);
 
         LessonDAO lessonDAO = new LessonDAO();
@@ -123,8 +114,8 @@ public class LearningController extends HttpServlet {
             currentLesson = firstLesson;
         }
 
-        // Nếu chưa mua khóa học và bài đang xem KHÔNG PHẢI bài đầu tiên -> Khóa bài học
-        boolean isLockedLesson = !enrolled && (currentLesson.getId() != firstLesson.getId());
+        // Nếu chưa mua khóa học -> Khóa tất cả các bài học (kể cả bài học đầu tiên)
+        boolean isLockedLesson = !enrolled;
         request.setAttribute("isLockedLesson", isLockedLesson);
 
         int currentIndex = allLessons.indexOf(currentLesson);
@@ -324,6 +315,12 @@ public class LearningController extends HttpServlet {
                     return;
                 }
                 int quizId = Integer.parseInt(quizIdParam);
+                int lessonId = learningDAO.getLessonIdByQuizId(quizId);
+                int courseId = learningDAO.getCourseIdByLessonId(lessonId);
+                if (!isUserEnrolled(account, courseId)) {
+                    out.print("{\"status\":\"error\", \"message\":\"You must purchase this course before taking quizzes.\"}");
+                    return;
+                }
                 com.DAO.QuizDAO qDAO = new com.DAO.QuizDAO();
                 Map<String, Object> lessonQuizMap = qDAO.getLessonQuizById(quizId);
                 
@@ -357,7 +354,12 @@ public class LearningController extends HttpServlet {
                 
                 int totalQuestionsCount = questions.size();
                 int correctQuestionsCount = 0;
+                int totalPoints = 0;
+                int earnedPoints = 0;
                 for (QuizQuestion q : questions) {
+                    int pts = (q.getPoints() != null && q.getPoints() > 0) ? q.getPoints() : 1;
+                    totalPoints += pts;
+
                     String[] selectedAnswerIds = request.getParameterValues("answer_" + q.getId());
                     java.util.Set<Integer> userAnsIds = new java.util.HashSet<>();
                     if (selectedAnswerIds != null) {
@@ -382,13 +384,16 @@ public class LearningController extends HttpServlet {
 
                     if (!correctAnsIds.isEmpty() && userAnsIds.equals(correctAnsIds)) {
                         correctQuestionsCount++;
+                        earnedPoints += pts;
                     }
                 }
                 
-                int wrongQuestionsCount = totalQuestionsCount - correctQuestionsCount;
-                double wrongPercent = totalQuestionsCount > 0 ? ((double) wrongQuestionsCount / totalQuestionsCount) * 100.0 : 0.0;
-                double scorePercent = 100.0 - wrongPercent;
-                if (scorePercent < 0) scorePercent = 0.0;
+                double scorePercent = 0.0;
+                if (totalPoints > 0) {
+                    scorePercent = ((double) earnedPoints / totalPoints) * 100.0;
+                } else if (totalQuestionsCount > 0) {
+                    scorePercent = ((double) correctQuestionsCount / totalQuestionsCount) * 100.0;
+                }
                 double scorePercentRounded = Math.round(scorePercent * 10.0) / 10.0;
 
                 boolean previouslyPassed = learningDAO.hasPassedQuiz(account.getId(), quizId);
@@ -412,7 +417,6 @@ public class LearningController extends HttpServlet {
 
                 String certCode = null;
                 if (passed) {
-                    int lessonId = learningDAO.getLessonIdByQuizId(quizId);
                     if (lessonId > 0) {
                         learningDAO.saveLessonProgress(account.getId(), lessonId, true);
                         certCode = grantCertificateIfCompleted(account.getId(), lessonId);
@@ -427,9 +431,11 @@ public class LearningController extends HttpServlet {
                 int newAttemptCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 boolean isExhausted = (maxRetakes != -1 && newAttemptCount >= maxRetakes);
 
-                out.print("{\"status\":\"success\",\"score\":" + correctQuestionsCount + ",\"total\":" + totalQuestionsCount
+                out.print("{\"status\":\"success\",\"score\":" + earnedPoints + ",\"total\":" + totalPoints
                         + ",\"totalCorrect\":" + correctQuestionsCount
                         + ",\"totalQuestions\":" + totalQuestionsCount
+                        + ",\"earnedPoints\":" + earnedPoints
+                        + ",\"totalPoints\":" + totalPoints
                         + ",\"scorePercent\":" + scorePercentRounded
                         + ",\"passed\":" + passed
                         + ",\"previouslyPassed\":" + previouslyPassed
@@ -444,6 +450,11 @@ public class LearningController extends HttpServlet {
                     return;
                 }
                 int lessonId = Integer.parseInt(lessonIdParam);
+                int courseId = learningDAO.getCourseIdByLessonId(lessonId);
+                if (!isUserEnrolled(account, courseId)) {
+                    out.print("{\"status\":\"error\", \"message\":\"You must purchase this course before completing lessons.\"}");
+                    return;
+                }
                 boolean ok = learningDAO.saveLessonProgress(account.getId(), lessonId, true);
                 // Cấp chứng chỉ ngay nếu HV vừa đạt 100% progress và khóa có template
                 String certCode = ok ? grantCertificateIfCompleted(account.getId(), lessonId) : null;
@@ -492,6 +503,26 @@ public class LearningController extends HttpServlet {
             }
         }
         return "https://www.youtube.com/embed/" + id;
+    }
+
+    private boolean isUserEnrolled(Account account, int courseId) {
+        if (account == null || courseId <= 0) {
+            return false;
+        }
+        if (account.getRoleId() == 1) { // Admin
+            return true;
+        }
+        Course course = new CourseDAO().findById(courseId);
+        if (course != null && account.getId() == course.getCreatedBy()) { // Course creator
+            return true;
+        }
+        CourseRegistrationDAO regDAO = new CourseRegistrationDAO();
+        for (Course c : regDAO.getCoursesByAccountId(account.getId())) {
+            if (c.getId() == courseId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String normalizeLocalUrl(String url, HttpServletRequest request) {

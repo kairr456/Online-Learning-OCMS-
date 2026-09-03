@@ -55,9 +55,10 @@
                                     <li class="date"><i class="fas fa-calendar"></i> ${course.createdDate}</li>
                                 </ul>
                             </div>
+                            <c:set var="isReviewsActive" value="${param.tab == 'reviews' or not empty sessionScope.message or not empty sessionScope.reviewCommentDraft or not empty sessionScope.reviewRatingDraft}" />
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-tab-pane" type="button" role="tab" aria-controls="overview-tab-pane" aria-selected="true">Overview</button>
+                                    <button class="nav-link ${isReviewsActive ? '' : 'active'}" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-tab-pane" type="button" role="tab" aria-controls="overview-tab-pane" aria-selected="${isReviewsActive ? 'false' : 'true'}">Overview</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                      <button class="nav-link" id="curriculum-tab" data-bs-toggle="tab" data-bs-target="#curriculum-tab-pane" type="button" role="tab" aria-controls="curriculum-tab-pane" aria-selected="false">Curriculum</button>
@@ -66,11 +67,11 @@
                                     <button class="nav-link" id="instructors-tab" data-bs-toggle="tab" data-bs-target="#instructors-tab-pane" type="button" role="tab" aria-controls="instructors-tab-pane" aria-selected="false">Instructors</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-tab-pane" type="button" role="tab" aria-controls="reviews-tab-pane" aria-selected="false">Reviews</button>
+                                    <button class="nav-link ${isReviewsActive ? 'active' : ''}" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-tab-pane" type="button" role="tab" aria-controls="reviews-tab-pane" aria-selected="${isReviewsActive ? 'true' : 'false'}">Reviews</button>
                                 </li>
                             </ul>
                             <div class="tab-content" id="myTabContent">
-                                <div class="tab-pane fade show active" id="overview-tab-pane" role="tabpanel" aria-labelledby="overview-tab" tabindex="0">
+                                <div class="tab-pane fade ${isReviewsActive ? '' : 'show active'}" id="overview-tab-pane" role="tabpanel" aria-labelledby="overview-tab" tabindex="0">
                                     <div class="courses__overview-wrap">
                                         <h3 class="title">Course Description</h3>
                                         ${course.description}                                        
@@ -152,7 +153,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
+                                <div class="tab-pane fade ${isReviewsActive ? 'show active' : ''}" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
                                     <div class="courses__rating-wrap">
                                         <h2 class="title">Reviews</h2>
                                         
@@ -221,46 +222,68 @@
                                         </div>
                                         
                                         <!-- Review Form -->
-                                        <div class="course-review-form">
-                                            <h3 class="title review-form-title">Write a Review</h3>
-                                            <c:choose>
-                                                <c:when test="${empty sessionScope.account}">
-                                                    <div class="alert alert-info py-2" style="font-size:14px;">
-                                                        Vui lòng <a href="${pageContext.request.contextPath}/login" class="fw-bold">Đăng nhập</a> để viết đánh giá.
-                                                    </div>
-                                                </c:when>
-                                                <c:when test="${!isEnrolled}">
-                                                    <div class="alert alert-warning py-2" style="font-size:14px;">
-                                                        <i class="fas fa-lock me-1"></i> Bạn cần mua/đăng ký khóa học này mới có thể bình luận và đánh giá.
-                                                    </div>
-                                                </c:when>
-                                                <c:when test="${hasReviewed}">
-                                                    <div class="alert alert-success py-2" style="font-size:14px;">
-                                                        <i class="fas fa-check-circle me-1"></i> Bạn đã gửi đánh giá cho khóa học này rồi. Cảm ơn phản hồi của bạn!
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <form action="${pageContext.request.contextPath}/submit-review" method="post">
-                                                        <input type="hidden" name="courseId" value="${course.id}">
-                                                        <div class="review-form-group">
-                                                            <label class="review-form-label">Your Rating:</label>
-                                                            <div class="rating-selection">
-                                                                <label><input type="radio" name="rating" value="1" class="rating-input" required> <i class="far fa-star rating-star"></i></label>
-                                                                <label><input type="radio" name="rating" value="2" class="rating-input"> <i class="far fa-star rating-star"></i></label>
-                                                                <label><input type="radio" name="rating" value="3" class="rating-input"> <i class="far fa-star rating-star"></i></label>
-                                                                <label><input type="radio" name="rating" value="4" class="rating-input"> <i class="far fa-star rating-star"></i></label>
-                                                                <label><input type="radio" name="rating" value="5" class="rating-input"> <i class="far fa-star rating-star"></i></label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="review-form-group-spaced">
-                                                            <label for="reviewComment" class="review-form-label">Your Comment:</label>
-                                                            <textarea name="comment" id="reviewComment" rows="4" class="review-textarea" placeholder="What do you think about this course?" required></textarea>
-                                                        </div>
-                                                        <button type="submit" class="btn review-submit-btn">Submit Review</button>
-                                                    </form>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
+                                         <div class="course-review-form">
+                                             <h3 class="title review-form-title">Write a Review</h3>
+
+                                             <c:if test="${not empty sessionScope.message}">
+                                                 <div class="alert alert-${sessionScope.messageType == 'error' ? 'danger' : 'success'} alert-dismissible fade show mb-4" role="alert">
+                                                     <i class="fas ${sessionScope.messageType == 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'} me-2"></i>
+                                                     <c:out value="${sessionScope.message}" />
+                                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                 </div>
+                                                 <c:remove var="message" scope="session" />
+                                                 <c:remove var="messageType" scope="session" />
+                                             </c:if>
+
+                                             <c:choose>
+                                                 <c:when test="${empty sessionScope.account}">
+                                                     <div class="alert alert-info py-2" style="font-size:14px;">
+                                                         Vui lòng <a href="${pageContext.request.contextPath}/login" class="fw-bold">Đăng nhập</a> để viết đánh giá.
+                                                     </div>
+                                                 </c:when>
+                                                 <c:when test="${!isEnrolled}">
+                                                     <div class="alert alert-warning py-2" style="font-size:14px;">
+                                                         <i class="fas fa-lock me-1"></i> Bạn cần mua/đăng ký khóa học này mới có thể bình luận và đánh giá.
+                                                     </div>
+                                                 </c:when>
+                                                 <c:when test="${hasReviewed}">
+                                                     <div class="alert alert-success py-2" style="font-size:14px;">
+                                                         <i class="fas fa-check-circle me-1"></i> Bạn đã gửi đánh giá cho khóa học này rồi. Cảm ơn phản hồi của bạn!
+                                                     </div>
+                                                 </c:when>
+                                                 <c:otherwise>
+                                                     <form action="${pageContext.request.contextPath}/submit-review" method="post" id="reviewForm" novalidate>
+                                                         <input type="hidden" name="courseId" value="${course.id}">
+                                                         
+                                                         <!-- Client validation alert box -->
+                                                         <div id="reviewFormAlert" class="alert alert-warning py-2 mb-3" style="display: none; font-size: 14px; border-radius: 8px;">
+                                                             <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                                             <span id="reviewFormAlertText" class="fw-medium"></span>
+                                                         </div>
+                                                         <c:set var="draftRating" value="${sessionScope.reviewRatingDraft}" />
+                                                         <c:set var="draftComment" value="${sessionScope.reviewCommentDraft}" />
+
+                                                         <div class="review-form-group">
+                                                             <label class="review-form-label">Your Rating: <span class="text-danger">*</span></label>
+                                                             <div class="rating-selection">
+                                                                 <label><input type="radio" name="rating" value="1" class="rating-input" ${draftRating == '1' ? 'checked' : ''}> <i class="${draftRating >= '1' ? 'fas' : 'far'} fa-star rating-star"></i></label>
+                                                                 <label><input type="radio" name="rating" value="2" class="rating-input" ${draftRating == '2' ? 'checked' : ''}> <i class="${draftRating >= '2' ? 'fas' : 'far'} fa-star rating-star"></i></label>
+                                                                 <label><input type="radio" name="rating" value="3" class="rating-input" ${draftRating == '3' ? 'checked' : ''}> <i class="${draftRating >= '3' ? 'fas' : 'far'} fa-star rating-star"></i></label>
+                                                                 <label><input type="radio" name="rating" value="4" class="rating-input" ${draftRating == '4' ? 'checked' : ''}> <i class="${draftRating >= '4' ? 'fas' : 'far'} fa-star rating-star"></i></label>
+                                                                 <label><input type="radio" name="rating" value="5" class="rating-input" ${draftRating == '5' ? 'checked' : ''}> <i class="${draftRating >= '5' ? 'fas' : 'far'} fa-star rating-star"></i></label>
+                                                             </div>
+                                                         </div>
+                                                         <div class="review-form-group-spaced">
+                                                             <label for="reviewComment" class="review-form-label">Your Comment: <span class="text-danger">*</span></label>
+                                                             <textarea name="comment" id="reviewComment" rows="4" class="review-textarea" placeholder="What do you think about this course?"><c:out value="${draftComment}" /></textarea>
+                                                         </div>
+                                                         <c:remove var="reviewRatingDraft" scope="session" />
+                                                         <c:remove var="reviewCommentDraft" scope="session" />
+                                                         <button type="submit" class="btn review-submit-btn">Submit Review</button>
+                                                     </form>
+                                                 </c:otherwise>
+                                             </c:choose>
+                                         </div>
                                         <!-- End Review Form -->
                                     </div>
                                 </div>
@@ -365,7 +388,7 @@
 
     <!-- Bootstrap JS for tabs/accordion -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="${pageContext.request.contextPath}/assets/js/course/course-details.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/course/course-details.js?v=<%= System.currentTimeMillis() %>"></script>
 </body>
 
 </html>

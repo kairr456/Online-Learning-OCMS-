@@ -123,14 +123,14 @@
                             </a>
                             
                                 <div class="course-footer">
-                                     <c:choose>
-                                         <c:when test="${sessionScope.account != null && sessionScope.account.roleId == 2 && course.createdBy == sessionScope.account.id}">
-                                             <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #0d6efd; color: white;">MY COURSE</a>
-                                         </c:when>
-                                         <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
-                                             <a href="${pageContext.request.contextPath}/all-courses" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
-                                         </c:when>
-                                         <c:otherwise>
+                                    <c:choose>
+                                        <c:when test="${sessionScope.account != null && sessionScope.account.roleId == 2 && course.createdBy == sessionScope.account.id}">
+                                            <a href="${pageContext.request.contextPath}/course?id=${course.id}" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #0d6efd; color: white;">MY COURSE</a>
+                                        </c:when>
+                                        <c:when test="${not empty enrolledCourseIds and enrolledCourseIds.contains(course.id)}">
+                                            <a href="${pageContext.request.contextPath}/all-courses" class="enroll-btn" style="text-decoration: none; text-align: center; display: block; width: 100%; background-color: #28a745; color: white;">LEARNING NOW</a>
+                                        </c:when>
+                                        <c:otherwise>
                                             <div class="course-footer__actions">
                                                 <button type="button" class="wishlist-heart ${wishlistCourseIds != null and wishlistCourseIds.contains(course.id) ? 'active' : ''}"
                                                         data-course-id="${course.id}" data-context-path="${pageContext.request.contextPath}" onclick="toggleWishlist(this)" title="Add to wishlist">

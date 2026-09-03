@@ -21,7 +21,7 @@
         <div class="result-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Kết quả: ${lesson.title}</h2>
-                <a href="${pageContext.request.contextPath}/lesson-details?id=${lesson.id}" class="btn btn-outline-secondary">
+                <a href="${pageContext.request.contextPath}/learning?courseId=${courseId}&lessonId=${lesson.id}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i> Quay lại bài học
                 </a>
             </div>
@@ -57,10 +57,25 @@
             </div>
 
             <!-- Summary -->
-            <div class="summary-card text-center">
-                <h1 class="display-4 fw-bold ${selectedAttempt.passed ? 'text-success' : 'text-danger'}">
+            <div class="summary-card text-center p-4 rounded shadow-sm bg-white mb-4">
+                <div class="text-secondary small fw-bold text-uppercase mb-1">% Điểm Làm Bài</div>
+                <h1 class="display-4 fw-bold ${selectedAttempt.passed ? 'text-success' : 'text-danger'} mb-2">
                     ${selectedAttempt.score}%
                 </h1>
+                <c:if test="${not empty selectedAttempt.total_points}">
+                    <p class="fs-5 text-muted mb-2">
+                        % Điểm làm bài: <strong class="${selectedAttempt.passed ? 'text-success' : 'text-danger'}">${selectedAttempt.score}%</strong>
+                        <c:choose>
+                            <c:when test="${not empty selectedAttempt.total_questions}">
+                                (Đúng ${selectedAttempt.earned_count}/${selectedAttempt.total_questions} câu
+                                <span class="text-muted">- ${selectedAttempt.earned_points}/${selectedAttempt.total_points} điểm</span>)
+                            </c:when>
+                            <c:otherwise>
+                                (Đúng ${selectedAttempt.earned_points}/${selectedAttempt.total_points} điểm)
+                            </c:otherwise>
+                        </c:choose>
+                    </p>
+                </c:if>
                 <p class="fs-5 mb-0">Điểm tối thiểu để qua: <strong>${lessonQuiz.passing_score}%</strong></p>
             </div>
 
@@ -74,7 +89,7 @@
             <c:forEach var="question" items="${questions}" varStatus="status">
                 <div class="question-card shadow-sm">
                     <div class="fw-bold mb-3">
-                        ${status.index + 1}. ${question.question_text} <span class="text-muted small">(${question.points} điểm)</span>
+                        ${status.index + 1}. ${question.question_text} <span class="text-muted small">(${question.points != null ? question.points : 1} điểm)</span>
                     </div>
                     
                     <c:forEach var="answer" items="${question.answers}">

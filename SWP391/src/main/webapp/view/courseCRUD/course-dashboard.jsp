@@ -71,9 +71,7 @@
             <div class="course-grid">
                 <c:forEach var="course" items="${courses}">
                     <div class="course-card">
-                        <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}">
-                            <img src="${course.thumbnail != null ? course.thumbnail : 'https://via.placeholder.com/300x150.png?text=img'}" alt="Course Image" class="course-image">
-                        </a>
+                        <img src="${course.thumbnail != null ? course.thumbnail : 'https://via.placeholder.com/300x150.png?text=img'}" alt="Course Image" class="course-image">
                         <div class="course-body">
                             <div class="course-meta d-flex align-items-center mb-2">
                                 <span class="course-rating me-2">
@@ -90,9 +88,18 @@
                                 </span>
                             </div>
                             
-                            <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="course-title d-block mb-1">
-                                ${course.name}
-                            </a>
+                            <c:choose>
+                                <c:when test="${course.status == 'draft' or course.status == 'rejected' or course.status == 'cancelled'}">
+                                    <a href="${pageContext.request.contextPath}/lesson?courseId=${course.id}" class="course-title d-block mb-1">
+                                        ${course.name}
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="course-title d-block mb-1 text-dark" style="cursor: default;">
+                                        ${course.name}
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
                             
                             <c:if test="${not empty course.categoryName}">
                                 <div class="text-muted small mb-2"><i class="fas fa-tag"></i> ${course.categoryName}</div>
