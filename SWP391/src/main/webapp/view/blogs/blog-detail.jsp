@@ -84,6 +84,13 @@
                             <div class="rejection-alert-content">
                                 <h4 class="rejection-alert-title">Lý do bài viết bị từ chối phê duyệt:</h4>
                                 <p class="rejection-alert-text"><c:out value="${blog.rejectReason}" /></p>
+                                <c:if test="${not empty sessionScope.account and (sessionScope.account.id == blog.author or sessionScope.account.roleId == 1)}">
+                                    <div style="margin-top: 10px;">
+                                        <a href="${pageContext.request.contextPath}/blogs-edit?id=${blog.id}" class="btn-back-blogs btn-back-blogs--edit" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:6px 14px; border-radius:6px; text-decoration:none;">
+                                            <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa &amp; gửi lại cho Admin duyệt
+                                        </a>
+                                    </div>
+                                </c:if>
                             </div>
                         </div>
                     </c:if>
@@ -113,9 +120,9 @@
                             <i class="fa-solid fa-arrow-left"></i> Xem tất cả bài viết khác
                         </a>
                         <div class="article-footer-actions">
-                            <c:if test="${not empty sessionScope.account and ((sessionScope.account.id == blog.author and blog.status == 'Draft') or sessionScope.account.roleId == 1)}">
+                            <c:if test="${not empty sessionScope.account and ((sessionScope.account.id == blog.author and (blog.status == 'Draft' or blog.status == 'Reject' or blog.status == 'Rejected')) or sessionScope.account.roleId == 1)}">
                                 <a href="${pageContext.request.contextPath}/blogs-edit?id=${blog.id}" class="btn-back-blogs btn-back-blogs--edit">
-                                    <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa bài này
+                                    <i class="fa-solid fa-pen-to-square"></i> ${(blog.status == 'Reject' or blog.status == 'Rejected') ? 'Chỉnh sửa &amp; gửi lại duyệt' : 'Chỉnh sửa bài này'}
                                 </a>
                             </c:if>
                             <a href="${pageContext.request.contextPath}/my-blogs" class="btn-back-blogs btn-back-blogs--list">

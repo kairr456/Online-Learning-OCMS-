@@ -39,7 +39,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h6 class="text-muted mb-1">Total Spent</h6>
-                            <h3 class="mb-0"><fmt:formatNumber value="${summary.totalSpent}" minFractionDigits="2" maxFractionDigits="2"/>₫</h3>
+                            <h3 class="mb-0"><fmt:formatNumber value="${summary.totalSpent}" pattern="#,##0"/>₫</h3>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                             <tr>
                                 <td>${p.courseName}</td>
                                 <td>${p.packages}</td>
-                                <td><fmt:formatNumber value="${p.totalCost}" minFractionDigits="2" maxFractionDigits="2"/>₫</td>
+                                <td><fmt:formatNumber value="${p.totalCost}" pattern="#,##0"/>₫</td>
                                 <td><fmt:formatDate value="${p.registrationTime}" pattern="dd/MM/yyyy"/></td>
                                 <td>${p.status}</td>
                             </tr>

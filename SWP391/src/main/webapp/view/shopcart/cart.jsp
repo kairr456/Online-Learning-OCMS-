@@ -119,7 +119,7 @@
                                                         <small class="text-muted d-block">Added on: <fmt:formatDate value="${item.addedDate}" pattern="MMM dd, yyyy"/></small>
                                                     </div>
                                                     <div class="col-md-2 text-right">
-                                                        <span class="price"><fmt:formatNumber value="${item.price}" pattern="#,##0.00"/>₫</span>
+                                                        <span class="price"><fmt:formatNumber value="${item.price}" pattern="#,##0"/>₫</span>
                                                     </div>
                                                     <div class="col-md-2 text-right">
                                                         <form action="${pageContext.request.contextPath}/cart" method="post" class="remove-item-form" id="removeForm_${item.id}" data-course-name="<c:out value='${courseNameDisplay}' />">
@@ -206,14 +206,14 @@
                         
                         <div class="d-flex justify-content-between mb-3">
                             <span>Subtotal:</span>
-                            <span><fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
+                            <span><fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫</span>
                         </div>
                         
                         <hr>
                         
                         <div class="d-flex justify-content-between mb-4">
                             <strong>Total:</strong>
-                            <strong><fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</strong>
+                            <strong><fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫</strong>
                         </div>
                         <div class="cart-actions mt-4">
                             <!-- Continue Shopping -->

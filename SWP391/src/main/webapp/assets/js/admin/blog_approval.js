@@ -172,9 +172,8 @@
         if (!input) return true;
         const maxChars = 300;
         const rawVal = input.value || '';
-        // Loại bỏ hoàn toàn tất cả khoảng trắng, dấu cách, tab, xuống dòng khi đếm ký tự
-        const noSpaceStr = rawVal.replace(/\s/g, '');
-        const count = noSpaceStr.length;
+        const count = rawVal.length;
+        const trimmedCount = rawVal.trim().length;
         const err = document.getElementById('blogRejectReasonError');
         const counter = document.getElementById('rejectReasonCount');
 
@@ -185,11 +184,11 @@
                 counter.style.fontWeight = 'bold';
             } else {
                 counter.style.color = '#64748B';
-                counter.style.fontWeight = '500';
+                counter.style.fontWeight = '600';
             }
         }
 
-        if (count === 0) {
+        if (trimmedCount === 0) {
             if (rawVal.length > 0) {
                 if (err) {
                     err.innerText = "Lý do từ chối không được chỉ chứa khoảng trắng.";

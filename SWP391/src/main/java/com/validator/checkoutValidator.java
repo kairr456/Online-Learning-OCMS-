@@ -51,7 +51,7 @@ public class checkoutValidator {
 
         // 1. Kiểm tra các trường thông tin người mua không được để trống
         if (isBlank(country)) {
-            return "Thiếu trường chưa điền: Vui lòng chọn Quốc gia / Khu vực.";
+            country = "Vietnam";
         }
 
         if (isBlank(fullName)) {

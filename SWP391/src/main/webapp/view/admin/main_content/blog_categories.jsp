@@ -176,11 +176,19 @@
             <input type="hidden" id="formAction" name="action" value="add">
             <input type="hidden" id="categoryId" name="id">
 
-            <label for="f_name">Category Name <span class="text-danger">*</span></label>
-            <input type="text" id="f_name" name="name" placeholder="e.g. Technology, Education..." maxlength="100" required>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label for="f_name" style="margin-bottom:0;">Category Name <span class="text-danger">*</span></label>
+                <span id="catNameCharCount" style="font-size:12px; color:#64748B; font-weight:600;">0/100 ký tự</span>
+            </div>
+            <input type="text" id="f_name" name="name" placeholder="e.g. Technology, Education (tối đa 100 ký tự)..." maxlength="100" required>
+            <div style="font-size:12px; color:#64748b; margin-top:3px; margin-bottom:12px;">Tối đa 100 ký tự. Tên danh mục không được để trống hoặc trùng lặp.</div>
             
-            <label for="f_description">Description</label>
-            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category..." maxlength="500" class="cat-textarea"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; margin-top:10px;">
+                <label for="f_description" style="margin-bottom:0;">Description</label>
+                <span id="catDescCharCount" style="font-size:12px; color:#64748B; font-weight:600;">0/500 ký tự</span>
+            </div>
+            <textarea id="f_description" name="description" rows="4" placeholder="Brief summary about this blog category (tối đa 500 ký tự)..." maxlength="500" class="cat-textarea"></textarea>
+            <div style="font-size:12px; color:#64748b; margin-top:3px; margin-bottom:12px;">Tối đa 500 ký tự. Mô tả tóm tắt về danh mục bài viết.</div>
 
             <p id="modalError" class="cat-modal-error"></p>
 

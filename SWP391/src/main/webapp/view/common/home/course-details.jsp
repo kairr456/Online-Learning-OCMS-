@@ -1,5 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
 <html lang="en">
 
@@ -291,7 +292,7 @@
                                     <div class="courses__cost-wrap">
                                         <span>This Course Fee:</span>
                                         <h2 class="title">
-                                            ${course.price}₫
+                                            <fmt:formatNumber value="${course.price}" pattern="#,##0"/>₫
                                         </h2>
                                     </div>
                                 </c:otherwise>

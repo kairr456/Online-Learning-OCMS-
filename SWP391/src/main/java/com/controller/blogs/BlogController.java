@@ -354,17 +354,13 @@ public class BlogController extends HttpServlet {
             return;
         }
 
-        // Bài viết đã được duyệt (Active), đang chờ duyệt (Inactive) hoặc bị từ chối (Rejected) thì tác giả không được phép sửa
+        // Bài viết đã được duyệt (Active) hoặc đang chờ duyệt (Inactive) thì tác giả không được phép sửa
         if ("Active".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
             return;
         }
         if ("Inactive".equalsIgnoreCase(blog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=pending_approval");
-            return;
-        }
-        if (("Reject".equalsIgnoreCase(blog.getStatus()) || "Rejected".equalsIgnoreCase(blog.getStatus())) && account.getRoleId() != 1) {
-            response.sendRedirect(request.getContextPath() + "/my-blogs?error=rejected_locked");
             return;
         }
 
@@ -398,17 +394,13 @@ public class BlogController extends HttpServlet {
             return;
         }
 
-        // Bài viết đã được duyệt (Active), đang chờ duyệt (Inactive) hoặc bị từ chối (Rejected) thì tác giả không được phép sửa
+        // Bài viết đã được duyệt (Active) hoặc đang chờ duyệt (Inactive) thì tác giả không được phép sửa
         if ("Active".equalsIgnoreCase(existingBlog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=already_approved");
             return;
         }
         if ("Inactive".equalsIgnoreCase(existingBlog.getStatus()) && account.getRoleId() != 1) {
             response.sendRedirect(request.getContextPath() + "/my-blogs?error=pending_approval");
-            return;
-        }
-        if (("Reject".equalsIgnoreCase(existingBlog.getStatus()) || "Rejected".equalsIgnoreCase(existingBlog.getStatus())) && account.getRoleId() != 1) {
-            response.sendRedirect(request.getContextPath() + "/my-blogs?error=rejected_locked");
             return;
         }
 
@@ -422,16 +414,6 @@ public class BlogController extends HttpServlet {
             return;
         }
 
-        boolean isPreviouslyRejected = "Reject".equalsIgnoreCase(existingBlog.getStatus()) 
-                                    || "Rejected".equalsIgnoreCase(existingBlog.getStatus());
-
-        // Kiểm tra xem có bất kỳ thay đổi nào về nội dung so với bản cũ không
-        boolean hasChanged = !safeEquals(existingBlog.getTitle(), updatedData.getTitle())
-                || !safeEquals(existingBlog.getThumbnail(), updatedData.getThumbnail())
-                || !safeEquals(existingBlog.getBriefInfo(), updatedData.getBriefInfo())
-                || !safeEquals(existingBlog.getContent(), updatedData.getContent())
-                || existingBlog.getCategoryId() != updatedData.getCategoryId();
-
         existingBlog.setTitle(updatedData.getTitle());
         existingBlog.setThumbnail(updatedData.getThumbnail());
         existingBlog.setBriefInfo(updatedData.getBriefInfo());
@@ -439,21 +421,17 @@ public class BlogController extends HttpServlet {
         existingBlog.setCategoryId(updatedData.getCategoryId());
 
         String statusParam = getStringParam(request, "status");
-        boolean noChangeOnRejected = false;
 
         if (account.getRoleId() != 1) {
-            if (isPreviouslyRejected && !hasChanged) {
-                // Bài viết bị từ chối nhưng không có thay đổi nào so với bản cũ -> Vẫn giữ nguyên trạng thái Bị từ chối
-                existingBlog.setStatus("Rejected");
-                noChangeOnRejected = true;
+            // Tác giả sửa bài viết (bao gồm cả bài viết bị từ chối):
+            // - Nếu bấm "Lưu bài viết" (Draft) -> Lưu thành Draft
+            // - Nếu bấm "Gửi bài viết" / gửi lại -> Chuyển thành Inactive (Chờ phê duyệt) để Admin duyệt lại
+            // - Đồng thời xóa lý do từ chối cũ
+            existingBlog.setRejectReason(null);
+            if ("Draft".equalsIgnoreCase(statusParam)) {
+                existingBlog.setStatus("Draft");
             } else {
-                // Đã có chỉnh sửa nội dung -> Xóa lý do từ chối cũ và cập nhật sang Draft hoặc Inactive (Chờ duyệt)
-                existingBlog.setRejectReason(null);
-                if ("Draft".equalsIgnoreCase(statusParam)) {
-                    existingBlog.setStatus("Draft");
-                } else {
-                    existingBlog.setStatus("Inactive");
-                }
+                existingBlog.setStatus("Inactive");
             }
         } else {
             existingBlog.setStatus(!statusParam.isEmpty() ? statusParam : updatedData.getStatus());
@@ -463,9 +441,7 @@ public class BlogController extends HttpServlet {
 
         if (success) {
             String msg = "updated";
-            if (noChangeOnRejected) {
-                msg = "rejected_unchanged";
-            } else if ("Draft".equalsIgnoreCase(existingBlog.getStatus())) {
+            if ("Draft".equalsIgnoreCase(existingBlog.getStatus())) {
                 msg = "draft_saved";
             } else if ("Inactive".equalsIgnoreCase(existingBlog.getStatus())) {
                 msg = "submitted";

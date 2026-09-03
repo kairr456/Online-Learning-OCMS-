@@ -47,7 +47,7 @@
                 <div class="summary-label">Total Sales</div>
             </div>
             <div class="summary-card">
-                <div class="summary-value"><fmt:formatNumber value="${summary.totalRevenue}" minFractionDigits="2" maxFractionDigits="2"/>₫</div>
+                <div class="summary-value"><fmt:formatNumber value="${summary.totalRevenue}" pattern="#,##0"/>₫</div>
                 <div class="summary-label">Total Revenue</div>
             </div>
         </div>
@@ -63,7 +63,7 @@
                         <tr>
                             <td>${sale.courseName}</td>
                             <td class="num">${sale.totalSales}</td>
-                            <td class="num"><fmt:formatNumber value="${sale.totalRevenue}" minFractionDigits="2" maxFractionDigits="2"/>₫</td>
+                            <td class="num"><fmt:formatNumber value="${sale.totalRevenue}" pattern="#,##0"/>₫</td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty sales}">

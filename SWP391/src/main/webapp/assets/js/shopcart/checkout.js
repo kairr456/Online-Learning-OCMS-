@@ -119,9 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 isValid = false;
             }
 
-            // A. Kiểm tra Quốc gia / Khu vực
+            // A. Kiểm tra Quốc gia / Khu vực (nếu có trường hiển thị)
             const countryEl = document.getElementById('country');
-            if (!countryEl || !countryEl.value.trim()) {
+            if (countryEl && countryEl.type !== 'hidden' && !countryEl.value.trim()) {
                 showError('country', 'countryError', 'Thiếu trường chưa điền: Vui lòng chọn Quốc gia / Khu vực.');
             }
 

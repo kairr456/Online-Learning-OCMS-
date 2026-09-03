@@ -98,6 +98,11 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 /* Thông báo lỗi hiển thị dưới từng khung điền */

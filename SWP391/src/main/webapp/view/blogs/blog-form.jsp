@@ -65,18 +65,19 @@
         <div class="blogform-card">
             
             <c:if test="${isEdit and (blog.status == 'Rejected' or blog.status == 'Reject')}">
-                <div class="alert-danger" style="background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; flex-direction:column; align-items:flex-start; gap:6px;">
-                    <div style="display:flex; align-items:center; gap:8px; font-weight:700;">
+                <div class="alert-danger" style="background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C; flex-direction:column; align-items:flex-start; gap:8px; width:100%; max-width:100%; box-sizing:border-box; word-break:break-word; overflow-wrap:anywhere; word-wrap:break-word;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:700; width:100%;">
                         <i class="fa-solid fa-triangle-exclamation" style="color:#DC2626;"></i>
                         <span>Bài viết này đã bị Admin từ chối phê duyệt</span>
                     </div>
                     <c:if test="${not empty blog.rejectReason}">
-                        <div style="font-size:13.5px; color:#1E293B; margin-left:24px;">
-                            <strong>Lý do từ chối:</strong> <c:out value="${blog.rejectReason}" />
+                        <div style="width:100%; box-sizing:border-box; padding:10px 14px; background:#ffffff; border-radius:6px; border:1px solid #FECACA; font-size:13.5px; line-height:1.5; word-break:break-word; overflow-wrap:anywhere; word-wrap:break-word;">
+                            <strong style="color:#991B1B;"><i class="fa-solid fa-circle-exclamation"></i> Lý do từ chối:</strong>
+                            <div style="margin-top:4px; color:#334155; word-break:break-word; overflow-wrap:anywhere; word-wrap:break-word; white-space:pre-wrap;"><c:out value="${blog.rejectReason}" /></div>
                         </div>
                     </c:if>
-                    <div style="font-size:12.5px; color:#7F1D1D; margin-left:24px;">
-                        * Vui lòng chỉnh sửa nội dung bài viết trước khi gửi duyệt lại. Nếu không có thay đổi so với bản cũ, hệ thống sẽ tiếp tục giữ nguyên trạng thái <strong>Bị từ chối</strong>.
+                    <div style="font-size:12.5px; color:#7F1D1D; line-height:1.5; word-break:break-word; overflow-wrap:anywhere;">
+                        * Bạn có thể chỉnh sửa lại nội dung bài viết và nhấn <strong>Gửi lại cho Admin duyệt</strong> để đưa bài viết vào trạng thái <strong>Chờ phê duyệt</strong>.
                     </div>
                 </div>
             </c:if>
@@ -89,11 +90,15 @@
 
                 <!-- Tiêu đề bài viết -->
                 <div class="form-group">
-                    <label for="title">Tiêu đề bài viết <span class="required">*</span></label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label for="title" style="margin-bottom:0;">Tiêu đề bài viết <span class="required">*</span></label>
+                        <span id="titleCharCount" style="font-size:12px; color:#64748B; font-weight:600;">0/255 ký tự</span>
+                    </div>
                     <input type="text" id="title" name="title" class="form-control ${not empty errorTitle ? 'has-error' : ''}" 
-                           placeholder="Nhập tiêu đề bài viết (ví dụ: Lộ trình học Java từ con số 0)..." 
+                           placeholder="Nhập tiêu đề bài viết (tối đa 255 ký tự)..." 
                            value="<c:out value='${formTitle}' />" maxlength="255" required
                            style="${not empty errorTitle ? 'border-color: #D64545;' : ''}">
+                    <div class="form-hint">Tối đa 255 ký tự. Tiêu đề cần ngắn gọn, súc tích và phản ánh đúng chủ đề bài viết.</div>
                     <c:if test="${not empty errorTitle}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorTitle}" /></span></div>
                     </c:if>
@@ -137,22 +142,29 @@
 
                 <!-- Tóm tắt bài viết -->
                 <div class="form-group">
-                    <label for="briefInfo">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label for="briefInfo" style="margin-bottom:0;">Mô tả tóm tắt (Brief Info) <span class="required">*</span></label>
+                        <span id="briefCharCount" style="font-size:12px; color:#64748B; font-weight:600;">0/500 ký tự</span>
+                    </div>
                     <textarea id="briefInfo" name="briefInfo" class="form-control ${not empty errorBrief ? 'has-error' : ''}" rows="3" 
                               placeholder="Tóm tắt ngắn gọn nội dung bài viết trong 2 - 3 câu (tối đa 500 ký tự)..." maxlength="500" required
                               style="${not empty errorBrief ? 'border-color: #D64545;' : ''}"><c:out value="${formBriefInfo}" /></textarea>
+                    <div class="form-hint">Tối đa 500 ký tự. Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách blog.</div>
                     <c:if test="${not empty errorBrief}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorBrief}" /></span></div>
                     </c:if>
-                    <div class="form-hint">Mô tả này sẽ xuất hiện trên thẻ bài viết ngoài trang danh sách (Tối đa 500 ký tự).</div>
                 </div>
 
                 <!-- Nội dung chi tiết chính của bài viết -->
                 <div class="form-group">
-                    <label for="mainContent">Nội dung chi tiết (Content) <span class="required">*</span></label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label for="mainContent" style="margin-bottom:0;">Nội dung chi tiết (Content) <span class="required">*</span></label>
+                        <span id="contentCharCount" style="font-size:12px; color:#64748B; font-weight:600;">0 ký tự (tối thiểu 10 ký tự)</span>
+                    </div>
                     <textarea id="mainContent" name="mainContent" class="form-control ${not empty errorContent ? 'has-error' : ''}" rows="8" 
-                              placeholder="Nhập nội dung bài viết tại đây..." required
+                              placeholder="Nhập nội dung bài viết tại đây (tối thiểu 10 ký tự)..." required
                               style="${not empty errorContent ? 'border-color: #D64545;' : ''}"><c:out value="${formContent}" /></textarea>
+                    <div class="form-hint">Tối thiểu 10 ký tự. Sử dụng nút bên dưới để thêm các khối hình ảnh và đoạn văn bổ sung.</div>
                     <c:if test="${not empty errorContent}">
                         <div class="field-error-feedback"><i class="fa-solid fa-circle-exclamation"></i> <span><c:out value="${errorContent}" /></span></div>
                     </c:if>
@@ -182,7 +194,7 @@
                     </button>
 
                     <button type="submit" name="status" value="${sessionScope.account.roleId == 1 ? 'Active' : 'Inactive'}" class="btn-submit" onclick="return handleFormSubmit(event, '${sessionScope.account.roleId == 1 ? 'Active' : 'Inactive'}')">
-                        <i class="fa-solid fa-paper-plane"></i> Gửi bài viết
+                        <i class="fa-solid fa-paper-plane"></i> ${(isEdit and (blog.status == 'Rejected' or blog.status == 'Reject')) ? 'Gửi lại cho Admin duyệt' : 'Gửi bài viết'}
                     </button>
                 </div>
             </form>
