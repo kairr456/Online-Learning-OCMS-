@@ -19,10 +19,10 @@
     <!-- Header CSS (site-header*) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/common/header.css?v=12">
     <!-- Layout CSS (tokens, sidebar, table, modal, etc.) -->
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=12">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/admin_layout.css?v=13">
     <!-- Page-specific CSS -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/dashboard.css?v=6">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=10">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_categories.css?v=6">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_approval.css?v=8">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/banks.css?v=1">

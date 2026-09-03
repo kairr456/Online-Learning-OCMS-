@@ -249,4 +249,4 @@
 <script>
     window.CONTEXT_PATH = '${pageContext.request.contextPath}';
 </script>
-<script src="${pageContext.request.contextPath}/assets/js/admin/banks.js?v=1.0"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/banks.js?v=1.1"></script>

@@ -316,4 +316,4 @@
 <script>
     window.CONTEXT_PATH = '${pageContext.request.contextPath}';
 </script>
-<script src="${pageContext.request.contextPath}/assets/js/admin/blog_approval.js?v=1.4"></script>
+<script src="${pageContext.request.contextPath}/assets/js/admin/blog_approval.js?v=1.5"></script>

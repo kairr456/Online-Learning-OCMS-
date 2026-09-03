@@ -370,13 +370,23 @@
         if (form) form.submit();
     }
 
-    // Close modals on clicking overlay
+    // Ngăn đóng modal khi bấm ra vùng bên ngoài (Static Backdrop)
     window.addEventListener('click', function (e) {
         if (previewModal && e.target === previewModal) {
-            closePreview();
+            const content = previewModal.querySelector('.modal-preview-dialog, .modal-content');
+            if (content) {
+                content.classList.remove('modal-static-shake');
+                void content.offsetWidth;
+                content.classList.add('modal-static-shake');
+            }
         }
         if (rejectModal && e.target === rejectModal) {
-            closeRejectModal();
+            const content = rejectModal.querySelector('.modal-preview-dialog, .modal-content');
+            if (content) {
+                content.classList.remove('modal-static-shake');
+                void content.offsetWidth;
+                content.classList.add('modal-static-shake');
+            }
         }
     });
 

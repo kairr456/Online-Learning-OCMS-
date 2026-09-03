@@ -317,16 +317,27 @@ function showPayoutToast(msg, type) {
     }, 3500);
 }
 
-// Đóng modal khi bấm ra vùng bên ngoài nội dung modal
+// Ngăn không cho đóng modal khi bấm ra vùng bên ngoài (Static Backdrop)
+// Giúp tránh việc đang quét QR hoặc nhập mã giao dịch/lý do từ chối bị vô tình đóng mất dữ liệu
 window.addEventListener('click', function(e) {
     const processModal = document.getElementById('processModal');
     const rejectModal = document.getElementById('rejectModal');
 
     if (processModal && e.target === processModal) {
-        closeProcessModal();
+        const content = processModal.querySelector('.modal-content');
+        if (content) {
+            content.classList.remove('modal-static-shake');
+            void content.offsetWidth; // trigger reflow
+            content.classList.add('modal-static-shake');
+        }
     }
     if (rejectModal && e.target === rejectModal) {
-        closeRejectModal();
+        const content = rejectModal.querySelector('.modal-content');
+        if (content) {
+            content.classList.remove('modal-static-shake');
+            void content.offsetWidth; // trigger reflow
+            content.classList.add('modal-static-shake');
+        }
     }
 });
 

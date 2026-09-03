@@ -626,6 +626,20 @@ td.action-cell, th.action-cell {
     to   { opacity: 1; transform: translateY(0)      scale(1);   }
 }
 
+/* Static Backdrop Shake Effect (Khi bấm ra ngoài vùng modal) */
+@keyframes modalStaticShake {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.025); }
+    50% { transform: scale(0.985); }
+    75% { transform: scale(1.015); }
+}
+
+.modal-content.modal-static-shake,
+.modal-preview-dialog.modal-static-shake,
+.modal-static-shake {
+    animation: modalStaticShake 0.25s ease-in-out !important;
+}
+
 .modal-content h3 {
     font-size: 17px;
     font-weight: 700;

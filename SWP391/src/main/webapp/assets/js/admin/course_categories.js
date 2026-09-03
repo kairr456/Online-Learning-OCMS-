@@ -63,10 +63,15 @@
         }
     }
 
-    // Đóng modal khi click ra ngoài vùng modal-content
+    // Ngăn đóng modal khi click ra ngoài vùng modal-content (Static Backdrop)
     window.addEventListener('click', function (e) {
         if (modal && e.target === modal) {
-            closeModal();
+            const content = modal.querySelector('.modal-content');
+            if (content) {
+                content.classList.remove('modal-static-shake');
+                void content.offsetWidth;
+                content.classList.add('modal-static-shake');
+            }
         }
     });
 

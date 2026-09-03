@@ -508,9 +508,16 @@
         });
     });
 
-    // Close modal on backdrop click
+    // Ngăn đóng modal khi click ra ngoài vùng modal (Static Backdrop)
     document.getElementById('previewModal').addEventListener('click', function(e) {
-        if (e.target === this) closePreview();
+        if (e.target === this) {
+            const content = this.querySelector('.modal-preview-dialog, .modal-content') || this.firstElementChild;
+            if (content) {
+                content.classList.remove('modal-static-shake');
+                void content.offsetWidth;
+                content.classList.add('modal-static-shake');
+            }
+        }
     });
 
     // Close on Escape key

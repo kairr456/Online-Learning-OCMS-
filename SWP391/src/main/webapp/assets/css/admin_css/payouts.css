@@ -258,6 +258,18 @@
 
 .btn-modal-cancel { flex: 1; cursor: pointer; }
 
+/* ── Static Backdrop Shake Effect (Khi bấm ra ngoài vùng modal) ── */
+@keyframes modalStaticShake {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.025); }
+    50% { transform: scale(0.985); }
+    75% { transform: scale(1.015); }
+}
+
+.modal-static-shake {
+    animation: modalStaticShake 0.25s ease-in-out !important;
+}
+
 /* ── Compact Table & Word Wrap Controls for Payouts ── */
 .table-responsive .payouts-table {
     table-layout: fixed;
