@@ -25,6 +25,18 @@ public class CertificateDAO extends DBContext {
                 try (java.sql.Statement st = conn.createStatement()) {
                     st.execute("ALTER TABLE certificate_template ADD COLUMN top_offset INT DEFAULT 140");
                 } catch (Exception ignored) {}
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("ALTER TABLE certificate_template ADD COLUMN is_deleted TINYINT(1) DEFAULT 0");
+                } catch (Exception ignored) {}
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("ALTER TABLE certificate_template ADD INDEX certificate_template_course_idx (course_id)");
+                } catch (Exception ignored) {}
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("ALTER TABLE certificate_template DROP INDEX certificate_template_course_unique");
+                } catch (Exception ignored) {}
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.execute("UPDATE certificate c JOIN certificate_template ct ON c.course_id = ct.course_id SET c.template_id = ct.id WHERE c.template_id IS NULL");
+                } catch (Exception ignored) {}
                 conn.close();
             }
         } catch (Exception ignored) {}
@@ -40,9 +52,15 @@ public class CertificateDAO extends DBContext {
     // ==================== TEMPLATE (giảng viên) ====================
 
     public CertificateTemplate getTemplateByCourseId(int courseId) {
+        return getActiveTemplateByCourseId(courseId);
+    }
+
+    public CertificateTemplate getActiveTemplateByCourseId(int courseId) {
         CertificateTemplate t = null;
         String sql = "SELECT ct.*, c.name AS course_name FROM certificate_template ct "
-                + "JOIN course c ON ct.course_id = c.id WHERE ct.course_id = ?";
+                + "JOIN course c ON ct.course_id = c.id "
+                + "WHERE ct.course_id = ? AND (ct.is_deleted = 0 OR ct.is_deleted IS NULL) "
+                + "ORDER BY ct.id DESC LIMIT 1";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -52,18 +70,40 @@ public class CertificateDAO extends DBContext {
                 t = mapTemplate(resultSet);
             }
         } catch (SQLException ex) {
-            System.out.println("Error getTemplateByCourseId: " + ex.getMessage());
+            System.out.println("Error getActiveTemplateByCourseId: " + ex.getMessage());
         } finally {
             closeResources();
         }
         return t;
     }
 
-    /** Danh sách template của 1 GV — dùng để biết khóa nào đã có chứng chỉ. */
+    public CertificateTemplate getTemplateById(int templateId) {
+        CertificateTemplate t = null;
+        String sql = "SELECT ct.*, c.name AS course_name FROM certificate_template ct "
+                + "JOIN course c ON ct.course_id = c.id WHERE ct.id = ?";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, templateId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                t = mapTemplate(resultSet);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error getTemplateById: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return t;
+    }
+
+    /** Danh sách template đang hoạt động của 1 GV — dùng để biết khóa nào đang có chứng chỉ. */
     public List<CertificateTemplate> getTemplatesByCreator(int creatorId) {
         List<CertificateTemplate> list = new ArrayList<>();
         String sql = "SELECT ct.*, c.name AS course_name FROM certificate_template ct "
-                + "JOIN course c ON ct.course_id = c.id WHERE ct.created_by = ? ORDER BY ct.updated_date DESC";
+                + "JOIN course c ON ct.course_id = c.id "
+                + "WHERE ct.created_by = ? AND (ct.is_deleted = 0 OR ct.is_deleted IS NULL) "
+                + "ORDER BY ct.updated_date DESC";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -85,7 +125,8 @@ public class CertificateDAO extends DBContext {
     }
 
     public boolean insertTemplate(int courseId, String backgroundUrl, String title, int createdBy, boolean showTitle, int topOffset) {
-        String sql = "INSERT INTO certificate_template (course_id, background_url, title, created_by, show_title, top_offset) VALUES (?, ?, ?, ?, ?, ?)";
+        markActiveTemplatesDeleted(courseId);
+        String sql = "INSERT INTO certificate_template (course_id, background_url, title, created_by, show_title, top_offset, is_deleted) VALUES (?, ?, ?, ?, ?, ?, 0)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -97,26 +138,7 @@ public class CertificateDAO extends DBContext {
             statement.setInt(6, topOffset);
             return statement.executeUpdate() > 0;
         } catch (SQLException ex) {
-            System.out.println("Error insertTemplate with new cols: " + ex.getMessage() + ", trying fallback standard insert");
-            // Fallback if show_title / top_offset don't exist in DB schema yet
-            return insertTemplateFallback(courseId, backgroundUrl, title, createdBy);
-        } finally {
-            closeResources();
-        }
-    }
-
-    private boolean insertTemplateFallback(int courseId, String backgroundUrl, String title, int createdBy) {
-        String sql = "INSERT INTO certificate_template (course_id, background_url, title, created_by) VALUES (?, ?, ?, ?)";
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, courseId);
-            statement.setString(2, backgroundUrl);
-            statement.setString(3, title);
-            statement.setInt(4, createdBy);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error insertTemplateFallback: " + ex.getMessage());
+            System.out.println("Error insertTemplate: " + ex.getMessage());
             lastError = ex.getMessage();
             return false;
         } finally {
@@ -124,64 +146,45 @@ public class CertificateDAO extends DBContext {
         }
     }
 
-    /** Cập nhật template: backgroundUrl null/empty nghĩa là giữ ảnh cũ (không chọn file mới). */
+    private void markActiveTemplatesDeleted(int courseId) {
+        String sql = "UPDATE certificate_template SET is_deleted = 1 WHERE course_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, courseId);
+            statement.executeUpdate();
+        } catch (Exception ignored) {
+        } finally {
+            closeResources();
+        }
+    }
+
+    /**
+     * Cập nhật template:
+     * Giữ nguyên template cũ (đánh dấu is_deleted = 1) để học sinh đã có bằng trước đây không bị ảnh hưởng.
+     * Tạo bản ghi template mới (is_deleted = 0) để chỉ những học sinh hoàn thành sau này nhận template mới.
+     */
     public boolean updateTemplate(int courseId, String backgroundUrl, String title) {
         return updateTemplate(courseId, backgroundUrl, title, true, 140);
     }
 
     public boolean updateTemplate(int courseId, String backgroundUrl, String title, boolean showTitle, int topOffset) {
-        StringBuilder sql = new StringBuilder("UPDATE certificate_template SET title = ?, show_title = ?, top_offset = ?");
-        if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
-            sql.append(", background_url = ?");
-        }
-        sql.append(", updated_date = NOW() WHERE course_id = ?");
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql.toString());
-            int idx = 1;
-            statement.setString(idx++, title);
-            statement.setBoolean(idx++, showTitle);
-            statement.setInt(idx++, topOffset);
-            if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
-                statement.setString(idx++, backgroundUrl);
-            }
-            statement.setInt(idx, courseId);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error updateTemplate with new cols: " + ex.getMessage() + ", trying fallback standard update");
-            return updateTemplateFallback(courseId, backgroundUrl, title);
-        } finally {
-            closeResources();
-        }
-    }
-
-    private boolean updateTemplateFallback(int courseId, String backgroundUrl, String title) {
-        StringBuilder sql = new StringBuilder("UPDATE certificate_template SET title = ?");
-        if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
-            sql.append(", background_url = ?");
-        }
-        sql.append(", updated_date = NOW() WHERE course_id = ?");
-        try {
-            connection = new DBContext().connection;
-            statement = connection.prepareStatement(sql.toString());
-            int idx = 1;
-            statement.setString(idx++, title);
-            if (backgroundUrl != null && !backgroundUrl.isEmpty()) {
-                statement.setString(idx++, backgroundUrl);
-            }
-            statement.setInt(idx, courseId);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error updateTemplateFallback: " + ex.getMessage());
-            lastError = ex.getMessage();
+        CertificateTemplate old = getActiveTemplateByCourseId(courseId);
+        if (old == null) {
             return false;
-        } finally {
-            closeResources();
         }
+        String finalBg = (backgroundUrl != null && !backgroundUrl.isEmpty()) ? backgroundUrl : old.getBackgroundUrl();
+        markActiveTemplatesDeleted(courseId);
+        return insertTemplate(courseId, finalBg, title, old.getCreatedBy(), showTitle, topOffset);
     }
 
+    /**
+     * Xóa mẫu chứng chỉ:
+     * Chỉ đánh dấu is_deleted = 1 trong bảng certificate_template.
+     * KHÔNG XÓA trong bảng certificate để những học sinh đã được cấp trước đó vẫn giữ và hiển thị bằng.
+     */
     public boolean deleteTemplate(int courseId) {
-        String sql = "DELETE FROM certificate_template WHERE course_id = ?";
+        String sql = "UPDATE certificate_template SET is_deleted = 1 WHERE course_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -197,6 +200,29 @@ public class CertificateDAO extends DBContext {
     }
 
     public boolean hasTemplate(int courseId) {
+        return hasActiveTemplate(courseId);
+    }
+
+    public boolean hasActiveTemplate(int courseId) {
+        String sql = "SELECT COUNT(*) FROM certificate_template WHERE course_id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
+        try {
+            connection = new DBContext().connection;
+            statement = connection.prepareStatement(sql);
+            statement.setInt(1, courseId);
+            resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error hasActiveTemplate: " + ex.getMessage());
+        } finally {
+            closeResources();
+        }
+        return false;
+    }
+
+    /** Phân biệt TH1 (chưa từng có template nào) vs TH2 (đã từng có template nhưng hiện đã xóa). */
+    public boolean hasEverHadTemplate(int courseId) {
         String sql = "SELECT COUNT(*) FROM certificate_template WHERE course_id = ?";
         try {
             connection = new DBContext().connection;
@@ -207,7 +233,7 @@ public class CertificateDAO extends DBContext {
                 return resultSet.getInt(1) > 0;
             }
         } catch (SQLException ex) {
-            System.out.println("Error hasTemplate: " + ex.getMessage());
+            System.out.println("Error hasEverHadTemplate: " + ex.getMessage());
         } finally {
             closeResources();
         }
@@ -236,10 +262,7 @@ public class CertificateDAO extends DBContext {
     }
 
     /**
-     * Cấp chứng chỉ cho HV khi đạt 100% progress.
-     * - Không cấp nếu khóa chưa có template / HV đã có chứng chỉ khóa đó.
-     * - Snapshot course_name + student_name + tạo mã duy nhất (thử tối đa 5 lần).
-     * - Trả về mã chứng chỉ nếu thành công, null nếu không.
+     * Lấy mã chứng chỉ nếu HV đã có chứng chỉ của khóa học.
      */
     public String getCertificateCode(int accountId, int courseId) {
         String sql = "SELECT certificate_code FROM certificate WHERE account_id = ? AND course_id = ?";
@@ -261,11 +284,17 @@ public class CertificateDAO extends DBContext {
     }
 
     public String issueCertificate(int accountId, int courseId) {
+        // Chỉ cấp chứng chỉ nếu khóa học ĐÃ CÓ certificate template
+        CertificateTemplate template = getTemplateByCourseId(courseId);
+        if (template == null) {
+            return null;
+        }
+
         if (hasCertificate(accountId, courseId)) {
             return getCertificateCode(accountId, courseId);
         }
-        CertificateTemplate template = getTemplateByCourseId(courseId);
-        Integer templateId = (template != null) ? template.getId() : null;
+
+        int templateId = template.getId();
 
         Course course = new CourseDAO().findById(courseId);
         Account student = new AccountDAO().getAccountById(accountId);
@@ -290,11 +319,7 @@ public class CertificateDAO extends DBContext {
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
-            if (templateId != null) {
-                statement.setInt(1, templateId);
-            } else {
-                statement.setNull(1, java.sql.Types.INTEGER);
-            }
+            statement.setInt(1, templateId);
             statement.setInt(2, accountId);
             statement.setInt(3, courseId);
             statement.setString(4, courseName);
@@ -369,8 +394,13 @@ public class CertificateDAO extends DBContext {
         }
         LearningDAO learningDAO = new LearningDAO();
         java.util.Map<Integer, Integer> progressMap = learningDAO.getCourseProgressMap(accountId);
+        java.util.Set<Integer> templateCourseIds = getTemplateCourseIds();
 
         for (Course c : enrolled) {
+            // Chỉ xét các khóa học ĐÃ CÓ template chứng chỉ do giảng viên tạo
+            if (!templateCourseIds.contains(c.getId())) {
+                continue;
+            }
             Integer p = progressMap.get(c.getId());
             if (p == null) {
                 p = learningDAO.getCourseProgress(accountId, c.getId());
@@ -402,10 +432,10 @@ public class CertificateDAO extends DBContext {
         return map;
     }
 
-    /** Lấy Set tất cả course_id đã có template chứng chỉ. */
+    /** Lấy Set tất cả course_id ĐANG CÓ template chứng chỉ hoạt động (chưa bị xóa). */
     public java.util.Set<Integer> getTemplateCourseIds() {
         java.util.Set<Integer> set = new java.util.HashSet<>();
-        String sql = "SELECT course_id FROM certificate_template";
+        String sql = "SELECT DISTINCT course_id FROM certificate_template WHERE (is_deleted = 0 OR is_deleted IS NULL)";
         try {
             connection = new DBContext().connection;
             statement = connection.prepareStatement(sql);
@@ -421,11 +451,11 @@ public class CertificateDAO extends DBContext {
         return set;
     }
 
-    /** JOIN certificate_template để lấy ảnh nền + tiêu đề cho trang hiển thị. */
+    /** JOIN certificate_template qua template_id để lấy đúng mẫu chứng chỉ lúc cấp cho học viên. */
     public List<Certificate> getCertificatesByAccount(int accountId) {
         List<Certificate> list = new ArrayList<>();
         String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title, ct.show_title AS show_title, ct.top_offset AS top_offset "
-                + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
+                + "FROM certificate c LEFT JOIN certificate_template ct ON c.template_id = ct.id "
                 + "WHERE c.account_id = ? ORDER BY c.issued_date DESC, c.id DESC";
         try {
             connection = new DBContext().connection;
@@ -436,21 +466,7 @@ public class CertificateDAO extends DBContext {
                 list.add(mapCertificate(resultSet));
             }
         } catch (SQLException ex) {
-            System.out.println("Error getCertificatesByAccount primary query: " + ex.getMessage());
-            String fallbackSql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
-                    + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
-                    + "WHERE c.account_id = ? ORDER BY c.issued_date DESC, c.id DESC";
-            try {
-                connection = new DBContext().connection;
-                statement = connection.prepareStatement(fallbackSql);
-                statement.setInt(1, accountId);
-                resultSet = statement.executeQuery();
-                while (resultSet.next()) {
-                    list.add(mapCertificate(resultSet));
-                }
-            } catch (SQLException ex2) {
-                System.out.println("Error getCertificatesByAccount fallback query: " + ex2.getMessage());
-            }
+            System.out.println("Error getCertificatesByAccount: " + ex.getMessage());
         } finally {
             closeResources();
         }
@@ -460,7 +476,7 @@ public class CertificateDAO extends DBContext {
     public Certificate getCertificateByCode(String code) {
         Certificate c = null;
         String sql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title, ct.show_title AS show_title, ct.top_offset AS top_offset "
-                + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
+                + "FROM certificate c LEFT JOIN certificate_template ct ON c.template_id = ct.id "
                 + "WHERE c.certificate_code = ?";
         try {
             connection = new DBContext().connection;
@@ -471,21 +487,7 @@ public class CertificateDAO extends DBContext {
                 c = mapCertificate(resultSet);
             }
         } catch (SQLException ex) {
-            System.out.println("Error getCertificateByCode primary query: " + ex.getMessage());
-            String fallbackSql = "SELECT c.*, ct.background_url AS background_url, ct.title AS template_title "
-                    + "FROM certificate c LEFT JOIN certificate_template ct ON c.course_id = ct.course_id "
-                    + "WHERE c.certificate_code = ?";
-            try {
-                connection = new DBContext().connection;
-                statement = connection.prepareStatement(fallbackSql);
-                statement.setString(1, code);
-                resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    c = mapCertificate(resultSet);
-                }
-            } catch (SQLException ex2) {
-                System.out.println("Error getCertificateByCode fallback query: " + ex2.getMessage());
-            }
+            System.out.println("Error getCertificateByCode: " + ex.getMessage());
         } finally {
             closeResources();
         }

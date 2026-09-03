@@ -71,16 +71,9 @@
                                     </div>
                                     <div class="btn-action-group">
                                         <a href="${pageContext.request.contextPath}/learning?courseId=${item.id}&from=all-courses" class="btn-purple">Start Course</a>
-                                        <c:if test="${item.progress >= 100}">
-                                            <c:set var="certCode" value="${certCodeMap[item.id]}" />
-                                            <c:choose>
-                                                <c:when test="${not empty certCode}">
-                                                    <a href="${pageContext.request.contextPath}/certificate?code=${certCode}" class="btn btn-outline-secondary" title="View Certificate"><i class="fa-solid fa-award text-warning"></i></a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <a href="${pageContext.request.contextPath}/my-certificates" class="btn btn-outline-secondary" title="View Certificate"><i class="fa-solid fa-award text-warning"></i></a>
-                                                </c:otherwise>
-                                            </c:choose>
+                                        <c:set var="certCode" value="${certCodeMap[item.id]}" />
+                                        <c:if test="${item.progress >= 100 and not empty certCode}">
+                                            <a href="${pageContext.request.contextPath}/certificate?code=${certCode}" class="btn btn-outline-secondary" title="View Certificate"><i class="fa-solid fa-award text-warning"></i></a>
                                         </c:if>
                                         <button type="button" class="btn btn-outline-secondary" title="Archive" data-name="${fn:escapeXml(item.name)}" onclick="archiveCourse(${item.id}, this.getAttribute('data-name'))"><i class="fa-solid fa-box-archive"></i></button>
                                         <button type="button" class="btn btn-outline-secondary" data-name="${fn:escapeXml(item.name)}" onclick="openAddToListModal(${item.id}, this.getAttribute('data-name'))">+</button>

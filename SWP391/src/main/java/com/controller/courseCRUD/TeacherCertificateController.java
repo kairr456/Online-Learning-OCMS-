@@ -101,14 +101,20 @@ public class TeacherCertificateController extends HttpServlet {
                         writeJson(response, false, "This course already has a certificate");
                         return;
                     }
+
+                    // Phân biệt TH1 (chưa từng có certificate) vs TH2 (đã từng có certificate nhưng đã xóa)
+                    boolean wasNeverHadTemplate = !dao.hasEverHadTemplate(courseId);
+
                     ok = dao.insertTemplate(courseId, backgroundUrl, title, account.getId(), showTitle, topOffset);
+
+                    if (ok && wasNeverHadTemplate) {
+                        // TH1: Tự động cấp bù chứng chỉ cho tất cả học viên đã đạt 100% tiến độ trước đó
+                        dao.autoIssueCertificatesForCourse(courseId);
+                    }
+                    // TH2: Từng có certificate và đã xóa -> dừng cấp phát bù cho thời gian bị xóa,
+                    // chỉ học sinh hoàn thành sau khi tạo template mới sẽ được nhận chứng chỉ mới.
                 } else {
                     ok = dao.updateTemplate(courseId, backgroundUrl, title, showTitle, topOffset);
-                }
-                
-                if (ok) {
-                    // Tự động cấp bổ sung chứng chỉ cho tất cả học viên đã đạt 100% tiến độ trước đó
-                    dao.autoIssueCertificatesForCourse(courseId);
                 }
             } else if ("delete".equals(action)) {
                 int courseId = Integer.parseInt(request.getParameter("courseId"));
