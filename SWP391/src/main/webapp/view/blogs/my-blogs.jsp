@@ -283,17 +283,12 @@
                                                     <i class="fa-regular fa-eye"></i>
                                                 </a>
 
-                                                <!-- Nút Chỉnh sửa: Chỉ cho sửa khi là Admin hoặc Draft. Không cho sửa khi Bị từ chối (Reject/Rejected), Chờ duyệt (Inactive), hoặc Đã duyệt (Active) -->
+                                                <!-- Nút Chỉnh sửa: Cho phép sửa khi là Admin, Draft, hoặc Bị từ chối (Reject/Rejected). Khóa khi Chờ duyệt (Inactive) hoặc Đã duyệt (Active) -->
                                                 <c:choose>
-                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status == 'Draft'}">
-                                                        <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="Chỉnh sửa bài viết">
+                                                    <c:when test="${sessionScope.account.roleId == 1 or b.status == 'Draft' or b.status == 'Reject' or b.status == 'Rejected'}">
+                                                        <a href="${pageContext.request.contextPath}/blogs-edit?id=${b.id}" class="btn-action btn-action--edit" title="${(b.status == 'Reject' or b.status == 'Rejected') ? 'Chỉnh sửa và gửi lại duyệt' : 'Chỉnh sửa bài viết'}">
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </a>
-                                                    </c:when>
-                                                    <c:when test="${b.status == 'Reject' || b.status == 'Rejected'}">
-                                                        <span class="btn-action" title="Bài viết đã bị Admin từ chối phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">
-                                                            <i class="fa-solid fa-lock"></i>
-                                                        </span>
                                                     </c:when>
                                                     <c:when test="${b.status == 'Inactive'}">
                                                         <span class="btn-action" title="Bài viết đang chờ Admin phê duyệt nên không thể chỉnh sửa" style="opacity: 0.35; cursor: not-allowed; display:inline-flex; align-items:center; justify-content:center;">

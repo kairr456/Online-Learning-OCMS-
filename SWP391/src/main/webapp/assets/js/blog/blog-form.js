@@ -576,6 +576,60 @@ function parseExistingContent(rawHtml) {
     }
 }
 
+/**
+ * 6. Khởi tạo và cập nhật bộ đếm ký tự thời gian thực cho các trường nhập liệu
+ */
+function initBlogFormCharCounters() {
+    var titleEl = document.getElementById('title');
+    var titleCountEl = document.getElementById('titleCharCount');
+    if (titleEl && titleCountEl) {
+        var updateTitle = function() {
+            var len = titleEl.value ? titleEl.value.length : 0;
+            titleCountEl.textContent = len + '/255 ký tự';
+            if (len > 255) {
+                titleCountEl.style.color = '#DC2626';
+            } else {
+                titleCountEl.style.color = '#64748B';
+            }
+        };
+        titleEl.addEventListener('input', updateTitle);
+        updateTitle();
+    }
+
+    var briefEl = document.getElementById('briefInfo');
+    var briefCountEl = document.getElementById('briefCharCount');
+    if (briefEl && briefCountEl) {
+        var updateBrief = function() {
+            var len = briefEl.value ? briefEl.value.length : 0;
+            briefCountEl.textContent = len + '/500 ký tự';
+            if (len > 500) {
+                briefCountEl.style.color = '#DC2626';
+            } else {
+                briefCountEl.style.color = '#64748B';
+            }
+        };
+        briefEl.addEventListener('input', updateBrief);
+        updateBrief();
+    }
+
+    var contentEl = document.getElementById('mainContent');
+    var contentCountEl = document.getElementById('contentCharCount');
+    if (contentEl && contentCountEl) {
+        var updateContent = function() {
+            var len = contentEl.value ? contentEl.value.length : 0;
+            if (len < 10) {
+                contentCountEl.textContent = len + ' ký tự (tối thiểu 10 ký tự)';
+                contentCountEl.style.color = len > 0 ? '#D97706' : '#64748B';
+            } else {
+                contentCountEl.textContent = len + ' ký tự (hợp lệ)';
+                contentCountEl.style.color = '#16A34A';
+            }
+        };
+        contentEl.addEventListener('input', updateContent);
+        setTimeout(updateContent, 120);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var existingInput = document.getElementById('existingThumbnail');
     var thumbInput = document.getElementById('thumbnail');
@@ -589,4 +643,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var initialContent = finalContentInput.value;
         parseExistingContent(initialContent);
     }
+
+    initBlogFormCharCounters();
 });

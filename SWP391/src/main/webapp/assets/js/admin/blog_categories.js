@@ -9,6 +9,26 @@
     const form = document.getElementById('categoryForm');
     const modalError = document.getElementById('modalError');
 
+    function updateCounters() {
+        const fName = document.getElementById('f_name');
+        const nameCounter = document.getElementById('catNameCharCount');
+        if (fName && nameCounter) {
+            const rawVal = fName.value || '';
+            const len = rawVal.trim().length === 0 ? 0 : rawVal.length;
+            nameCounter.textContent = len + '/100 ký tự';
+            nameCounter.style.color = len > 100 ? '#DC2626' : '#64748B';
+        }
+
+        const fDesc = document.getElementById('f_description');
+        const descCounter = document.getElementById('catDescCharCount');
+        if (fDesc && descCounter) {
+            const rawVal = fDesc.value || '';
+            const len = rawVal.trim().length === 0 ? 0 : rawVal.length;
+            descCounter.textContent = len + '/500 ký tự';
+            descCounter.style.color = len > 500 ? '#DC2626' : '#64748B';
+        }
+    }
+
     function openAdd() {
         if (!form || !modal) return;
         form.reset();
@@ -22,6 +42,7 @@
         if (modalTitle) modalTitle.textContent = 'Add Blog Category';
         if (modalError) modalError.textContent = '';
 
+        updateCounters();
         modal.style.display = 'flex';
         if (fName) setTimeout(() => fName.focus(), 50);
     }
@@ -44,6 +65,7 @@
         if (modalTitle) modalTitle.textContent = 'Edit Blog Category';
         if (modalError) modalError.textContent = '';
 
+        updateCounters();
         modal.style.display = 'flex';
         if (fName) setTimeout(() => fName.focus(), 50);
     }
@@ -138,6 +160,14 @@
                 });
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const fName = document.getElementById('f_name');
+        const fDesc = document.getElementById('f_description');
+
+        if (fName) fName.addEventListener('input', updateCounters);
+        if (fDesc) fDesc.addEventListener('input', updateCounters);
+    });
 
     // Gắn vào window scope để các hàm onclick/data attributes hoạt động
     window.openAdd = openAdd;

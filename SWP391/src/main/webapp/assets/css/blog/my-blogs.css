@@ -202,6 +202,11 @@ body {
     font-size: 14.5px;
     font-weight: 500;
     animation: fadeIn 0.3s ease;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 .alert-box--success {
     background: var(--success-bg);

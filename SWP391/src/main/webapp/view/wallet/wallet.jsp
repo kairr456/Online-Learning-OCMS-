@@ -622,16 +622,27 @@
                             <label for="bankCodeSelect" class="form-label fw-bold">Ngân hàng nhận tiền <span class="text-danger">*</span></label>
                             <select name="bankCode" id="bankCodeSelect" class="form-select form-select-lg" required onchange="handleBankSelect(this)">
                                 <option value="" disabled <c:if test="${empty bankAccount}">selected</c:if>>-- Chọn ngân hàng --</option>
-                                <option value="MB" data-name="Ngân hàng TMCP Quân Đội (MBBank)" <c:if test="${bankAccount.bankCode == 'MB'}">selected</c:if>>MBBank - Ngân hàng Quân Đội</option>
-                                <option value="VCB" data-name="Ngân hàng Ngoại Thương Việt Nam (Vietcombank)" <c:if test="${bankAccount.bankCode == 'VCB'}">selected</c:if>>Vietcombank - Ngân hàng Ngoại Thương VN</option>
-                                <option value="TCB" data-name="Ngân hàng TMCP Kỹ Thương (Techcombank)" <c:if test="${bankAccount.bankCode == 'TCB'}">selected</c:if>>Techcombank - Ngân hàng Kỹ Thương</option>
-                                <option value="ACB" data-name="Ngân hàng TMCP Á Châu (ACB)" <c:if test="${bankAccount.bankCode == 'ACB'}">selected</c:if>>ACB - Ngân hàng Á Châu</option>
-                                <option value="VPB" data-name="Ngân hàng TMCP Việt Nam Thịnh Vượng (VPBank)" <c:if test="${bankAccount.bankCode == 'VPB'}">selected</c:if>>VPBank - VN Thịnh Vượng</option>
-                                <option value="BIDV" data-name="Ngân hàng Đầu tư và Phát triển VN (BIDV)" <c:if test="${bankAccount.bankCode == 'BIDV'}">selected</c:if>>BIDV - Đầu tư & Phát triển VN</option>
-                                <option value="ICB" data-name="Ngân hàng Công Thương Việt Nam (VietinBank)" <c:if test="${bankAccount.bankCode == 'ICB'}">selected</c:if>>VietinBank - Ngân hàng Công Thương VN</option>
-                                <option value="TPB" data-name="Ngân hàng TMCP Tiên Phong (TPBank)" <c:if test="${bankAccount.bankCode == 'TPB'}">selected</c:if>>TPBank - Tiên Phong Bank</option>
-                                <option value="STB" data-name="Ngân hàng Sài Gòn Thương Tín (Sacombank)" <c:if test="${bankAccount.bankCode == 'STB'}">selected</c:if>>Sacombank - Sài Gòn Thương Tín</option>
-                                <option value="VIB" data-name="Ngân hàng Quốc Tế (VIB)" <c:if test="${bankAccount.bankCode == 'VIB'}">selected</c:if>>VIB - Ngân hàng Quốc Tế</option>
+                                <c:choose>
+                                    <c:when test="${not empty supportedBanks}">
+                                        <c:forEach var="sb" items="${supportedBanks}">
+                                            <option value="${sb.bankCode}" data-name="${sb.bankName}" <c:if test="${bankAccount.bankCode == sb.bankCode}">selected</c:if>>
+                                                <c:out value="${sb.shortName}" />
+                                            </option>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <option value="MB" data-name="Ngân hàng TMCP Quân Đội (MBBank)" <c:if test="${bankAccount.bankCode == 'MB'}">selected</c:if>>MBBank - Ngân hàng Quân Đội</option>
+                                        <option value="VCB" data-name="Ngân hàng Ngoại Thương Việt Nam (Vietcombank)" <c:if test="${bankAccount.bankCode == 'VCB'}">selected</c:if>>Vietcombank - Ngân hàng Ngoại Thương VN</option>
+                                        <option value="TCB" data-name="Ngân hàng TMCP Kỹ Thương (Techcombank)" <c:if test="${bankAccount.bankCode == 'TCB'}">selected</c:if>>Techcombank - Ngân hàng Kỹ Thương</option>
+                                        <option value="ACB" data-name="Ngân hàng TMCP Á Châu (ACB)" <c:if test="${bankAccount.bankCode == 'ACB'}">selected</c:if>>ACB - Ngân hàng Á Châu</option>
+                                        <option value="VPB" data-name="Ngân hàng TMCP Việt Nam Thịnh Vượng (VPBank)" <c:if test="${bankAccount.bankCode == 'VPB'}">selected</c:if>>VPBank - VN Thịnh Vượng</option>
+                                        <option value="BIDV" data-name="Ngân hàng Đầu tư và Phát triển VN (BIDV)" <c:if test="${bankAccount.bankCode == 'BIDV'}">selected</c:if>>BIDV - Đầu tư & Phát triển VN</option>
+                                        <option value="ICB" data-name="Ngân hàng Công Thương Việt Nam (VietinBank)" <c:if test="${bankAccount.bankCode == 'ICB'}">selected</c:if>>VietinBank - Ngân hàng Công Thương VN</option>
+                                        <option value="TPB" data-name="Ngân hàng TMCP Tiên Phong (TPBank)" <c:if test="${bankAccount.bankCode == 'TPB'}">selected</c:if>>TPBank - Tiên Phong Bank</option>
+                                        <option value="STB" data-name="Ngân hàng Sài Gòn Thương Tín (Sacombank)" <c:if test="${bankAccount.bankCode == 'STB'}">selected</c:if>>Sacombank - Sài Gòn Thương Tín</option>
+                                        <option value="VIB" data-name="Ngân hàng Quốc Tế (VIB)" <c:if test="${bankAccount.bankCode == 'VIB'}">selected</c:if>>VIB - Ngân hàng Quốc Tế</option>
+                                    </c:otherwise>
+                                </c:choose>
                             </select>
                             <input type="hidden" name="bankName" id="bankNameHidden" value="${bankAccount.bankName != null ? bankAccount.bankName : 'Ngân hàng TMCP Quân Đội (MBBank)'}">
                         </div>

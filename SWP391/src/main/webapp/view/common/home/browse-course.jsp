@@ -138,7 +138,7 @@
                                                 </button>
                                                 <button type="button" class="enroll-btn" style="border: none; cursor: pointer;"
                                                         data-course-id="${course.id}"
-                                                        data-price="<fmt:formatNumber value='${course.price}' pattern='#0.00' groupingUsed='false'/>"
+                                                        data-price="<fmt:formatNumber value='${course.price}' pattern='#0' groupingUsed='false'/>"
                                                         onclick="submitAddToCart(this);">ENROLL NOW</button>
                                             </div>
                                             <span class="course-price">

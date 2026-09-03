@@ -289,16 +289,16 @@
             <div style="margin-bottom:18px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                     <label for="rejectReasonInput" style="display:block; font-size:13.5px; font-weight:600; color:#1E293B; margin:0;">
-                        Lý do từ chối <span style="color:#DC2626;">*</span>
+                        Lý do từ chối (Tối đa 300 ký tự) <span style="color:#DC2626;">*</span>
                     </label>
-                    <span id="rejectReasonCount" style="font-size:12px; color:#64748B; font-weight:500;">0/300 ký tự</span>
+                    <span id="rejectReasonCount" style="font-size:12px; color:#64748B; font-weight:600;">0/300 ký tự</span>
                 </div>
-                <textarea id="rejectReasonInput" class="reject-reason-textarea" rows="4" maxlength="1000" 
+                <textarea id="rejectReasonInput" class="reject-reason-textarea" rows="4" maxlength="300" 
                           style="width: 100% !important; min-height: 120px; box-sizing: border-box; resize: vertical; display: block;"
-                          placeholder="Nhập lý do từ chối bài viết để tác giả có thể chỉnh sửa lại (ví dụ: Nội dung chưa đạt chuẩn, hình ảnh lỗi, thiếu nguồn tham khảo...)" 
+                          placeholder="Nhập lý do từ chối bài viết (tối đa 300 ký tự để tác giả chỉnh sửa lại)..." 
                           oninput="validateBlogRejectReason(this)"></textarea>
                 <div id="blogRejectReasonError" class="blog-reject-error-msg"></div>
-                <div style="font-size:12px; color:#64748B; margin-top:4px;">Lý do này sẽ hiển thị trực tiếp cho tác giả trên trang quản lý bài viết của họ.</div>
+                <div style="font-size:12px; color:#64748B; margin-top:4px;">Được phép nhập tối đa 300 ký tự. Lý do này sẽ hiển thị trực tiếp cho tác giả trên trang quản lý và chỉnh sửa bài viết.</div>
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:10px;">

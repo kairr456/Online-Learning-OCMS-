@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/payouts.css?v=9">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_categories.css?v=6">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/blog_approval.css?v=8">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin_css/banks.css?v=1">
 
     <!-- Chart.js (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>

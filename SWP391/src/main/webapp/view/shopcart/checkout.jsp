@@ -62,17 +62,7 @@
                             <span>1. Thông tin thanh toán (Billing Address)</span>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Quốc gia / Khu vực <span class="text-danger">*</span></label>
-                            <select class="form-select" name="country" id="country">
-                                <option value="Vietnam" ${paramCountry == 'Vietnam' || empty paramCountry ? 'selected' : ''}>🇻🇳 Vietnam</option>
-                                <option value="United States" ${paramCountry == 'United States' ? 'selected' : ''}>🇺🇸 United States</option>
-                                <option value="Japan" ${paramCountry == 'Japan' ? 'selected' : ''}>🇯🇵 Japan</option>
-                                <option value="Singapore" ${paramCountry == 'Singapore' ? 'selected' : ''}>🇸🇬 Singapore</option>
-                                <option value="Australia" ${paramCountry == 'Australia' ? 'selected' : ''}>🇦🇺 Australia</option>
-                            </select>
-                            <div class="field-error" id="countryError"></div>
-                        </div>
+                        <input type="hidden" name="country" id="country" value="Vietnam">
 
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -218,7 +208,7 @@
                                         <div class="bank-info-row">
                                             <span class="bank-info-label">Số tiền:</span>
                                             <span class="bank-info-value text-danger" style="font-size:16px;">
-                                                <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫
+                                                <fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫
                                             </span>
                                         </div>
                                         <div class="bank-info-row">
@@ -258,7 +248,7 @@
                                          class="course-thumb-mini" alt="${not empty cObj.name ? cObj.name : 'Course'}">
                                     <div class="course-info-mini">
                                         <div class="course-name-mini" title="${not empty cObj.name ? cObj.name : 'Khóa học'}"><c:out value="${not empty cObj.name ? cObj.name : ('Khóa học #' + item.courseId)}" /></div>
-                                        <div class="course-price-mini"><fmt:formatNumber value="${item.price}" pattern="#,##0.00"/>₫</div>
+                                        <div class="course-price-mini"><fmt:formatNumber value="${item.price}" pattern="#,##0"/>₫</div>
                                     </div>
                                 </div>
                             </c:forEach>
@@ -269,7 +259,7 @@
                     <div class="summary-calc-total" style="border-top: none; margin-top: 0; padding-top: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: 18px; font-weight: 700; color: #1e293b; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                         <span>Total (${itemCount} course<c:if test="${itemCount > 1}">s</c:if>):</span>
                         <span class="total-amount-display" style="font-size: 24px; font-weight: 800; color: #1e293b;">
-                            <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫
+                            <fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫
                         </span>
                     </div>
 
@@ -278,12 +268,12 @@
                     </p>
 
                     <!-- Hidden input for total text used in JS -->
-                    <input type="hidden" id="orderTotalHiddenDisplay" value="<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫">
+                    <input type="hidden" id="orderTotalHiddenDisplay" value="<fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫">
 
                     <!-- Pay Submit Button (Main) -->
                     <button type="submit" form="checkoutForm" class="btn-pay-submit" id="btnSubmitPayment" style="background: #6f2bd9; padding: 16px; border-radius: 8px; font-size: 18px; font-weight: 700; box-shadow: none;">
                         <i class="fa-solid fa-lock me-2"></i>
-                        <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/>₫</span>
+                        <span>Pay <fmt:formatNumber value="${cartTotal}" pattern="#,##0"/>₫</span>
                     </button>
                 </div>
             </div>

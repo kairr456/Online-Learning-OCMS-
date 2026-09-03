@@ -71,7 +71,7 @@
                         <td>${course.id}</td>
                         <td>${course.name}</td>
                         <td>${course.rating} <i class="fa-solid fa-star" style="color:#F59E0B;"></i></td>
-                        <td><fmt:formatNumber value="${course.price}" minFractionDigits="0" maxFractionDigits="2"/>₫</td>
+                        <td><fmt:formatNumber value="${course.price}" pattern="#,##0"/>₫</td>
 
                         <!-- Badge trạng thái: active xanh / inactive đỏ / draft xám -->
                         <td>

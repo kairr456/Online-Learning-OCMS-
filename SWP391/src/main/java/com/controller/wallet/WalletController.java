@@ -7,9 +7,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import com.DAO.SupportedBankDAO;
 import com.DAO.WalletDAO;
 import com.entity.Account;
 import com.entity.PayoutRequest;
+import com.entity.SupportedBank;
 import com.entity.TeacherBankAccount;
 import com.entity.TeacherWallet;
 import com.entity.WalletTransaction;
@@ -82,9 +84,13 @@ public class WalletController extends HttpServlet {
             session.removeAttribute("messageType");
         }
 
+        // 7. Lấy danh sách ngân hàng nhận tiền đang hoạt động (do Admin quản lý)
+        List<SupportedBank> supportedBanks = new SupportedBankDAO().getActiveBanks();
+
         // Đẩy dữ liệu sang JSP
         request.setAttribute("wallet", wallet);
         request.setAttribute("bankAccount", bankAccount);
+        request.setAttribute("supportedBanks", supportedBanks);
         request.setAttribute("pendingAmount", pendingAmount);
         request.setAttribute("transactions", transactions);
         request.setAttribute("payoutRequests", payoutRequests);

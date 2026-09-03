@@ -123,6 +123,9 @@ public class CheckoutController extends HttpServlet {
         String email = request.getParameter("email");
         String address = request.getParameter("address");
         String country = request.getParameter("country");
+        if (country == null || country.trim().isEmpty()) {
+            country = "Vietnam";
+        }
         String paymentMethod = request.getParameter("paymentMethod");
         String cardNumber = request.getParameter("cardNumber");
         String expiry = request.getParameter("expiry");

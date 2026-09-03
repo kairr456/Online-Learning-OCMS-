@@ -74,6 +74,12 @@ co
             <span class="nav-label">Payouts</span>
         </a>
 
+        <a href="${pageContext.request.contextPath}/admin/banks"
+           class="${contentPage == 'banks.jsp' ? 'active' : ''}">
+            <span class="nav-icon"><i class="fa-solid fa-building-columns"></i></span>
+            <span class="nav-label">Banks</span>
+        </a>
+
     </nav>
 
     <!-- Sidebar footer -->
