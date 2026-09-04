@@ -45,7 +45,10 @@
                 </div>
             </div>
 
-            <form id="quizForm">
+            <!-- Container cho 1 dòng thông báo chưa khoanh xong (thay thế popup) -->
+            <div id="quizAlertContainer" class="mt-3"></div>
+
+            <form id="quizForm" novalidate>
                 <input type="hidden" name="quizId" value="${lessonQuiz.id}">
                 <input type="hidden" name="lessonId" value="${lesson.id}">
                 <input type="hidden" name="servedQuestionIds" value="${servedQuestionIds}">
@@ -64,7 +67,7 @@
                                             <input type="checkbox" name="q_${question.id}" value="${answer.id}">
                                         </c:when>
                                         <c:otherwise>
-                                            <input type="radio" name="q_${question.id}" value="${answer.id}" required>
+                                            <input type="radio" name="q_${question.id}" value="${answer.id}">
                                         </c:otherwise>
                                     </c:choose>
                                     <span class="answer-label">${answer.answer_text}</span>

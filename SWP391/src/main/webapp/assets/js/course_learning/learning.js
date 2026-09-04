@@ -286,15 +286,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // 1. Tab switch detection & window blur: Submit immediately!
+        // Tab switch detection (hidden tab)
         document.addEventListener('visibilitychange', function () {
             if (document.hidden && !isQuizSubmitted) {
-                handleTabSwitch();
-            }
-        });
-
-        window.addEventListener('blur', function () {
-            if (!isQuizSubmitted) {
                 handleTabSwitch();
             }
         });
@@ -375,7 +369,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (unansweredCards.length > 0) {
                     e.preventDefault();
                     e.stopPropagation();
-                    alert('⚠️ Vui lòng hoàn thành tất cả các câu hỏi trước khi nộp bài!');
                     unansweredCards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                     return false;
                 }

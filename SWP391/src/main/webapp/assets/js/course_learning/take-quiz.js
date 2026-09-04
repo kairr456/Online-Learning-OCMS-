@@ -18,7 +18,6 @@ if (durationMinutes > 0) {
 
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
-            alert("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
             const btn = document.getElementById('btnSubmitQuiz');
             if (btn) btn.disabled = true;
             document.getElementById('quizForm').dispatchEvent(new Event('submit'));
@@ -93,15 +92,9 @@ if (quizFormElem) {
         autoSubmitAndNavigate(CTX + '/courses');
     });
 
-    // Tab switch & window blur detection: Submit immediately!
+    // Tab switch detection (hidden tab)
     document.addEventListener('visibilitychange', function() {
         if (document.hidden && !isQuizSubmitted) {
-            autoSubmitAndNavigate(null);
-        }
-    });
-
-    window.addEventListener('blur', function() {
-        if (!isQuizSubmitted) {
             autoSubmitAndNavigate(null);
         }
     });
@@ -113,8 +106,79 @@ if (quizFormElem) {
         performBeaconSubmit();
     });
 
+    // Clear red highlight & badge dynamically when student selects an answer
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.question-card input[type="radio"], .question-card input[type="checkbox"]')) {
+            const card = e.target.closest('.question-card');
+            if (card) {
+                card.style.border = '';
+                const badge = card.querySelector('.unanswered-badge');
+                if (badge) badge.remove();
+
+                const remaining = document.querySelectorAll('.unanswered-badge');
+                if (remaining.length === 0) {
+                    const alertContainer = document.getElementById('quizAlertContainer');
+                    if (alertContainer) alertContainer.innerHTML = '';
+                }
+            }
+        }
+    });
+
     quizFormElem.addEventListener('submit', function(e) {
         e.preventDefault();
+
+        // 1. Clear previous inline alert & question highlights
+        const alertContainer = document.getElementById('quizAlertContainer');
+        if (alertContainer) alertContainer.innerHTML = '';
+        document.querySelectorAll('.unanswered-badge').forEach(b => b.remove());
+        document.querySelectorAll('.question-card').forEach(card => {
+            card.style.border = '';
+        });
+
+        // 2. Check unanswered questions
+        const questionCards = document.querySelectorAll('.question-card');
+        let unansweredCards = [];
+
+        questionCards.forEach(card => {
+            const inputs = card.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+            let isAnswered = false;
+            inputs.forEach(inp => {
+                if (inp.checked) isAnswered = true;
+            });
+
+            if (!isAnswered) {
+                unansweredCards.push(card);
+                card.style.border = '2px solid #dc3545';
+                card.style.borderRadius = '10px';
+                card.style.transition = 'all 0.3s ease';
+
+                const titleElem = card.querySelector('.question-title');
+                if (titleElem && !titleElem.querySelector('.unanswered-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-danger ms-2 unanswered-badge';
+                    badge.style.fontSize = '0.75rem';
+                    badge.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Chưa làm';
+                    titleElem.appendChild(badge);
+                }
+            }
+        });
+
+        // 3. If there are unanswered questions and time is NOT expired:
+        // Show 1-line inline alert notification (NO POPUP!) & scroll to first unanswered question
+        const isTimeExpired = (typeof timeRemaining !== 'undefined' && timeRemaining <= 0);
+        if (unansweredCards.length > 0 && !isTimeExpired) {
+            if (alertContainer) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center shadow-sm rounded-3 mb-4" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+                        <div class="fw-bold">Bạn chưa hoàn thành tất cả các câu hỏi (${unansweredCards.length} câu chưa làm). Vui lòng hoàn thành câu hỏi được khoanh đỏ trước khi nộp bài!</div>
+                    </div>
+                `;
+            }
+            unansweredCards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return; // Stop form submission, no popups, no navigation!
+        }
+
         isQuizSubmitted = true;
         if (timerInterval) clearInterval(timerInterval);
 
@@ -153,7 +217,9 @@ if (quizFormElem) {
                 resultModal.show();
             } else {
                 isQuizSubmitted = false;
-                alert('Error submitting quiz: ' + data.message);
+                if (alertContainer) {
+                    alertContainer.innerHTML = `<div class="alert alert-danger mb-4">Error submitting quiz: ${data.message}</div>`;
+                }
                 if (btn) {
                     btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
                     btn.disabled = false;
@@ -163,7 +229,9 @@ if (quizFormElem) {
         .catch(err => {
             isQuizSubmitted = false;
             console.error(err);
-            alert('An error occurred. Please try again.');
+            if (alertContainer) {
+                alertContainer.innerHTML = `<div class="alert alert-danger mb-4">An error occurred. Please try again.</div>`;
+            }
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
                 btn.disabled = false;
