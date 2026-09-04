@@ -26,56 +26,148 @@ if (durationMinutes > 0) {
     }, 1000);
 }
 
-document.getElementById('quizForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+const quizFormElem = document.getElementById('quizForm');
+if (quizFormElem) {
+    let isQuizSubmitted = false;
 
-    const btn = document.getElementById('btnSubmitQuiz');
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
-        btn.disabled = true;
+    function performBeaconSubmit() {
+        if (isQuizSubmitted) return;
+        isQuizSubmitted = true;
+        if (timerInterval) clearInterval(timerInterval);
+
+        const formData = new FormData(quizFormElem);
+        const params = new URLSearchParams(formData);
+
+        if (navigator.sendBeacon) {
+            const blob = new Blob([params.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' });
+            navigator.sendBeacon(CTX + '/take-quiz', blob);
+        } else {
+            fetch(CTX + '/take-quiz', {
+                method: 'POST',
+                body: params,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                keepalive: true
+            });
+        }
     }
 
-    const formData = new FormData(this);
-    const params = new URLSearchParams(formData);
+    function autoSubmitAndNavigate(targetUrl) {
+        if (isQuizSubmitted) return;
+        isQuizSubmitted = true;
+        if (timerInterval) clearInterval(timerInterval);
 
-    fetch(CTX + '/take-quiz', {
-        method: 'POST',
-        body: params,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+        const formData = new FormData(quizFormElem);
+        const params = new URLSearchParams(formData);
+
+        fetch(CTX + '/take-quiz', {
+            method: 'POST',
+            body: params,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            keepalive: true
+        })
+        .finally(() => {
+            if (targetUrl) window.location.href = targetUrl;
+            else window.history.back();
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (isQuizSubmitted) return;
+        const link = e.target.closest('a');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (!href || href === '#' || href.startsWith('javascript:')) return;
+        if (link.target === '_blank') return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        autoSubmitAndNavigate(link.href);
+    }, true);
+
+    try {
+        history.pushState({ inQuiz: true }, document.title, window.location.href);
+    } catch (e) {}
+
+    window.addEventListener('popstate', function() {
+        if (isQuizSubmitted) return;
+        autoSubmitAndNavigate(CTX + '/courses');
+    });
+
+    // Tab switch & window blur detection: Submit immediately!
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && !isQuizSubmitted) {
+            autoSubmitAndNavigate(null);
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.success) {
-            document.getElementById('scoreDisplay').innerText = data.scorePercent + '%';
-            document.getElementById('correctCountDisplay').innerText = 'You answered ' + data.totalCorrect + ' / ' + data.totalQuestions + ' questions correctly.';
+    });
 
-            const iconDiv = document.getElementById('resultIcon');
-            if(data.passed) {
-                iconDiv.innerHTML = '<i class="fas fa-check-circle text-success result-icon"></i>';
-                document.getElementById('resultTitle').innerText = "Congratulations! You Passed.";
-            } else {
-                iconDiv.innerHTML = '<i class="fas fa-times-circle text-danger result-icon"></i>';
-                document.getElementById('resultTitle').innerText = "Keep Trying! You Failed.";
+    window.addEventListener('blur', function() {
+        if (!isQuizSubmitted) {
+            autoSubmitAndNavigate(null);
+        }
+    });
+
+    window.addEventListener('pagehide', function() {
+        performBeaconSubmit();
+    });
+    window.addEventListener('beforeunload', function() {
+        performBeaconSubmit();
+    });
+
+    quizFormElem.addEventListener('submit', function(e) {
+        e.preventDefault();
+        isQuizSubmitted = true;
+        if (timerInterval) clearInterval(timerInterval);
+
+        const btn = document.getElementById('btnSubmitQuiz');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+            btn.disabled = true;
+        }
+
+        const formData = new FormData(this);
+        const params = new URLSearchParams(formData);
+
+        fetch(CTX + '/take-quiz', {
+            method: 'POST',
+            body: params,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                document.getElementById('scoreDisplay').innerText = data.scorePercent + '%';
+                document.getElementById('correctCountDisplay').innerText = 'You answered ' + data.totalCorrect + ' / ' + data.totalQuestions + ' questions correctly.';
 
-            var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
-            resultModal.show();
-        } else {
-            alert('Error submitting quiz: ' + data.message);
+                const iconDiv = document.getElementById('resultIcon');
+                if(data.passed) {
+                    iconDiv.innerHTML = '<i class="fas fa-check-circle text-success result-icon"></i>';
+                    document.getElementById('resultTitle').innerText = "Congratulations! You Passed.";
+                } else {
+                    iconDiv.innerHTML = '<i class="fas fa-times-circle text-danger result-icon"></i>';
+                    document.getElementById('resultTitle').innerText = "Keep Trying! You Failed.";
+                }
+
+                var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                resultModal.show();
+            } else {
+                isQuizSubmitted = false;
+                alert('Error submitting quiz: ' + data.message);
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
+                    btn.disabled = false;
+                }
+            }
+        })
+        .catch(err => {
+            isQuizSubmitted = false;
+            console.error(err);
+            alert('An error occurred. Please try again.');
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
                 btn.disabled = false;
             }
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('An error occurred. Please try again.');
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Quiz';
-            btn.disabled = false;
-        }
+        });
     });
-});
+}

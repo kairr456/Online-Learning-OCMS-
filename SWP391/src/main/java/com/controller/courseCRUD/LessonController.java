@@ -335,6 +335,7 @@ public class LessonController extends HttpServlet {
                         String qNumStr = request.getParameter("lessonQuizNum_" + s + "_" + l);
                         String qTimeStr = request.getParameter("lessonQuizTime_" + s + "_" + l);
                         String qRetakeStr = request.getParameter("lessonQuizRetake_" + s + "_" + l);
+                        String qRevealStr = request.getParameter("lessonQuizReveal_" + s + "_" + l);
                         String qPassStr = request.getParameter("lessonQuizPass_" + s + "_" + l);
                         
                         if (!isDraft) {
@@ -345,10 +346,15 @@ public class LessonController extends HttpServlet {
                                 int qNum = Integer.parseInt(qNumStr.trim());
                                 int qTime = Integer.parseInt(qTimeStr.trim());
                                 int qRetake = Integer.parseInt(qRetakeStr.trim());
+                                int qReveal = (qRevealStr != null && !qRevealStr.trim().isEmpty()) ? Integer.parseInt(qRevealStr.trim()) : 1;
                                 int qPass = Integer.parseInt(qPassStr.trim());
                                 if (qNum <= 0) throw new IllegalArgumentException("Số câu hỏi xuất ra phải lớn hơn 0 trong bài Quiz '" + lesTitle + "'!");
                                 if (qTime <= 0) throw new IllegalArgumentException("Thời gian làm bài phải lớn hơn 0 phút trong bài Quiz '" + lesTitle + "'!");
-                                if (qRetake < 1) throw new IllegalArgumentException("Số lần làm lại tối đa phải từ 1 trở lên trong bài Quiz '" + lesTitle + "'!");
+                                if (qRetake < 0 && qRetake != -1) throw new IllegalArgumentException("Số lần làm lại tối đa không hợp lệ trong bài Quiz '" + lesTitle + "'!");
+                                if (qReveal < 1) throw new IllegalArgumentException("Số lần tới hiện điểm phải từ 1 trở lên trong bài Quiz '" + lesTitle + "'!");
+                                if (qRetake != -1 && qReveal > qRetake) {
+                                    throw new IllegalArgumentException("Số lần tới hiện điểm (" + qReveal + ") phải nhỏ hơn hoặc bằng số lần làm lại tối đa (" + qRetake + ") trong bài Quiz '" + lesTitle + "'!");
+                                }
                                 if (qPass < 1 || qPass > 100) throw new IllegalArgumentException("Điểm Pass phải từ 1 đến 100% trong bài Quiz '" + lesTitle + "'!");
                             } catch (Exception e) {
                                 if (e instanceof IllegalArgumentException) throw e;
@@ -587,6 +593,7 @@ public class LessonController extends HttpServlet {
                                     String qNumStr = request.getParameter("lessonQuizNum_" + s + "_" + l);
                                     String qTimeStr = request.getParameter("lessonQuizTime_" + s + "_" + l);
                                     String qRetakeStr = request.getParameter("lessonQuizRetake_" + s + "_" + l);
+                                    String qRevealStr = request.getParameter("lessonQuizReveal_" + s + "_" + l);
                                     String qPassStr = request.getParameter("lessonQuizPass_" + s + "_" + l);
                                     
                                     if (qGroupStr != null && !qGroupStr.isEmpty()) {
@@ -595,13 +602,15 @@ public class LessonController extends HttpServlet {
                                             int qNum = Integer.parseInt(qNumStr);
                                             int qTime = Integer.parseInt(qTimeStr);
                                             int qRetake = Integer.parseInt(qRetakeStr);
+                                            int qAttempts = (qRetake != -1) ? qRetake : 999;
+                                            int qReveal = (qRevealStr != null && !qRevealStr.trim().isEmpty()) ? Integer.parseInt(qRevealStr.trim()) : 1;
                                             int qPass = Integer.parseInt(qPassStr);
-                                            lessonDAO.upsertLessonQuiz(lessonId, qNum, qTime, qRetake, qPass, qGroup);
+                                            lessonDAO.upsertLessonQuiz(lessonId, qNum, qTime, qAttempts, qRetake, qReveal, qPass, qGroup);
                                         } catch (NumberFormatException e) {
                                             e.printStackTrace();
                                         }
                                     }
-                        }
+                                }
                             }
                         }
                     }

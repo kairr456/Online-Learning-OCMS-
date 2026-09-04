@@ -241,7 +241,7 @@
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                                     <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-history me-2 text-primary"></i> Lịch Sử Làm Bài</h5>
                                                     <c:if test="${not canViewHistory}">
-                                                        <small class="text-muted"><i class="fa-solid fa-circle-info me-1 text-warning"></i> Chi tiết đáp án sẽ mở khi làm hết ${maxRetakes} lượt.</small>
+                                                        <small class="text-muted"><i class="fa-solid fa-circle-info me-1 text-warning"></i> Chi tiết đáp án sẽ mở khi bạn đạt ${revealScoreAttempt} lượt làm bài.</small>
                                                     </c:if>
                                                 </div>
 

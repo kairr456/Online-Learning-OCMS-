@@ -105,8 +105,10 @@
                             <i class="fas fa-redo me-2"></i> Retry
                         </button>
                         
+                        <c:set var="maxAttempts" value="${lessonQuiz.max_attempts != null ? lessonQuiz.max_attempts : 10}" />
+                        <c:set var="revealScoreAttempt" value="${lessonQuiz.reveal_score_attempt != null ? lessonQuiz.reveal_score_attempt : 1}" />
                         <c:set var="isLastAttempt" value="${(maxRetakes != null && maxRetakes != -1) && (userAttempts + 1 >= maxRetakes)}" />
-                        <c:set var="canViewHistory" value="${maxRetakes == -1 || maxRetakes >= 10 || isLastAttempt}" />
+                        <c:set var="canViewHistory" value="${maxRetakes == -1 || userAttempts + 1 >= revealScoreAttempt || isLastAttempt}" />
                         
                         <c:choose>
                             <c:when test="${canViewHistory}">

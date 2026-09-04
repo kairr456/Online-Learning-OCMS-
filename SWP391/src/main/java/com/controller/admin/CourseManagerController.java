@@ -45,6 +45,13 @@ public class CourseManagerController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        com.entity.Account account = (session != null) ? (com.entity.Account) session.getAttribute("account") : null;
+        if (account == null || account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         // Xử lý action=delete trước khi render danh sách
         String action = request.getParameter("action");
         if ("delete".equals(action)) {
@@ -144,6 +151,14 @@ public class CourseManagerController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        com.entity.Account account = (session != null) ? (com.entity.Account) session.getAttribute("account") : null;
+        if (account == null || account.getRoleId() != 1) {
+            writeJson(response, false, "Unauthorized access.");
+            return;
+        }
+
         String action = request.getParameter("action");   // "edit" | "reject"
         if ("edit".equals(action)) {
             handleEdit(request, response);

@@ -5,18 +5,22 @@ public class LessonQuizz {
     private Integer lessonId;
     private Integer numberOfQuestions;
     private Integer timeLimitMinutes;
+    private Integer maxAttempts = 10;
     private Integer maxRetakes;
+    private Integer revealScoreAttempt = 1;
     private Integer passingScore;
     private Integer questionGroupId;
 
     public LessonQuizz() {}
 
-    public LessonQuizz(Integer id, Integer lessonId, Integer numberOfQuestions, Integer timeLimitMinutes, Integer maxRetakes, Integer passingScore, Integer questionGroupId) {
+    public LessonQuizz(Integer id, Integer lessonId, Integer numberOfQuestions, Integer timeLimitMinutes, Integer maxAttempts, Integer maxRetakes, Integer revealScoreAttempt, Integer passingScore, Integer questionGroupId) {
         this.id = id;
         this.lessonId = lessonId;
         this.numberOfQuestions = numberOfQuestions;
         this.timeLimitMinutes = timeLimitMinutes;
+        this.maxAttempts = maxAttempts;
         this.maxRetakes = maxRetakes;
+        this.revealScoreAttempt = revealScoreAttempt;
         this.passingScore = passingScore;
         this.questionGroupId = questionGroupId;
     }
@@ -29,8 +33,12 @@ public class LessonQuizz {
     public void setNumberOfQuestions(Integer numberOfQuestions) { this.numberOfQuestions = numberOfQuestions; }
     public Integer getTimeLimitMinutes() { return timeLimitMinutes; }
     public void setTimeLimitMinutes(Integer timeLimitMinutes) { this.timeLimitMinutes = timeLimitMinutes; }
+    public Integer getMaxAttempts() { return maxAttempts != null ? maxAttempts : 10; }
+    public void setMaxAttempts(Integer maxAttempts) { this.maxAttempts = maxAttempts; }
     public Integer getMaxRetakes() { return maxRetakes; }
     public void setMaxRetakes(Integer maxRetakes) { this.maxRetakes = maxRetakes; }
+    public Integer getRevealScoreAttempt() { return revealScoreAttempt != null ? revealScoreAttempt : 1; }
+    public void setRevealScoreAttempt(Integer revealScoreAttempt) { this.revealScoreAttempt = revealScoreAttempt; }
     public Integer getPassingScore() { return passingScore; }
     public void setPassingScore(Integer passingScore) { this.passingScore = passingScore; }
     public Integer getQuestionGroupId() { return questionGroupId; }

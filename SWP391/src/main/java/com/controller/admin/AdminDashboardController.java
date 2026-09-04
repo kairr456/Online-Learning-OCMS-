@@ -18,6 +18,13 @@ public class AdminDashboardController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        com.entity.Account account = (session != null) ? (com.entity.Account) session.getAttribute("account") : null;
+        if (account == null || account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         String period = request.getParameter("period");
         if (!"today".equals(period) && !"week".equals(period)
                 && !"month".equals(period) && !"quarter".equals(period)) {

@@ -167,15 +167,20 @@ public class LearningController extends HttpServlet {
             if (lessonQuiz != null) {
                 quizId = (Integer) lessonQuiz.get("id");
                 int maxRetakes = (Integer) lessonQuiz.get("max_retakes");
+                int maxAttempts = lessonQuiz.get("max_attempts") != null ? (Integer) lessonQuiz.get("max_attempts") : 10;
+                int revealScoreAttempt = lessonQuiz.get("reveal_score_attempt") != null ? (Integer) lessonQuiz.get("reveal_score_attempt") : 1;
                 int userAttemptsCount = qDAO.countUserAttemptsForQuiz(account.getId(), quizId);
                 List<Map<String, Object>> userAttemptsList = qDAO.getUserAttemptsForQuiz(account.getId(), quizId);
                 boolean isExhausted = (maxRetakes != -1 && userAttemptsCount >= maxRetakes);
-                boolean canViewHistory = (maxRetakes == -1 || maxRetakes >= 10 || isExhausted);
+                boolean canViewHistory = (maxRetakes == -1 || userAttemptsCount >= revealScoreAttempt || isExhausted);
 
                 request.setAttribute("lessonQuiz", lessonQuiz);
                 request.setAttribute("quizId", quizId);
+                request.setAttribute("maxAttempts", maxAttempts);
+                request.setAttribute("revealScoreAttempt", revealScoreAttempt);
                 request.setAttribute("maxRetakes", maxRetakes);
                 request.setAttribute("userAttemptsCount", userAttemptsCount);
+                request.setAttribute("userAttemptsList", userAttemptsList);
                 request.setAttribute("userAttemptsList", userAttemptsList);
                 request.setAttribute("isExhausted", isExhausted);
                 request.setAttribute("canViewHistory", canViewHistory);

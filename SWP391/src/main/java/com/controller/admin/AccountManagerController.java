@@ -32,6 +32,13 @@ public class AccountManagerController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        Account currentAcc = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (currentAcc == null || currentAcc.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         // Kiểm tra action
         String action = request.getParameter("action");
 
@@ -98,6 +105,12 @@ public class AccountManagerController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        Account currentAcc = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (currentAcc == null || currentAcc.getRoleId() != 1) {
+            writeJson(response, false, "Unauthorized access.");
+            return;
+        }
         String action = request.getParameter("action"); // "add" hoặc "edit"
         if ("add".equals(action))
             handleAdd(request, response);

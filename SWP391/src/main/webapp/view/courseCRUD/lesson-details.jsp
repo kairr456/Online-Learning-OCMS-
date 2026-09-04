@@ -91,8 +91,10 @@
                                 <h3 class="mb-3"><i class="fas fa-file-alt text-primary me-2"></i> Quiz: ${lesson.title}</h3>
                                 <p class="text-muted mb-4 fs-5">${lesson.description}</p>
                                 
+                                <c:set var="maxAttempts" value="${lessonQuiz.max_attempts != null ? lessonQuiz.max_attempts : 10}" />
+                                <c:set var="revealScoreAttempt" value="${lessonQuiz.reveal_score_attempt != null ? lessonQuiz.reveal_score_attempt : 1}" />
                                 <c:set var="isExhausted" value="${maxRetakes != null && maxRetakes != -1 && userAttempts >= maxRetakes}" />
-                                <c:set var="canViewHistory" value="${maxRetakes == -1 || maxRetakes >= 10 || isExhausted}" />
+                                <c:set var="canViewHistory" value="${maxRetakes == -1 || userAttempts >= revealScoreAttempt || isExhausted}" />
                                 <c:set var="hasAttempts" value="${userAttempts > 0}" />
                                 
                                 <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">

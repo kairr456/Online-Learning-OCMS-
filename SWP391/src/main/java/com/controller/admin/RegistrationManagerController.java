@@ -27,6 +27,13 @@ public class RegistrationManagerController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        com.entity.Account account = (session != null) ? (com.entity.Account) session.getAttribute("account") : null;
+        if (account == null || account.getRoleId() != 1) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         // Chuẩn hóa tham số qua registrationValidator (không tin raw từ client)
         String keyword = registrationValidator.keywordFor(request.getParameter("keyword"));
         String status  = registrationValidator.statusFor(request.getParameter("status"));

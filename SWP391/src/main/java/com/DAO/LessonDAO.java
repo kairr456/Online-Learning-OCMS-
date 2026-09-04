@@ -440,7 +440,11 @@ public class LessonDAO extends DBContext {
                 q.setLessonId(resultSet.getInt("lesson_id"));
                 q.setNumberOfQuestions(resultSet.getInt("number_of_questions"));
                 q.setTimeLimitMinutes(resultSet.getInt("time_limit_minutes"));
+                int att = resultSet.getInt("max_attempts");
+                q.setMaxAttempts(att > 0 ? att : 10);
                 q.setMaxRetakes(resultSet.getInt("max_retakes"));
+                int rev = resultSet.getInt("reveal_score_attempt");
+                q.setRevealScoreAttempt(rev > 0 ? rev : 1);
                 q.setPassingScore(resultSet.getInt("passing_score"));
                 q.setQuestionGroupId(resultSet.getInt("question_group_id"));
                 return q;
@@ -454,6 +458,14 @@ public class LessonDAO extends DBContext {
     }
 
     public void upsertLessonQuiz(int lessonId, int numQuestions, int timeLimit, int maxRetakes, int passScore, int groupId) {
+        upsertLessonQuiz(lessonId, numQuestions, timeLimit, maxRetakes + 1, maxRetakes, 1, passScore, groupId);
+    }
+
+    public void upsertLessonQuiz(int lessonId, int numQuestions, int timeLimit, int maxAttempts, int maxRetakes, int passScore, int groupId) {
+        upsertLessonQuiz(lessonId, numQuestions, timeLimit, maxAttempts, maxRetakes, 1, passScore, groupId);
+    }
+
+    public void upsertLessonQuiz(int lessonId, int numQuestions, int timeLimit, int maxAttempts, int maxRetakes, int revealScoreAttempt, int passScore, int groupId) {
         String checkSql = "SELECT id FROM lesson_quiz WHERE lesson_id = ?";
         try {
             connection = new DBContext().connection;
@@ -461,25 +473,29 @@ public class LessonDAO extends DBContext {
             statement.setInt(1, lessonId);
             resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                String upSql = "UPDATE lesson_quiz SET number_of_questions=?, time_limit_minutes=?, max_retakes=?, passing_score=?, question_group_id=? WHERE lesson_id=?";
+                String upSql = "UPDATE lesson_quiz SET number_of_questions=?, time_limit_minutes=?, max_attempts=?, max_retakes=?, reveal_score_attempt=?, passing_score=?, question_group_id=? WHERE lesson_id=?";
                 java.sql.PreparedStatement ps = connection.prepareStatement(upSql);
                 ps.setInt(1, numQuestions);
                 ps.setInt(2, timeLimit);
-                ps.setInt(3, maxRetakes);
-                ps.setInt(4, passScore);
-                ps.setInt(5, groupId);
-                ps.setInt(6, lessonId);
+                ps.setInt(3, maxAttempts);
+                ps.setInt(4, maxRetakes);
+                ps.setInt(5, revealScoreAttempt);
+                ps.setInt(6, passScore);
+                ps.setInt(7, groupId);
+                ps.setInt(8, lessonId);
                 ps.executeUpdate();
                 ps.close();
             } else {
-                String inSql = "INSERT INTO lesson_quiz (lesson_id, number_of_questions, time_limit_minutes, max_retakes, passing_score, question_group_id) VALUES (?, ?, ?, ?, ?, ?)";
+                String inSql = "INSERT INTO lesson_quiz (lesson_id, number_of_questions, time_limit_minutes, max_attempts, max_retakes, reveal_score_attempt, passing_score, question_group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 java.sql.PreparedStatement ps = connection.prepareStatement(inSql);
                 ps.setInt(1, lessonId);
                 ps.setInt(2, numQuestions);
                 ps.setInt(3, timeLimit);
-                ps.setInt(4, maxRetakes);
-                ps.setInt(5, passScore);
-                ps.setInt(6, groupId);
+                ps.setInt(4, maxAttempts);
+                ps.setInt(5, maxRetakes);
+                ps.setInt(6, revealScoreAttempt);
+                ps.setInt(7, passScore);
+                ps.setInt(8, groupId);
                 ps.executeUpdate();
                 ps.close();
             }

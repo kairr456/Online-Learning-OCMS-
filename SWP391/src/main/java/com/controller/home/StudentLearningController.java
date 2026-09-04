@@ -509,7 +509,12 @@ public class StudentLearningController extends HttpServlet {
             if (lessonQuiz.get("max_retakes") != null) {
                 maxRetakes = (Integer) lessonQuiz.get("max_retakes");
             }
-            boolean canViewHistory = (maxRetakes == -1 || maxRetakes >= 10 || userAttempts.size() >= maxRetakes);
+            int revealScoreAttempt = 1;
+            if (lessonQuiz.get("reveal_score_attempt") != null) {
+                revealScoreAttempt = (Integer) lessonQuiz.get("reveal_score_attempt");
+            }
+            boolean isExhausted = (maxRetakes != -1 && userAttempts.size() >= maxRetakes);
+            boolean canViewHistory = (maxRetakes == -1 || userAttempts.size() >= revealScoreAttempt || isExhausted);
             if (!canViewHistory) {
                 int courseId = lessonDAO.getCourseIdBySectionId(lesson.getSectionId());
                 response.sendRedirect(request.getContextPath() + "/learning?courseId=" + courseId + "&lessonId=" + lessonId + "&error=history_locked");

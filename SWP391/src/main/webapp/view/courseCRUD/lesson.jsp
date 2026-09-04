@@ -144,7 +144,9 @@
                                                                 <c:if test="${lesson.quizConfig != null}">
                                                                     <input type="hidden" id="rawQuizNum_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.numberOfQuestions}">
                                                                     <input type="hidden" id="rawQuizTime_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.timeLimitMinutes}">
+                                                                    <input type="hidden" id="rawQuizAttempts_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.maxAttempts}">
                                                                     <input type="hidden" id="rawQuizRetake_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.maxRetakes}">
+                                                                    <input type="hidden" id="rawQuizReveal_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.revealScoreAttempt}">
                                                                     <input type="hidden" id="rawQuizPass_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.passingScore}">
                                                                     <input type="hidden" id="rawQuizGroup_${sStat.index}_${lStat.index}" value="${lesson.quizConfig.questionGroupId}">
                                                                 </c:if>
@@ -402,13 +404,17 @@
                        '    <label class="form-label fw-bold">Thời gian làm bài (Phút) <span class="text-danger">*</span></label>' +
                        '    <input type="number" name="lessonQuizTime_' + lessonKey + '" class="form-control quiz-time-input" value="' + (quizData ? quizData.time : '15') + '" min="1">' +
                        '   </div>' +
-                       '   <div class="col-md-6">' +
+                       '   <div class="col-md-4">' +
                        '    <label class="form-label fw-bold">Số lần làm lại tối đa <span class="text-danger">*</span></label>' +
-                       '    <input type="number" name="lessonQuizRetake_' + lessonKey + '" class="form-control quiz-retake-input" value="' + (quizData ? quizData.retake : '3') + '" min="1">' +
+                       '    <input type="number" name="lessonQuizRetake_' + lessonKey + '" class="form-control quiz-retake-input" value="' + (quizData ? quizData.retake : '9') + '" min="0">' +
                        '   </div>' +
-                       '   <div class="col-md-6">' +
+                       '   <div class="col-md-4">' +
+                       '    <label class="form-label fw-bold">Số lần tới hiện điểm <span class="text-danger">*</span></label>' +
+                       '    <input type="number" name="lessonQuizReveal_' + lessonKey + '" class="form-control quiz-reveal-input" value="' + (quizData && quizData.reveal ? quizData.reveal : '1') + '" min="1">' +
+                       '   </div>' +
+                       '   <div class="col-md-4">' +
                        '    <label class="form-label fw-bold">Điểm Pass (%) <span class="text-danger">*</span></label>' +
-                       '    <input type="number" name="lessonQuizPass_' + lessonKey + '" class="form-control quiz-pass-input" value="' + (quizData ? quizData.pass : '80') + '" min="1" max="100">' +
+                       '    <input type="number" name="lessonQuizPass_' + lessonKey + '" class="form-control quiz-pass-input" value="' + (quizData ? quizData.pass : '50') + '" min="1" max="100">' +
                        '   </div>' +
                        '  </div>' +
                        ' </div>' +
@@ -746,6 +752,7 @@
                         const qNumInput = lesCard.querySelector('.quiz-num-input');
                         const qTimeInput = lesCard.querySelector('.quiz-time-input');
                         const qRetakeInput = lesCard.querySelector('.quiz-retake-input');
+                        const qRevealInput = lesCard.querySelector('.quiz-reveal-input');
                         const qPassInput = lesCard.querySelector('.quiz-pass-input');
 
                         if (!qGroupSelect || !qGroupSelect.value) {
@@ -769,9 +776,23 @@
 
                         const qRetakeVal = qRetakeInput ? qRetakeInput.value.trim() : '';
                         if (qRetakeInput) qRetakeInput.value = qRetakeVal;
-                        if (qRetakeVal === '' || isNaN(qRetakeVal) || parseInt(qRetakeVal) < 1) {
-                            markInvalid(qRetakeInput, 'Số lần làm lại tối đa phải từ 1 trở lên!');
-                            errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần làm lại tối đa phải từ 1 trở lên.');
+                        const qRetakeNum = parseInt(qRetakeVal, 10);
+                        if (qRetakeVal === '' || isNaN(qRetakeNum) || (qRetakeNum < 0 && qRetakeNum !== -1)) {
+                            markInvalid(qRetakeInput, 'Số lần làm lại tối đa không được âm!');
+                            errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần làm lại tối đa không được âm.');
+                        }
+
+                        const qRevealVal = qRevealInput ? qRevealInput.value.trim() : '';
+                        if (qRevealInput) qRevealInput.value = qRevealVal;
+                        const qRevealNum = parseInt(qRevealVal, 10);
+                        if (qRevealVal === '' || isNaN(qRevealNum) || qRevealNum < 1) {
+                            markInvalid(qRevealInput, 'Số lần tới hiện điểm phải từ 1 trở lên!');
+                            errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần tới hiện điểm phải từ 1 trở lên.');
+                        } else if (!isNaN(qRetakeNum) && qRetakeNum !== -1) {
+                            if (qRevealNum > qRetakeNum) {
+                                markInvalid(qRevealInput, 'Số lần tới hiện điểm (' + qRevealNum + ') phải nhỏ hơn hoặc bằng số lần làm lại tối đa (' + qRetakeNum + ')!');
+                                errors.push('Bài Quiz "' + (lesVal || '#' + (lIdx + 1)) + '": Số lần tới hiện điểm (' + qRevealNum + ') phải nhỏ hơn hoặc bằng số lần làm lại tối đa (' + qRetakeNum + ').');
+                            }
                         }
 
                         const qPassVal = qPassInput ? qPassInput.value.trim() : '';
@@ -866,10 +887,12 @@
                         var rawVideo = document.getElementById('rawVideoUrl_${sStat.index}_${lStat.index}') ? document.getElementById('rawVideoUrl_${sStat.index}_${lStat.index}').value : '';
                         var rawQuizNum = document.getElementById('rawQuizNum_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizNum_${sStat.index}_${lStat.index}').value : '10';
                         var rawQuizTime = document.getElementById('rawQuizTime_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizTime_${sStat.index}_${lStat.index}').value : '15';
-                        var rawQuizRetake = document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}').value : '3';
-                        var rawQuizPass = document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}').value : '80';
+                        var rawQuizAttempts = document.getElementById('rawQuizAttempts_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizAttempts_${sStat.index}_${lStat.index}').value : '10';
+                        var rawQuizRetake = document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizRetake_${sStat.index}_${lStat.index}').value : '9';
+                        var rawQuizReveal = document.getElementById('rawQuizReveal_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizReveal_${sStat.index}_${lStat.index}').value : '1';
+                        var rawQuizPass = document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizPass_${sStat.index}_${lStat.index}').value : '50';
                         var rawQuizGroup = document.getElementById('rawQuizGroup_${sStat.index}_${lStat.index}') ? document.getElementById('rawQuizGroup_${sStat.index}_${lStat.index}').value : '';
-                        changeLessonType(${sStat.index}, ${lStat.index}, type, rawHtml, rawVideo, {num: rawQuizNum, time: rawQuizTime, retake: rawQuizRetake, pass: rawQuizPass, group: rawQuizGroup});
+                        changeLessonType(${sStat.index}, ${lStat.index}, type, rawHtml, rawVideo, {num: rawQuizNum, time: rawQuizTime, attempts: rawQuizAttempts, retake: rawQuizRetake, reveal: rawQuizReveal, pass: rawQuizPass, group: rawQuizGroup});
                     </c:forEach>
                 </c:forEach>
             }

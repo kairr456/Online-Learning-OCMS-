@@ -279,7 +279,11 @@ public class QuizDAO extends DBContext {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("id"));
                     map.put("passing_score", rs.getInt("passing_score"));
+                    int atts = rs.getInt("max_attempts");
+                    map.put("max_attempts", atts > 0 ? atts : 10);
                     map.put("max_retakes", rs.getInt("max_retakes"));
+                    int rev = rs.getInt("reveal_score_attempt");
+                    map.put("reveal_score_attempt", rev > 0 ? rev : 1);
                     map.put("number_of_questions", rs.getInt("number_of_questions"));
                     map.put("time_limit_minutes", rs.getInt("time_limit_minutes"));
                     map.put("question_group_id", rs.getInt("question_group_id"));
@@ -407,7 +411,11 @@ public class QuizDAO extends DBContext {
                     map.put("course_name", rs.getString("course_name"));
                     map.put("course_id", rs.getInt("course_id"));
                     map.put("passing_score", rs.getInt("passing_score"));
+                    int atts = rs.getInt("max_attempts");
+                    map.put("max_attempts", atts > 0 ? atts : 10);
                     map.put("max_retakes", rs.getInt("max_retakes"));
+                    int rev = rs.getInt("reveal_score_attempt");
+                    map.put("reveal_score_attempt", rev > 0 ? rev : 1);
                     map.put("number_of_questions", rs.getInt("number_of_questions"));
                     map.put("time_limit_minutes", rs.getInt("time_limit_minutes"));
                     map.put("question_group_id", rs.getInt("question_group_id"));

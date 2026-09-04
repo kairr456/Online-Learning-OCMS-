@@ -1,5 +1,4 @@
 <aside class="sidebar">
-co
     <nav class="sidebar-menu">
 
         <!-- OVERVIEW -->
